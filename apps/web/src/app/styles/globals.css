@@ -1,0 +1,76 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+/* `dark:` follows the data-theme attribute set by the theme toggle, not the OS setting. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Map design tokens into Tailwind, so classes like bg-card, text-heading, border-border work. */
+@theme inline {
+  --color-page: var(--page);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-text-secondary: var(--text-secondary);
+  --color-heading: var(--heading);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+  --color-link: var(--link);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-risk-high: var(--risk-high);
+  --color-risk-high-bg: var(--risk-high-bg);
+  --color-risk-high-text: var(--risk-high-text);
+  --color-risk-medium: var(--risk-medium);
+  --color-risk-medium-bg: var(--risk-medium-bg);
+  --color-risk-medium-text: var(--risk-medium-text);
+  --color-risk-low: var(--risk-low);
+  --color-risk-low-bg: var(--risk-low-bg);
+  --color-risk-low-text: var(--risk-low-text);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-hover: var(--sidebar-hover);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-sidebar-active-text: var(--sidebar-active-text);
+  --color-sidebar-indicator: var(--sidebar-indicator);
+
+  --font-sans: var(--font-huninn), var(--font-huninn-ext), var(--font-vazirmatn), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+}
+
+/* Persian and Arabic use Vazirmatn first; Latin words inside them still render in Huninn. */
+:lang(fa),
+:lang(ar) {
+  --font-sans: var(--font-vazirmatn), var(--font-huninn), system-ui, sans-serif;
+}
+
+html {
+  background: var(--page);
+  color: var(--text);
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 20px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Numbers, IBANs and account numbers stay left-to-right inside RTL text. */
+.ltr-nums {
+  direction: ltr;
+  unicode-bidi: isolate;
+}

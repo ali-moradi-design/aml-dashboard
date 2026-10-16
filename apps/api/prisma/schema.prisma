@@ -1,0 +1,11 @@
+// Database schema. Models are added with the data model of release 1
+// (users, roles, regions, customers, accounts, transactions, alerts, cases).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}

@@ -1,0 +1,84 @@
+/*
+ * Design tokens from the Figma file "AML Dashboard" (collections Color Light / Color Dark).
+ * Light: blue palette. Dark: graphite surfaces with the logo navy for interactive elements.
+ * Change a color here and every component follows.
+ */
+:root {
+  color-scheme: light;
+
+  --page: #f4f6fa;
+  --card: #ffffff;
+  --muted: #f2f6fb;
+  --border: #e1e6ef;
+  --text: #0e1726;
+  --text-secondary: #5b6679;
+  --heading: #00296b;
+  --accent: #00509d;
+  --accent-hover: #003f88;
+  --accent-soft: #e6eef8;
+  --on-accent: #ffffff;
+  --link: #00509d;
+
+  --chart-1: #00296b;
+  --chart-2: #00509d;
+  --chart-3: #5b9be0;
+  --chart-4: #8db8ec;
+  --chart-5: #b7c0cf;
+
+  --risk-high: #d92d20;
+  --risk-high-bg: #fdecea;
+  --risk-high-text: #b42318;
+  --risk-medium: #ffd500;
+  --risk-medium-bg: #fff4c2;
+  --risk-medium-text: #5c4600;
+  --risk-low: #12b76a;
+  --risk-low-bg: #d1fadf;
+  --risk-low-text: #05603a;
+
+  --sidebar: #ffffff;
+  --sidebar-border: #e1e6ef;
+  --sidebar-hover: #f2f6fb;
+  --sidebar-active: #e6eef8;
+  --sidebar-active-text: #00296b;
+  --sidebar-indicator: #00509d;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --page: #0a0a0a;
+  --card: #141414;
+  --muted: #1c1c1c;
+  --border: #262626;
+  --text: #f5f5f5;
+  --text-secondary: #a3a3a3;
+  --heading: #ffffff;
+  --accent: #003f88;
+  --accent-hover: #00509d;
+  --accent-soft: #0d1a2e;
+  --on-accent: #ffffff;
+  --link: #8db8ec;
+
+  --chart-1: #ffffff;
+  --chart-2: #5b9be0;
+  --chart-3: #a3a3a3;
+  --chart-4: #3a3a3a;
+  --chart-5: #262626;
+
+  --risk-high: #f97066;
+  --risk-high-bg: #3b1411;
+  --risk-high-text: #fda29b;
+  --risk-medium: #fdc500;
+  --risk-medium-bg: #3a2e00;
+  --risk-medium-text: #ffe066;
+  --risk-low: #12b76a;
+  --risk-low-bg: #0b3a27;
+  --risk-low-text: #6ce9a6;
+
+  --sidebar: #0a0a0a;
+  --sidebar-border: #1c1c1c;
+  --sidebar-hover: #0d1a2e;
+  --sidebar-active: #003f88;
+  --sidebar-active-text: #ffffff;
+  --sidebar-indicator: #8db8ec;
+}

@@ -1,0 +1,19 @@
+{
+  "app": {
+    "name": "AML Monitor"
+  },
+  "overview": {
+    "title": "نمای کلی",
+    "subtitle": "اسکلت پروژه اجرا شد. صفحه‌ها در قدم بعد ساخته می‌شوند."
+  },
+  "system": {
+    "apiStatus": "وضعیت API",
+    "database": "پایگاه داده",
+    "checking": "در حال بررسی…",
+    "unreachable": "API در دسترس نیست. آن را با pnpm dev اجرا کنید."
+  },
+  "theme": {
+    "light": "تم روشن",
+    "dark": "تم تاریک"
+  }
+}

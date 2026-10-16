@@ -1,0 +1,19 @@
+{
+  "app": {
+    "name": "AML Monitor"
+  },
+  "overview": {
+    "title": "Overview",
+    "subtitle": "Project skeleton is running. Screens come next."
+  },
+  "system": {
+    "apiStatus": "API status",
+    "database": "Database",
+    "checking": "Checking…",
+    "unreachable": "API is not reachable. Start it with pnpm dev."
+  },
+  "theme": {
+    "light": "Light theme",
+    "dark": "Dark theme"
+  }
+}
