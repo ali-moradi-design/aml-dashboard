@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AML Monitor · Overview preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Huninn&family=Geist+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page: #F4F6FA; --card: #FFFFFF; --muted: #F2F6FB; --border: #E1E6EF;
+  --text: #0E1726; --text-2: #5B6679; --heading: #00296B; --on-accent: #FFFFFF;
+  --accent: #00509D; --accent-2: #00509D; --accent-soft: #E6EEF8; --cream: #E6EEF8;
+  --c1: #00296B; --c2: #00509D; --c3: #5B9BE0; --c4: #8DB8EC; --c5: #B7C0CF;
+  --h0: #F2F6FB; --h1: #E6EEF8; --h2: #8DB8EC; --h3: #00509D; --h4: #00296B;
+  --grid: #E1E6EF;
+  --hi: #D92D20; --hi-bg: #FDECEA; --hi-text: #B42318;
+  --md: #FFD500; --md-bg: #FFF4C2; --md-text: #5C4600;
+  --lo: #12B76A; --lo-bg: #D1FADF; --lo-text: #05603A;
+  --side: #FFFFFF; --side-border: #E1E6EF; --side-text: #0E1726; --side-muted: #5B6679; --side-active: #E6EEF8; --side-hover: #F2F6FB; --indicator: #00509D;
+  --bar: #FFFFFF; --control: #F4F6FA; --control-border: #E1E6EF; --control-active: #FFFFFF; --control-active-text: #00296B;
+  --tip: #0E1726; --tip-text: #FFFFFF;
+  --logo-tile: #0A0A0A; --logo-path: #FFFFFF; --logo-ring: rgba(255,255,255,.45); --logo-dot: #FFFFFF; --logo-border: rgba(255,255,255,.12);
+}
+:root[data-theme="dark"] {
+  --page: #0A0A0A; --card: #141414; --muted: #1C1C1C; --border: #262626;
+  --text: #F5F5F5; --text-2: #A3A3A3; --heading: #FFFFFF; --on-accent: #FFFFFF;
+  --accent: #003F88; --accent-2: #8DB8EC; --accent-soft: #0D1A2E; --cream: #1C1C1C;
+  --accent-fill: #003F88; --accent-edge: #003F88;
+  --avatar-bg: #003F88; --avatar-text: #FFFFFF;
+  --c1: #FFFFFF; --c2: #5B9BE0; --c3: #A3A3A3; --c4: #3A3A3A; --c5: #262626;
+  --h0: #1C1C1C; --h1: #262626; --h2: #3A3A3A; --h3: #A3A3A3; --h4: #FFFFFF;
+  --grid: #1C1C1C;
+  --hi: #F97066; --hi-bg: #3B1411; --hi-text: #FDA29B;
+  --md: #FDC500; --md-bg: #3A2E00; --md-text: #FFE066;
+  --lo: #12B76A; --lo-bg: #0B3A27; --lo-text: #6CE9A6;
+  --side: #0A0A0A; --side-border: #1C1C1C; --side-text: #F5F5F5; --side-muted: #A3A3A3; --side-active: #003F88; --side-hover: #0D1A2E; --indicator: #8DB8EC;
+  --bar: #141414; --control: #1C1C1C; --control-border: #262626; --control-active: #003F88; --control-active-text: #FFFFFF;
+  --tip: #003F88; --tip-text: #FFFFFF;
+  --logo-tile: #FFFFFF; --logo-path: #0A0A0A; --logo-ring: rgba(10,10,10,.4); --logo-dot: #0A0A0A; --logo-border: rgba(141,184,236,.35);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { font-family: "Huninn", system-ui, sans-serif; background: var(--page); color: var(--text); font-size: 14px; line-height: 20px; transition: background .25s, color .25s; }
+.mono { font-family: "Geist Mono", ui-monospace, monospace; font-size: 13px; }
+svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.app { display: flex; min-height: 100vh; }
+
+/* Sidebar */
+.side { position: sticky; top: 0; height: 100vh; width: 248px; flex: none; background: var(--side); border-right: 1px solid var(--side-border); padding: 20px 16px; display: flex; flex-direction: column; gap: 4px; transition: width .25s ease-in-out, background .25s; z-index: 2; }
+.app.collapsed .side { width: 72px; }
+.brand { display: flex; align-items: center; gap: 10px; height: 40px; overflow: hidden; white-space: nowrap; }
+.brand .name { font-size: 16px; line-height: 22px; color: var(--side-text); }
+.brand .sub { font-size: 12px; line-height: 16px; color: var(--side-muted); }
+.fade { transition: opacity .15s; }
+.app.collapsed .fade { opacity: 0; pointer-events: none; }
+.edge { position: absolute; top: 28px; right: -12px; width: 24px; height: 24px; border-radius: 12px; background: var(--side); border: 1px solid var(--side-border); color: var(--side-muted); display: grid; place-items: center; cursor: pointer; transition: transform .25s; }
+.edge svg { width: 14px; height: 14px; }
+.app.collapsed .edge { transform: rotate(180deg); }
+.group { height: 28px; display: flex; align-items: center; padding-left: 12px; font-size: 12px; color: var(--side-muted); position: relative; white-space: nowrap; }
+.group::after { content: ""; position: absolute; left: 12px; width: 16px; height: 1px; background: var(--side-border); opacity: 0; transition: opacity .15s; }
+.app.collapsed .group span { opacity: 0; }
+.app.collapsed .group::after { opacity: 1; }
+.nav { position: relative; height: 40px; display: flex; align-items: center; gap: 12px; padding: 0 10px 0 10px; border-radius: 8px; color: var(--side-muted); cursor: pointer; white-space: nowrap; overflow: hidden; transition: background .18s ease-out, color .18s ease-out, padding .18s ease-out; }
+.nav:hover { background: var(--side-hover); color: var(--side-text); padding-left: 14px; }
+.app.collapsed .nav:hover { padding-left: 10px; }
+.nav.active { background: var(--side-active); color: var(--side-text); }
+.nav.active svg { color: var(--indicator); }
+.nav.active::before { content: ""; position: absolute; left: 0; top: 10px; width: 3px; height: 20px; border-radius: 2px; background: var(--indicator); }
+.nav .lbl { flex: 1; }
+.count { font-size: 12px; line-height: 16px; padding: 1px 8px; border-radius: 999px; background: var(--muted); color: var(--side-text); }
+.nav.active .count { background: var(--indicator); color: var(--on-accent); }
+.spacer { flex: 1; }
+
+/* Main */
+.main { flex: 1; min-width: 0; }
+.bar { position: sticky; top: 0; z-index: 1; height: 64px; background: var(--bar); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; padding: 0 32px; transition: background .25s; }
+.ctl { height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-radius: 8px; background: var(--control); border: 1px solid var(--control-border); color: var(--text-2); cursor: pointer; }
+.ctl b { font-weight: 400; color: var(--text); }
+.search { width: 400px; }
+.search span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.search .kbd { flex: none; }
+.ctl, .btn, .user { white-space: nowrap; }
+.kbd { padding: 2px 6px; border-radius: 6px; background: var(--card); border: 1px solid var(--border); }
+.theme { padding: 3px; gap: 2px; }
+.theme button { width: 34px; height: 32px; border: 0; border-radius: 6px; background: transparent; color: var(--text-2); display: grid; place-items: center; cursor: pointer; transition: background .2s, color .2s; }
+.theme button.on { background: var(--control-active); color: var(--control-active-text); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.theme svg { width: 18px; height: 18px; }
+.bell { width: 40px; justify-content: center; padding: 0; position: relative; color: var(--text); }
+.bell::after { content: ""; position: absolute; top: 9px; right: 9px; width: 8px; height: 8px; border-radius: 4px; background: var(--hi); }
+.sep { width: 1px; height: 28px; background: var(--border); }
+.user { display: flex; align-items: center; gap: 10px; color: var(--text-2); cursor: pointer; }
+.avatar { width: 36px; height: 36px; border-radius: 18px; background: var(--accent-soft); color: var(--heading); display: grid; place-items: center; font-size: 12px; }
+.user .n { color: var(--text); }
+.user .r { font-size: 12px; line-height: 16px; }
+
+.content { max-width: 1600px; margin: 0 auto; padding: 28px 32px 40px; display: flex; flex-direction: column; gap: 24px; }
+.phead { display: flex; align-items: flex-end; gap: 12px; }
+.phead h1 { margin: 0; font-weight: 400; font-size: 24px; line-height: 32px; color: var(--heading); }
+.phead p { margin: 4px 0 0; color: var(--text-2); }
+.btn { height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 14px; border-radius: 8px; background: var(--card); border: 1px solid var(--border); color: var(--text); cursor: pointer; }
+.btn.primary { background: var(--accent-fill, var(--accent)); border-color: var(--accent-edge, var(--accent)); color: var(--on-accent); }
+.avatar { background: var(--avatar-bg, var(--accent-soft)); color: var(--avatar-text, var(--heading)); }
+:root[data-theme="dark"] .theme button.on { box-shadow: none; }
+:root[data-theme="dark"] .nav.active { color: #FFFFFF; }
+:root[data-theme="dark"] .nav.active svg { color: #FFFFFF; }
+:root[data-theme="dark"] .nav.active .count { background: #FFFFFF; color: #003F88; }
+:root[data-theme="dark"] .nav .count { background: #0D1A2E; color: #8DB8EC; }
+
+.row { display: flex; gap: 24px; align-items: stretch; }
+.grow { flex: 1; min-width: 0; }
+.w380 { width: 380px; flex: none; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 20px; transition: background .25s, border-color .25s; }
+.eyebrow { font-size: 12px; line-height: 16px; color: var(--text-2); }
+.insight { font-size: 16px; line-height: 24px; color: var(--text); margin-top: 4px; }
+.chead { display: flex; gap: 12px; align-items: flex-start; }
+.note { background: var(--muted); border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 16px; color: var(--text-2); }
+.legend { display: flex; gap: 16px; font-size: 12px; color: var(--text-2); }
+.legend i { display: inline-block; width: 8px; height: 8px; border-radius: 4px; margin-right: 6px; vertical-align: 0; }
+.legend i.dash { width: 14px; height: 2px; border-radius: 1px; vertical-align: 3px; }
+
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.kpi { padding: 20px; gap: 10px; }
+.kpi .top { display: flex; justify-content: space-between; gap: 8px; color: var(--text-2); }
+.kpi .val { font-size: 28px; line-height: 36px; color: var(--heading); }
+.pill { font-size: 12px; line-height: 16px; padding: 2px 8px; border-radius: 999px; }
+.bad { background: var(--hi-bg); color: var(--hi-text); }
+.good { background: var(--lo-bg); color: var(--lo-text); }
+.kpi .meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-2); }
+
+.seg { display: flex; gap: 2px; padding: 3px; border-radius: 8px; background: var(--muted); }
+.seg span { padding: 4px 10px; border-radius: 6px; font-size: 12px; color: var(--text-2); cursor: pointer; }
+.seg span.on { background: var(--card); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+.plotwrap { display: flex; gap: 12px; }
+.yax { display: flex; flex-direction: column; justify-content: space-between; height: 200px; width: 28px; font-size: 12px; color: var(--text-2); line-height: 12px; }
+.plot { position: relative; flex: 1; height: 200px; }
+.plot svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.xax { display: flex; justify-content: space-between; padding-left: 40px; font-size: 12px; color: var(--text-2); }
+.tip { position: absolute; transform: translate(calc(-100% - 14px), -10px); background: var(--tip); color: var(--tip-text); border-radius: 8px; padding: 8px 12px; font-size: 13px; line-height: 18px; white-space: nowrap; }
+.tip small { display: block; font-size: 12px; line-height: 16px; opacity: .8; }
+.pt { position: absolute; width: 12px; height: 12px; border-radius: 6px; background: var(--card); border: 3px solid var(--c2); transform: translate(-6px, -6px); }
+.avgtag { position: absolute; left: 4px; transform: translateY(-22px); background: var(--card); color: var(--text-2); font-size: 12px; padding: 2px 6px; border-radius: 6px; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: auto; }
+.stat { background: var(--muted); border-radius: 8px; padding: 10px 12px; }
+.stat b { display: block; font-weight: 400; font-size: 16px; line-height: 24px; color: var(--heading); }
+.stat span { font-size: 12px; line-height: 16px; color: var(--text-2); }
+
+.donut { align-self: center; position: relative; width: 164px; height: 164px; }
+.donut .c { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+.donut .c b { display: block; font-weight: 400; font-size: 20px; line-height: 28px; color: var(--heading); }
+.donut .c span { font-size: 12px; color: var(--text-2); }
+table { width: 100%; border-collapse: collapse; }
+.rt td, .rt th { font-weight: 400; font-size: 13px; line-height: 18px; padding: 4px 0; text-align: right; }
+.rt th { font-size: 12px; color: var(--text-2); }
+.rt td:first-child, .rt th:first-child { text-align: left; }
+.rt .dot { display: inline-block; width: 8px; height: 8px; border-radius: 4px; margin-right: 8px; }
+.rt td:last-child { color: var(--heading); }
+
+.heat { display: grid; grid-template-columns: 36px repeat(12, 1fr); gap: 4px; align-items: center; font-size: 12px; color: var(--text-2); }
+.heat div.cell { height: 22px; border-radius: 4px; transition: transform .15s; }
+.heat div.cell:hover { transform: scale(1.12); }
+.heat div.spike { outline: 2px solid var(--hi); outline-offset: 1px; }
+.scale { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-2); }
+.scale i { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+.callout { display: flex; gap: 10px; align-items: center; background: var(--hi-bg); color: var(--hi-text); border-radius: 8px; padding: 10px 12px; font-size: 13px; line-height: 18px; }
+.callout::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 4px; background: var(--hi); }
+
+.funnel { flex: 1; display: flex; gap: 8px; align-items: flex-end; min-height: 200px; }
+.funnel .col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; }
+.funnel .conv { padding: 1px 6px; border-radius: 6px; background: var(--muted); color: var(--text-2); }
+.funnel .v { font-size: 14px; color: var(--heading); }
+.funnel .b { width: 100%; border-radius: 6px 6px 2px 2px; transition: filter .15s; }
+.funnel .b:hover { filter: brightness(1.15); }
+
+.at th, .at td { text-align: left; font-weight: 400; padding: 12px 8px 12px 0; border-top: 1px solid var(--border); font-size: 13px; }
+.at th { font-size: 12px; color: var(--text-2); padding: 8px 8px 8px 0; }
+.at td.r, .at th.r { text-align: right; padding-right: 16px; }
+.at tr:hover td { background: var(--muted); }
+.at a { color: var(--accent-2); text-decoration: none; }
+:root:not([data-theme="dark"]) .at a { color: var(--accent); }
+.badge { font-size: 12px; line-height: 16px; padding: 2px 10px; border-radius: 999px; }
+.b-hi { background: var(--hi-bg); color: var(--hi-text); }
+.b-md { background: var(--md-bg); color: var(--md-text); }
+.link { color: var(--accent); font-size: 13px; white-space: nowrap; }
+:root[data-theme="dark"] .link { color: var(--accent-2); }
+
+.branch { display: flex; flex-direction: column; gap: 8px; }
+.branch .h { display: flex; align-items: center; gap: 8px; }
+.branch .h span:first-child { flex: 1; }
+.branch .h .pct { font-size: 12px; color: var(--hi-text); }
+.branch .h .tot { color: var(--heading); }
+.stack { display: flex; gap: 2px; height: 8px; }
+.stack i { border-radius: 3px; display: block; transition: filter .15s; }
+.stack i:hover { filter: brightness(1.15); }
+.at td, .at th { white-space: nowrap; }
+.tablewrap { overflow-x: auto; }
+@media (max-width: 1280px) {
+  .row { flex-direction: column; }
+  .w380 { width: auto; }
+  .kpis { grid-template-columns: repeat(2, 1fr); }
+  .search { width: 280px; }
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <aside class="side">
+    <div class="edge" id="edge" title="Collapse sidebar"></div>
+    <div class="brand">
+      <svg width="36" height="36" viewBox="0 0 36 36" fill="none" style="flex:none"><defs><linearGradient id="aml-tile" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#003F88"/><stop offset="1" stop-color="#00296B"/></linearGradient><linearGradient id="aml-path" x1="8" y1="25" x2="26" y2="12" gradientUnits="userSpaceOnUse"><stop stop-color="#8DB8EC" stop-opacity=".75"/><stop offset="1" stop-color="#FFFFFF"/></linearGradient></defs><rect width="36" height="36" rx="10" fill="url(#aml-tile)"/><rect x=".5" y=".5" width="35" height="35" rx="9.5" stroke="var(--logo-border)"/><path d="M8.5 24.5 14 19l4.5 3.5 6-8.5" stroke="url(#aml-path)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8.5" cy="24.5" r="1.9" fill="#8DB8EC"/><circle cx="14" cy="19" r="1.9" fill="#A9C9F0"/><circle cx="18.5" cy="22.5" r="1.9" fill="#C6DCF5"/><circle cx="25.5" cy="12.5" r="6" stroke="#5B9BE0" stroke-width="1.5"/><circle cx="25.5" cy="12.5" r="3" fill="#FFFFFF"/></svg>
+      <div class="fade"><div class="name">AML Monitor</div><div class="sub">Northbank demo</div></div>
+    </div>
+    <div style="height:20px"></div>
+    <div id="nav"></div>
+  </aside>
+
+  <div class="main">
+    <header class="bar">
+      <div class="ctl search"><span data-i="search"></span><span>Search customers, cases, alerts</span><span class="kbd mono">Ctrl K</span></div>
+      <div class="spacer"></div>
+      <div class="ctl theme" id="theme"><button data-t="light" class="on" title="Light"></button><button data-t="dark" title="Dark"></button></div>
+      <div class="ctl"><span data-i="globe"></span><b>EN</b><span data-i="chevron"></span></div>
+      <div class="ctl bell"><span data-i="bell"></span></div>
+      <div class="sep"></div>
+      <div class="user"><div class="avatar">LW</div><div><div class="n">Lena Weber</div><div class="r">Analyst · Berlin</div></div><span data-i="chevron"></span></div>
+    </header>
+
+    <main class="content">
+      <div class="phead">
+        <div class="grow"><h1>Overview</h1><p>Good morning, Lena. 142 high-risk alerts need a decision today.</p></div>
+        <div class="btn"><span data-i="calendar"></span>Last 7 days<span data-i="chevron"></span></div>
+        <div class="btn primary"><span data-i="download"></span>Export</div>
+      </div>
+
+      <div class="kpis" id="kpis"></div>
+
+      <div class="row">
+        <section class="card grow">
+          <div class="chead"><div class="grow"><div class="eyebrow">Alert trend · last 7 days</div><div class="insight">Alerts rose 8% this week, but 3 in 4 were closed as false positives.</div></div>
+            <div class="seg"><span class="on">7D</span><span>30D</span><span>90D</span></div></div>
+          <div class="legend"><span><i style="background:var(--c2)"></i>New alerts</span><span><i style="background:var(--c3)"></i>Closed as false positive</span><span><i class="dash" style="background:var(--text-2)"></i>7-day average</span></div>
+          <div class="plotwrap"><div class="yax"><span>240</span><span>180</span><span>120</span><span>60</span><span>0</span></div><div class="plot" id="trend"></div></div>
+          <div class="xax"><span>Mon 6</span><span>Tue 7</span><span>Wed 8</span><span>Thu 9</span><span>Fri 10</span><span>Sat 11</span><span>Sun 12</span></div>
+          <div class="stats"><div class="stat"><b>1,264</b><span>new alerts this week</span></div><div class="stat"><b>949</b><span>closed as false positive (75%)</span></div><div class="stat"><b>214</b><span>escalated to a case</span></div></div>
+        </section>
+        <section class="card w380">
+          <div><div class="eyebrow">Alerts by rule</div><div class="insight">Structuring drives a third of alerts and finds the most real cases.</div></div>
+          <div class="donut"><svg id="donut" width="164" height="164" viewBox="0 0 164 164"></svg><div class="c"><div><b>1,284</b><span>alerts</span></div></div></div>
+          <table class="rt" id="rules"></table>
+          <div class="note">Hit rate = alerts that became a case. Round amounts (3%) is a candidate for tuning.</div>
+        </section>
+      </div>
+
+      <div class="row">
+        <section class="card grow">
+          <div class="chead"><div class="grow"><div class="eyebrow">When alerts are raised · alerts per 2 hours</div><div class="insight">Weekdays peak 10:00–14:00. Friday 22:00–24:00 is 4× the usual level.</div></div>
+            <div class="scale">0<i style="background:var(--h0)"></i><i style="background:var(--h1)"></i><i style="background:var(--h2)"></i><i style="background:var(--h3)"></i><i style="background:var(--h4)"></i>40+</div></div>
+          <div class="heat" id="heat"></div>
+          <div class="callout">Fri 22:00–24:00: 38 alerts. 31 are cash deposits just under EUR 10,000 at the Berlin branch, a classic structuring pattern.</div>
+        </section>
+        <section class="card w380">
+          <div><div class="eyebrow">Review funnel · last 7 days</div><div class="insight">1 in 6 alerts becomes a case; 38 reached the regulator.</div></div>
+          <div class="funnel" id="funnel"></div>
+          <div class="note">Arrows show how many move to the next step. Reviewing 1,036 alerts took 412 analyst hours.</div>
+        </section>
+      </div>
+
+      <div class="row">
+        <section class="card grow" style="gap:16px">
+          <div class="chead"><div class="grow"><div class="eyebrow">Needs a decision</div><div class="insight">5 high-risk alerts are waiting longer than 24 hours.</div></div><span class="link">View all alerts</span></div>
+          <div class="tablewrap"><table class="at" id="alerts"></table></div>
+        </section>
+        <section class="card w380">
+          <div><div class="eyebrow">Open alerts by branch and risk</div><div class="insight">Istanbul has the highest share of high-risk alerts (22%).</div></div>
+          <div class="legend"><span><i style="background:var(--hi)"></i>High</span><span><i style="background:var(--md)"></i>Medium</span><span><i style="background:var(--lo)"></i>Low</span></div>
+          <div id="branches" style="display:flex;flex-direction:column;gap:16px"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+const ICONS = {
+  home: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+  alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  folder: '<path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/>',
+  transfer: '<path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/>',
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  network: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98"/><path d="m15.41 6.51-6.82 3.98"/>',
+  report: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/>',
+  inbox: '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+  settings: '<path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M1 14h6"/><path d="M9 8h6"/><path d="M17 16h6"/>',
+  help: '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
+  search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  globe: '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
+  chevron: '<path d="m6 9 6 6 6-6"/>',
+  chevLeft: '<path d="m15 18-6-6 6-6"/>',
+  calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/>',
+  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+  moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>'
+};
+const icon = n => `<svg class="i" viewBox="0 0 24 24">${ICONS[n]}</svg>`;
+document.querySelectorAll("[data-i]").forEach(el => el.outerHTML = icon(el.dataset.i));
+document.getElementById("edge").innerHTML = icon("chevLeft");
+const tb = document.querySelectorAll("#theme button"); tb[0].innerHTML = icon("sun"); tb[1].innerHTML = icon("moon");
+
+const fmt = n => n.toLocaleString("en-US");
+const navHtml = (label, ic, opts = {}) => `<div class="nav${opts.active ? " active" : ""}" title="${label}">${icon(ic)}<span class="lbl fade">${label}</span>${opts.count ? `<span class="count fade">${opts.count}</span>` : ""}</div>`;
+document.getElementById("nav").outerHTML =
+  `<div class="group"><span class="fade">Monitoring</span></div>` +
+  navHtml("Overview", "home", {active: true}) + navHtml("Alerts", "alert", {count: 142}) + navHtml("Cases", "folder", {count: 37}) +
+  navHtml("Transactions", "transfer") + navHtml("Customers", "users") + navHtml("Account network", "network") +
+  `<div style="height:16px"></div><div class="group"><span class="fade">Workspace</span></div>` +
+  navHtml("My work", "inbox", {count: 6}) + navHtml("Reports", "report") +
+  `<div class="spacer"></div>` + navHtml("Help", "help") + navHtml("Settings", "settings");
+
+const smooth = p => { let d = `M ${p[0][0]} ${p[0][1]}`; for (let i = 0; i < p.length - 1; i++) { const p0 = p[i - 1] || p[i], p1 = p[i], p2 = p[i + 1], p3 = p[i + 2] || p2; d += ` C ${p1[0] + (p2[0] - p0[0]) / 6} ${p1[1] + (p2[1] - p0[1]) / 6} ${p2[0] - (p3[0] - p1[0]) / 6} ${p2[1] - (p3[1] - p1[1]) / 6} ${p2[0]} ${p2[1]}`; } return d; };
+const spark = data => { const W = 88, H = 32, max = Math.max(...data) * 1.1; const p = data.map((v, i) => [i * W / (data.length - 1), H - 2 - v / max * (H - 4)]); const l = smooth(p); return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="overflow:visible"><path d="${l} L ${W} ${H} L 0 ${H} Z" fill="var(--accent-soft)"/><path d="${l}" fill="none" stroke="var(--c2)" stroke-width="2" stroke-linecap="round"/></svg>`; };
+document.getElementById("kpis").innerHTML = [
+  ["Open alerts","1,284","+8.2%","vs last week","bad",[10,14,12,18,16,22,26]],
+  ["High-risk alerts","142","+12","since yesterday","bad",[12,11,13,12,20,17,24]],
+  ["Awaiting approval","37","−6","9 past their SLA","good",[24,22,23,18,17,13,11]],
+  ["Median review time","3h 12m","−18 min","target 4h","good",[15,17,14,18,16,19,17]]
+].map(([l, v, d, n, t, s]) => `<div class="card kpi"><div class="top"><span>${l}</span>${spark(s)}</div><div class="val">${v}</div><div class="meta"><span class="pill ${t}">${d}</span>${n}</div></div>`).join("");
+
+// Trend
+const W = 1000, H = 200, A = [150,172,160,198,184,210,190], B = [112,130,118,149,138,158,144];
+const pts = arr => arr.map((v, i) => [i * W / (arr.length - 1), H - v / 240 * H]);
+const a = pts(A), b = pts(B), avg = Math.round(A.reduce((s, x) => s + x) / A.length), ay = H - avg / 240 * H;
+let grid = ""; for (let i = 0; i < 5; i++) grid += `<line x1="0" x2="${W}" y1="${i * (H - 1) / 4}" y2="${i * (H - 1) / 4}" stroke="var(--grid)" vector-effect="non-scaling-stroke"/>`;
+document.getElementById("trend").innerHTML =
+  `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${grid}
+    <path d="${smooth(a)} L ${W} ${H} L 0 ${H} Z" fill="var(--accent-soft)"/>
+    <path d="${smooth(b)}" fill="none" stroke="var(--c3)" stroke-width="2" vector-effect="non-scaling-stroke"/>
+    <path d="${smooth(a)}" fill="none" stroke="var(--c2)" stroke-width="2.5" vector-effect="non-scaling-stroke"/>
+    <line x1="0" x2="${W}" y1="${ay}" y2="${ay}" stroke="var(--text-2)" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>
+    <line x1="${a[5][0]}" x2="${a[5][0]}" y1="${a[5][1]}" y2="${H}" stroke="var(--c3)" vector-effect="non-scaling-stroke"/></svg>
+   <span class="avgtag" style="top:${ay / H * 100}%">avg ${avg}</span>
+   <span class="pt" style="left:${a[5][0] / W * 100}%;top:${a[5][1] / H * 100}%"></span>
+   <div class="tip" style="left:${a[5][0] / W * 100}%;top:${a[5][1] / H * 100}%"><small>Sat 11 · peak of the week</small>210 new · 158 false positive (75%)</div>`;
+
+// Donut + rule table
+const rules = [["Structuring",436,34,21,"var(--c1)"],["Rapid in and out",283,22,14,"var(--c2)"],["High-risk country",231,18,9,"var(--c3)"],["Dormant account",180,14,6,"var(--c4)"],["Round amounts",154,12,3,"var(--c5)"]];
+let ang = -Math.PI / 2, arcs = ""; const R = 82, r = 56, g = 0.04;
+for (const [n, , pct, , col] of rules) {
+  const a0 = ang + g / 2, a1 = ang + pct / 100 * 2 * Math.PI - g / 2; ang += pct / 100 * 2 * Math.PI;
+  const P = (rr, t) => [82 + rr * Math.cos(t), 82 + rr * Math.sin(t)], large = a1 - a0 > Math.PI ? 1 : 0;
+  const [x0, y0] = P(R, a0), [x1, y1] = P(R, a1), [x2, y2] = P(r, a1), [x3, y3] = P(r, a0);
+  arcs += `<path d="M ${x0} ${y0} A ${R} ${R} 0 ${large} 1 ${x1} ${y1} L ${x2} ${y2} A ${r} ${r} 0 ${large} 0 ${x3} ${y3} Z" fill="${col}"><title>${n}: ${pct}%</title></path>`;
+}
+document.getElementById("donut").innerHTML = arcs;
+document.getElementById("rules").innerHTML = `<tr><th>Rule</th><th>Alerts</th><th>Share</th><th>Hit rate</th></tr>` + rules.map(([n, c, p, h, col]) => `<tr><td><span class="dot" style="background:${col}"></span>${n}</td><td>${fmt(c)}</td><td>${p}%</td><td>${h}%</td></tr>`).join("");
+
+// Heatmap
+const days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"], base = [0,0,1,2,3,4,4,3,3,2,1,1];
+let heat = "";
+days.forEach((d, di) => { heat += `<span>${d}</span>`; for (let h = 0; h < 12; h++) { let v = base[h] - (di >= 5 ? 2 : 0) + ((di * 7 + h * 3) % 5 === 0 ? 1 : 0) - ((di + h) % 7 === 0 ? 1 : 0); const spike = di === 4 && h === 11; if (spike) v = 4; v = Math.max(0, Math.min(4, v)); heat += `<div class="cell${spike ? " spike" : ""}" style="background:var(--h${v})" title="${d} ${String(h * 2).padStart(2, "0")}:00"></div>`; } });
+heat += `<span></span>` + Array.from({length: 12}, (_, h) => `<span>${String(h * 2).padStart(2, "0")}</span>`).join("");
+document.getElementById("heat").innerHTML = heat;
+
+// Funnel
+document.getElementById("funnel").innerHTML = [["Raised",1284,"var(--c1)",""],["Reviewed",1036,"var(--c2)","→ 81%"],["Case",214,"var(--c3)","→ 21%"],["Reported",38,"var(--c4)","→ 18%"]]
+  .map(([l, v, c, conv]) => `<div class="col"><span class="conv" style="${conv ? "" : "visibility:hidden"}">${conv || "-"}</span><span class="v">${fmt(v)}</span><div class="b" style="height:${Math.max(6, Math.round(130 * v / 1284))}px;background:${c}"></div><span>${l}</span></div>`).join("");
+
+// Alerts table
+document.getElementById("alerts").innerHTML = `<tr><th>Alert</th><th>Customer</th><th>Rule</th><th class="r">Amount</th><th>Waiting</th><th>Risk</th></tr>` +
+  [["AL-24817","Northwind GmbH","Structuring below limit","EUR 9,850.00","31h","High"],["AL-24816","Mehmet Arslan","Rapid in and out","TRY 412,300","29h","High"],["AL-24811","Sahara Logistics FZE","High-risk country transfer","AED 1,120,000","27h","High"],["AL-24809","Clara Hoffmann","Dormant account active","EUR 48,200.00","26h","Medium"],["AL-24802","Thames Bridge Ltd","Repeated round amounts","USD 250,000","25h","Medium"]]
+  .map(([id, c, ru, am, w, rk]) => `<tr><td><a class="mono" href="#">${id}</a></td><td>${c}</td><td>${ru}</td><td class="r">${am}</td><td>${w}</td><td><span class="badge ${rk === "High" ? "b-hi" : "b-md"}">${rk}</span></td></tr>`).join("");
+
+// Branches
+document.getElementById("branches").innerHTML = [["Istanbul",66,112,120],["Dubai",58,80,80],["Berlin",72,150,190],["London",40,126,190]]
+  .map(([n, h, m, l]) => { const t = h + m + l, w = t / 412 * 100; return `<div class="branch"><div class="h"><span>${n}</span><span class="pct">${Math.round(h / t * 100)}% high</span><span class="tot">${t}</span></div><div class="stack" style="width:${w}%"><i style="flex:${h};background:var(--hi)"></i><i style="flex:${m};background:var(--md)"></i><i style="flex:${l};background:var(--lo)"></i></div></div>`; }).join("");
+
+// Interactions
+const app = document.getElementById("app");
+document.getElementById("edge").onclick = () => app.classList.toggle("collapsed");
+tb.forEach(btn => btn.onclick = () => { document.documentElement.dataset.theme = btn.dataset.t; tb.forEach(x => x.classList.toggle("on", x === btn)); });
+const q = new URLSearchParams(location.search);
+if (q.get("theme") === "dark") tb[1].click();
+if (q.get("sidebar") === "collapsed") app.classList.add("collapsed");
+</script>
+</body>
+</html>

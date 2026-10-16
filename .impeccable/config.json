@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "geist mono",
+        "createdAt": "2026-10-16T23:05:21.689Z",
+        "reason": "assistant decision recorded in docs/decisions.md: Geist Mono is used only for IDs, IBANs and account numbers; the main face is Huninn"
+      }
+    ]
+  }
+}
