@@ -159,10 +159,13 @@ English text comes from the API). Plural keys (`_one`/`_other`) count as present
 - Graphify: the knowledge graph of the repo is in `graphify-out/` (graph.json, graph.html,
   GRAPH_REPORT.md, labels, manifest are committed; cache, interpreter path, scan root and cost
   are ignored). Rebuild with `/graphify . --update` after larger changes.
-- Figma (file in `docs/decisions.md`): not updated yet. On 2026-10-17 the Figma MCP answered
-  that the Starter plan's tool-call limit was reached, so no write was possible. Still to do:
-  final logo, dark-mode navy interactive colors, the login screen, and frames for the network
-  graph, workflow designer, My work and the release 4 screens.
+- Figma (file in `docs/decisions.md`): skipped by the author's decision on 2026-10-17 (the
+  Figma MCP had hit the Starter plan's tool-call limit). If it is picked up again: final logo,
+  dark-mode navy interactive colors, the login screen, and frames for the network graph,
+  workflow designer, My work and the release 4 screens.
+- Open check for the author: `docs/brief.md` (the brief copied in at the start) names the
+  excluded country in its content rules. It predates these notes and was left unchanged;
+  rephrase it generically if the public repo must not contain the name at all.
 
 ## Remaining ideas (not planned)
 
@@ -190,3 +193,6 @@ English text comes from the API). Plural keys (`_one`/`_other`) count as present
   `next dev` if a new rule is missing from the served stylesheet. Stopping the web dev server
   that `pnpm dev` started also stops the API; start `pnpm --filter @aml/api dev` again.
 - `next build` and `next dev` share `.next`; run the build when no dev page is loading.
+- The `[locale]` root layout re-renders on the client when the language changes. Anything that
+  renders a `<script>` there triggers a React 19 warning; the next-themes script is therefore
+  made inert on the client (`scriptProps` in `app/providers/providers.tsx`).
