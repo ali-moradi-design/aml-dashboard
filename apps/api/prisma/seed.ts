@@ -157,7 +157,7 @@ const RULE_SCORE: Record<string, [number, number]> = { "R-STRUCT": [62, 98], "R-
 async function main() {
   console.time("seed");
   await db.$executeRawUnsafe(
-    `TRUNCATE "WorkflowVersion","WorkflowDefinition","FormDraft","CaseEvent","CaseMember","PrivateNote","CaseCommentEdit","CaseDocument","CaseComment","CasePartyAccount","CaseParty","Case","ShareholderDocument","Shareholder","AuditLog","Alert","Transaction","Account","Customer","Rule","Session","UserRegion","User","RolePermission","Permission","Role","Branch","Region","ClearanceLevel" RESTART IDENTITY CASCADE`,
+    `TRUNCATE "Notification","UserPreference","SystemSetting","NewsRead","NewsAttachment","NewsPost","JobRun","Job","ImportBatch","WorkflowVersion","WorkflowDefinition","FormDraft","CaseEvent","CaseMember","PrivateNote","CaseCommentEdit","CaseDocument","CaseComment","CasePartyAccount","CaseParty","Case","ShareholderDocument","Shareholder","AuditLog","Alert","Transaction","Account","Customer","Rule","Session","UserRegion","User","RolePermission","Permission","Role","Branch","Region","ClearanceLevel" RESTART IDENTITY CASCADE`,
   );
 
   // access model
@@ -210,6 +210,7 @@ async function main() {
     const user = await db.user.create({
       data: {
         email: u.email, name: u.name, passwordHash, roleId: roles[u.role]!, clearanceRank: u.rank,
+        lastLoginAt: new Date(NOW.getTime() - int(1, 72) * 3_600_000),
         regions: { create: u.regions.map((r) => ({ regionId: regionId[r]! })) },
       },
     });
@@ -577,6 +578,101 @@ async function main() {
     if (chance(0.6)) await db.caseComment.create({ data: { caseId: c.id, authorId: creator, body: pick(COMMENTS), createdAt: later(20) } });
   }
   console.log(`cases ${groups.length}`);
+
+  // ---------- release 4: settings, jobs, news, notifications, imports ----------
+  await db.systemSetting.create({
+    data: { key: "system", value: { baseCurrency: "EUR", highRiskCountries: HIGH_RISK, alertSlaHours: { HIGH: 24, MEDIUM: 72, LOW: 120 } } },
+  });
+
+  const JOBS = [
+    { key: "rule-run", name: "Run detection rules", description: "Checks new transactions against every active rule and raises alerts.", cron: "*/15 * * * *" },
+    { key: "kyc-expiry", name: "KYC expiry check", description: "Marks customers whose KYC review is older than two years as expired and tells compliance.", cron: "0 6 * * *" },
+    { key: "sla-check", name: "Case SLA check", description: "Finds cases past their step SLA and reminds the people who act at that step.", cron: "0 * * * *" },
+    { key: "news-notify", name: "Announce scheduled news", description: "Tells the audience when a scheduled news post goes live.", cron: "*/10 * * * *" },
+  ];
+  for (const j of JOBS) {
+    const job = await db.job.create({ data: { ...j, timezone: "Europe/Berlin" } });
+    const every = j.key === "rule-run" ? 15 * 60_000 : j.key === "news-notify" ? 10 * 60_000 : j.key === "sla-check" ? 3_600_000 : DAY;
+    const runs = Array.from({ length: 24 }, (_, i) => {
+      const startedAt = new Date(NOW.getTime() - (i + 1) * every);
+      const failed = j.key === "rule-run" && i === 9;
+      const seconds = j.key === "rule-run" ? between(2, 9) : between(0.4, 2.5);
+      return {
+        jobId: job.id, status: failed ? "FAILED" : "SUCCEEDED", startedAt, finishedAt: new Date(startedAt.getTime() + seconds * 1000),
+        stats: failed ? null : j.key === "rule-run" ? { checked: int(40, 260), alerts: int(0, 6) } : j.key === "kyc-expiry" ? { checked: 2400, expired: int(0, 4) } : j.key === "news-notify" ? { posts: 0, notified: 0 } : { checked: int(50, 70), reminded: int(0, 5) },
+        error: failed ? "Connection to the database was reset during the run (retried automatically)." : null,
+      };
+    });
+    await db.jobRun.createMany({ data: runs as never });
+  }
+
+  const author = compliance[0]!;
+  const everyoneIds = Object.values(userId);
+  const NEWS = [
+    {
+      title: "New compliance review for cases above EUR 1 million",
+      body: "<p>From today, cases with a total above <strong>EUR 1 million</strong> go to a compliance review after the supervisor has approved them.</p><p>Nothing changes for cases that are already open: they keep the workflow version they started with.</p><ul><li>Supervisors see a new action: <em>Approve, send to compliance</em>.</li><li>The compliance team has 72 hours per case.</li></ul>",
+      pinned: true, publishAt: new Date(NOW.getTime() - 30 * DAY), expiresAt: null, audienceRoles: [], readers: 6,
+    },
+    {
+      title: "Structuring pattern at Berlin branches on Friday nights",
+      body: "<p>The overview shows a cluster of cash deposits just under EUR 10,000 between 22:00 and midnight on Fridays at Berlin.</p><p>Please prioritise these alerts and check whether the same people deposit at more than one branch.</p>",
+      pinned: false, publishAt: new Date(NOW.getTime() - 2 * DAY), expiresAt: new Date(NOW.getTime() + 12 * DAY), audienceRoles: ["ANALYST", "SUPERVISOR"], readers: 2,
+    },
+    {
+      title: "Quarterly training: money-mule networks",
+      body: "<p>The next training covers how money-mule rings show up in the account network: short chains, quick forwarding and a high-risk exit.</p><p>Registration closes next Wednesday.</p>",
+      pinned: false, publishAt: new Date(NOW.getTime() + 3 * DAY), expiresAt: null, audienceRoles: [], readers: 0,
+    },
+    {
+      title: "System maintenance completed",
+      body: "<p>The planned maintenance of the transaction feed is complete. No data was lost.</p>",
+      pinned: false, publishAt: new Date(NOW.getTime() - 40 * DAY), expiresAt: new Date(NOW.getTime() - 33 * DAY), audienceRoles: [], readers: 7,
+    },
+  ];
+  for (const n of NEWS) {
+    const post = await db.newsPost.create({
+      data: {
+        title: n.title, body: n.body, authorId: author, audienceRoles: n.audienceRoles as never, audienceRegionIds: [], minClearance: 1,
+        publishAt: n.publishAt, expiresAt: n.expiresAt, pinned: n.pinned, notifiedAt: n.publishAt < NOW ? n.publishAt : null, createdAt: new Date(n.publishAt.getTime() - DAY),
+      },
+    });
+    const readers = everyoneIds.filter((id) => id !== userId["lena.weber@northbank.example"]).slice(0, n.readers);
+    if (readers.length) await db.newsRead.createMany({ data: readers.map((uid, i) => ({ newsId: post.id, userId: uid, readAt: new Date(n.publishAt.getTime() + (i + 1) * 3_600_000) })) });
+  }
+
+  // a recent notification history per user (some unread)
+  const someCases = await db.case.findMany({ select: { code: true, branch: { select: { regionId: true } } }, take: 40, orderBy: { updatedAt: "desc" } });
+  for (const [email, uid] of Object.entries(userId)) {
+    const items: Array<{ type: string; data: Record<string, string | number | null>; at: number }> = [];
+    const mine = someCases.slice(0, 8);
+    mine.forEach((c, i) => {
+      const kind = ["mention", "case_step", "case_assigned"][i % 3]!;
+      items.push({ type: kind, data: { code: c.code, by: "Emma Clarke", step: "Supervisor review" }, at: (i + 1) * 5 });
+    });
+    items.push({ type: "news", data: { title: NEWS[1]!.title, id: "" }, at: 48 });
+    if (email.startsWith("elif") || email.startsWith("james")) {
+      items.push({ type: "job_failed", data: { job: "Run detection rules" }, at: 150 });
+      items.push({ type: "kyc_expiry", data: { count: 3 }, at: 30 });
+      items.push({ type: "import_done", data: { file: "customers-october.csv", count: 46 }, at: 70 });
+    }
+    items.push({ type: "sla_breach", data: { code: mine[2]?.code ?? "CS-1001", step: "Supervisor review" }, at: 2 });
+    await db.notification.createMany({
+      data: items.map((x, i) => ({ userId: uid, type: x.type, data: x.data, createdAt: new Date(NOW.getTime() - x.at * 3_600_000), readAt: i < 4 ? null : new Date(NOW.getTime() - (x.at - 1) * 3_600_000) })),
+    });
+  }
+
+  await db.importBatch.createMany({
+    data: [
+      { kind: "customers", fileName: "customers-october.csv", status: "IMPORTED", mapping: {}, rows: [], totalRows: 48, validRows: 46, errorRows: 2, errors: [{ row: 12, field: "country", message: "errors.country" }, { row: 31, field: "email", message: "errors.email" }], createdById: compliance[0]!, createdAt: new Date(NOW.getTime() - 3 * DAY), importedAt: new Date(NOW.getTime() - 3 * DAY + 60_000) },
+      { kind: "transactions", fileName: "branch-cash-export.xlsx", status: "DISCARDED", mapping: {}, rows: [], totalRows: 310, validRows: 214, errorRows: 96, errors: [{ row: 2, field: "bookedAt", message: "errors.date" }], createdById: compliance[0]!, createdAt: new Date(NOW.getTime() - 9 * DAY), importedAt: null },
+    ] as never,
+  });
+
+  // sign-in history for the audit log
+  await db.auditLog.createMany({
+    data: Object.values(userId).flatMap((uid) => Array.from({ length: 6 }, (_, i) => ({ userId: uid, action: "auth.login", entity: "session", createdAt: new Date(NOW.getTime() - (i * 26 + int(1, 20)) * 3_600_000) }))),
+  });
   console.timeEnd("seed");
 }
 

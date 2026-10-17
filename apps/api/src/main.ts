@@ -2,7 +2,16 @@ import { createServer } from "node:http";
 import { createApp } from "./app";
 import { loadEnv } from "./config/env";
 import { createDb } from "./db/prisma";
+import { createJobRunner } from "./jobs/runners";
 import { createScheduler } from "./jobs/scheduler";
+import { createAdminModule } from "./modules/admin";
+import { createImportsModule } from "./modules/imports";
+import { createJobsModule } from "./modules/jobs";
+import { createNewsModule } from "./modules/news";
+import { createNotifications, createNotificationsModule } from "./modules/notifications";
+import { createReportsModule } from "./modules/reports";
+import { createSearchModule } from "./modules/search";
+import { createSettingsModule } from "./modules/settings";
 import { createAlertsModule } from "./modules/alerts";
 import { createAuthModule } from "./modules/auth";
 import { createCasesModule, type Notifier } from "./modules/cases";
@@ -29,11 +38,26 @@ const deps = { db, requireAuth: auth.requireAuth };
 // Modules publish live updates through this notifier; Socket.IO is attached once the server exists.
 const silent: Notifier = { toCase: () => {}, toUser: () => {}, toRole: () => {} };
 let live: Notifier = silent;
+const notifications = createNotifications(db, () => live);
+type Payload = { type: Parameters<typeof notifications.push>[1] } & Record<string, string | number | null>;
+// "notification" events become stored notifications (center, preferences, then live push);
+// other events (case room updates) go straight to the socket.
 const notify: Notifier = {
   toCase: (...a) => live.toCase(...a),
-  toUser: (...a) => live.toUser(...a),
-  toRole: (...a) => live.toRole(...a),
+  toUser: (userId, event, payload) => {
+    if (event !== "notification") return live.toUser(userId, event, payload);
+    const { type, ...data } = payload as Payload;
+    void notifications.push([userId], type, data);
+  },
+  toRole: (role, event, payload) => {
+    if (event !== "notification") return live.toRole(role, event, payload);
+    const { type, ...data } = payload as Payload;
+    void notifications.toRole(role, type, data);
+  },
 };
+const news = createNewsModule({ ...deps, storageDir: env.STORAGE_DIR, notifications });
+const runner = createJobRunner({ db, notifications, announceNews: news.announce });
+const scheduler = createScheduler(env.DATABASE_URL, db, runner);
 
 const app = createApp({
   webOrigin: env.WEB_ORIGIN,
@@ -51,6 +75,14 @@ const app = createApp({
     "/drafts": createDraftsModule(deps),
     "/workflows": createWorkflowsModule(deps),
     "/my-work": createMyWorkModule(deps),
+    "/notifications": createNotificationsModule(deps),
+    "/news": news.router,
+    "/jobs": createJobsModule({ ...deps, runner, scheduler }),
+    "/imports": createImportsModule({ ...deps, notifications }),
+    "/reports": createReportsModule(deps),
+    "/settings": createSettingsModule({ ...deps, storageDir: env.STORAGE_DIR }),
+    "/admin": createAdminModule(deps),
+    "/search": createSearchModule(deps),
   },
 });
 
@@ -62,7 +94,6 @@ const realtime = createRealtime(server, {
   canJoinCase: async (p, code) => (await cases.caseId(p, code)).map((c) => (c.isMember ? c.id : null)).unwrapOr(null),
 });
 live = realtime.notifier;
-const scheduler = createScheduler(env.DATABASE_URL);
 
 server.listen(env.PORT, () => {
   console.log(`API listening on http://localhost:${env.PORT}`);

@@ -22,6 +22,8 @@ export const createAuthRepository = (db: Db) => ({
   findSession: (tokenHash: string) =>
     ResultAsync.fromPromise(db.session.findUnique({ where: { tokenHash }, include: { user: { include: userInclude } } }), dbError),
 
+  touchLogin: (userId: string, at: Date) => ResultAsync.fromPromise(db.user.update({ where: { id: userId }, data: { lastLoginAt: at } }), dbError),
+
   touchSession: (id: string, at: Date) => ResultAsync.fromPromise(db.session.update({ where: { id }, data: { lastSeenAt: at } }), dbError),
 
   deleteSession: (id: string, userId: string) =>

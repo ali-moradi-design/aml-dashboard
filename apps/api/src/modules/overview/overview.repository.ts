@@ -64,8 +64,9 @@ export const createOverviewRepository = (db: Db) => ({
   heatmap: (s: AccessScope, now: Date) =>
     ResultAsync.fromPromise(
       db.$queryRaw<Array<{ weekday: number; bucket: number; count: bigint }>>`
-        SELECT extract(isodow FROM a."createdAt" AT TIME ZONE b.timezone)::int AS weekday,
-          (extract(hour FROM a."createdAt" AT TIME ZONE b.timezone)::int / 2) AS bucket, count(*) AS count
+        -- createdAt is UTC without a zone: mark it as UTC first, then convert to the branch's local time.
+        SELECT extract(isodow FROM (a."createdAt" AT TIME ZONE 'UTC') AT TIME ZONE b.timezone)::int AS weekday,
+          (extract(hour FROM (a."createdAt" AT TIME ZONE 'UTC') AT TIME ZONE b.timezone)::int / 2) AS bucket, count(*) AS count
         FROM "Alert" a JOIN "Branch" b ON b.id = a."branchId"
         WHERE ${scopeSql(s)} AND a."createdAt" >= ${now}::timestamptz - interval '30 days'
         GROUP BY 1, 2`,

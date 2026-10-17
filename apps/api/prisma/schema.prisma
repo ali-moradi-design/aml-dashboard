@@ -93,6 +93,15 @@ model User {
   comments                  CaseComment[]
   notes                     PrivateNote[]
   drafts                    FormDraft[]
+  /// Off means the user cannot sign in; their sessions are ended.
+  active                    Boolean           @default(true)
+  avatarKey                 String?
+  lastLoginAt               DateTime?
+  notifications             Notification[]
+  preference                UserPreference?
+  newsPosts                 NewsPost[]
+  newsReads                 NewsRead[]
+  importBatches             ImportBatch[]
   createdAt                 DateTime          @default(now())
 }
 
@@ -322,6 +331,8 @@ model AuditLog {
   createdAt DateTime @default(now())
 
   @@index([createdAt])
+  @@index([entity, createdAt])
+  @@index([userId, createdAt])
 }
 
 // ---------- Cases (release 2) ----------
@@ -551,4 +562,144 @@ model WorkflowVersion {
   updatedAt     DateTime              @updatedAt
 
   @@unique([definitionId, version])
+}
+
+// ---------- Release 4: notifications, news, jobs, imports, settings ----------
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// mention, case_step, case_assigned, news, job_failed, kyc_expiry, sla_breach, import_done
+  type      String
+  data      Json
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, readAt, createdAt])
+}
+
+/// Per-user settings (appearance, notification choices, quick access) as one validated JSON document.
+model UserPreference {
+  userId    String   @id
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  data      Json
+  updatedAt DateTime @updatedAt
+}
+
+/// System-wide settings edited by admins (base currency, high-risk countries).
+model SystemSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model NewsPost {
+  id                String           @id @default(cuid())
+  title             String
+  /// Sanitized HTML from the rich text editor.
+  body              String
+  coverKey          String?
+  authorId          String
+  author            User             @relation(fields: [authorId], references: [id])
+  /// Empty means everyone.
+  audienceRoles     RoleKey[]
+  audienceRegionIds String[]
+  minClearance      Int              @default(1)
+  publishAt         DateTime
+  expiresAt         DateTime?
+  pinned            Boolean          @default(false)
+  notifiedAt        DateTime?
+  attachments       NewsAttachment[]
+  reads             NewsRead[]
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([publishAt])
+}
+
+model NewsAttachment {
+  id           String    @id @default(cuid())
+  /// Empty while the post is being written; set when it is saved.
+  newsId       String?
+  news         NewsPost? @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  /// cover or file
+  kind         String    @default("file")
+  uploadedById String
+  name         String
+  mimeType     String
+  size         Int
+  storageKey   String
+  createdAt    DateTime  @default(now())
+}
+
+model NewsRead {
+  newsId String
+  userId String
+  news   NewsPost @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  readAt DateTime @default(now())
+
+  @@id([newsId, userId])
+}
+
+enum JobRunStatus {
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+model Job {
+  id          String   @id @default(cuid())
+  /// rule-run, kyc-expiry, sla-check
+  key         String   @unique
+  name        String
+  description String
+  cron        String
+  timezone    String   @default("Europe/Berlin")
+  enabled     Boolean  @default(true)
+  runs        JobRun[]
+  updatedAt   DateTime @updatedAt
+}
+
+model JobRun {
+  id            String       @id @default(cuid())
+  jobId         String
+  job           Job          @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  status        JobRunStatus
+  /// Who pressed "Run now"; null for scheduled runs.
+  triggeredById String?
+  startedAt     DateTime     @default(now())
+  finishedAt    DateTime?
+  /// What the run did, e.g. { checked: 1200, alerts: 14 }
+  stats         Json?
+  error         String?
+
+  @@index([jobId, startedAt])
+}
+
+enum ImportStatus {
+  VALIDATED
+  IMPORTED
+  DISCARDED
+}
+
+model ImportBatch {
+  id          String       @id @default(cuid())
+  /// customers or transactions
+  kind        String
+  fileName    String
+  status      ImportStatus @default(VALIDATED)
+  mapping     Json
+  /// Mapped rows kept until the import is committed (max 5000).
+  rows        Json
+  totalRows   Int
+  validRows   Int
+  errorRows   Int
+  /// [{ row, field, message }] for the first problems
+  errors      Json
+  createdById String
+  createdBy   User         @relation(fields: [createdById], references: [id])
+  createdAt   DateTime     @default(now())
+  importedAt  DateTime?
 }

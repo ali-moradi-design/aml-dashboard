@@ -181,5 +181,7 @@ export type Overview = z.infer<typeof overviewSchema>;
 export const referenceSchema = z.object({
   branches: z.array(z.object({ code: z.string(), city: z.string(), country: z.string(), regionCode: z.string() })),
   rules: z.array(z.object({ code: z.string(), name: z.string(), riskLevel: z.enum(riskLevels) })),
+  /** All regions (for audience pickers); branches above are only the user's own. */
+  regions: z.array(z.object({ id: z.string(), code: z.string(), name: z.string() })),
 });
 export type Reference = z.infer<typeof referenceSchema>;

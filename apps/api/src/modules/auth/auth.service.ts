@@ -50,12 +50,15 @@ export const createAuthService = ({ repo, verifyPassword, newToken, hashToken, n
       if (!user) return errAsync(wrongCredentials);
       return ResultAsync.fromPromise(verifyPassword(user.passwordHash, input.password), (cause) => appError.unexpected("Password check failed", cause))
         .andThen((valid) => (valid ? okAsync(user) : errAsync(wrongCredentials)))
+        // A disabled account gets the same answer as a wrong password (no account probing).
+        .andThen((u) => (u.active ? okAsync(u) : errAsync(wrongCredentials)))
         .andThen((u) => {
           const token = newToken();
           const expiresAt = new Date(now().getTime() + SESSION_DAYS * 86_400_000);
           return repo
             .createSession({ tokenHash: hashToken(token), userId: u.id, expiresAt, ...meta })
             .andThen((session) => repo.audit({ userId: u.id, action: "auth.login", entity: "session", entityId: session.id }).map(() => session))
+            .andThen((session) => repo.touchLogin(u.id, now()).map(() => session))
             .map((session) => ({ token, expiresAt, me: toMe(toPrincipal(u, session.id)) }));
         });
     }),
@@ -65,6 +68,7 @@ export const createAuthService = ({ repo, verifyPassword, newToken, hashToken, n
     return repo.findSession(hashToken(token)).andThen((session) => {
       const at = now();
       if (!session || session.expiresAt <= at) return errAsync(appError.unauthorized("Session expired"));
+      if (!session.user.active) return errAsync(appError.unauthorized("Account disabled"));
       const principal = toPrincipal(session.user, session.id);
       // Avoid a write on every request: refresh "last seen" at most every 5 minutes.
       if (at.getTime() - session.lastSeenAt.getTime() < TOUCH_EVERY_MS) return okAsync(principal);

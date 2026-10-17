@@ -9,3 +9,4 @@ export * from "./workflow";
 export * from "./workflow-defaults";
 export * from "./network";
 export * from "./my-work";
+export * from "./completion";
