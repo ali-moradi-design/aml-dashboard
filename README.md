@@ -67,7 +67,8 @@ API enforces this on every request.
   notification center, settings (profile photo, digits, table density, start page, quick
   access, notification types, password and sessions), admin (users, role permission matrix,
   branches, clearance names, audit log), help page and a Ctrl K command palette
-- [ ] Release 5: German, Turkish and Arabic
+- [x] Release 5: German, Turkish and Arabic (RTL) for every screen, so all five languages
+  (English, German, Turkish, Arabic, Persian) are complete; German text checked against the layout
 
 ## Licenses of third-party parts
 

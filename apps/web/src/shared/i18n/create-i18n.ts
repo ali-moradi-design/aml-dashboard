@@ -1,11 +1,17 @@
 import { createInstance, type i18n, type Module } from "i18next";
 import { defaultLocale, type Locale } from "@aml/shared";
+import ar from "./locales/ar.json";
+import de from "./locales/de.json";
 import en from "./locales/en.json";
 import fa from "./locales/fa.json";
+import tr from "./locales/tr.json";
 
-// German, Turkish and Arabic fall back to English until their files are written (release 5).
+// Every locale has the full set of keys (release 5); English stays the fallback.
 const resources = {
   en: { common: en },
+  de: { common: de },
+  tr: { common: tr },
+  ar: { common: ar },
   fa: { common: fa },
 } as const;
 
