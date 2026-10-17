@@ -10,7 +10,7 @@
  */
 import { fakerDE, fakerEN_GB, fakerTR, faker as base } from "@faker-js/faker";
 import argon2 from "argon2";
-import { ibanFrom, permissions as allPermissions, type CriteriaGroup } from "@aml/shared";
+import { defaultWorkflowV1, defaultWorkflowV2, ibanFrom, permissions as allPermissions, type CriteriaGroup, type WorkflowGraph } from "@aml/shared";
 import { createDb } from "../src/db/prisma";
 
 try {
@@ -157,7 +157,7 @@ const RULE_SCORE: Record<string, [number, number]> = { "R-STRUCT": [62, 98], "R-
 async function main() {
   console.time("seed");
   await db.$executeRawUnsafe(
-    `TRUNCATE "FormDraft","CaseEvent","CaseMember","PrivateNote","CaseCommentEdit","CaseDocument","CaseComment","CasePartyAccount","CaseParty","Case","ShareholderDocument","Shareholder","AuditLog","Alert","Transaction","Account","Customer","Rule","Session","UserRegion","User","RolePermission","Permission","Role","Branch","Region","ClearanceLevel" RESTART IDENTITY CASCADE`,
+    `TRUNCATE "WorkflowVersion","WorkflowDefinition","FormDraft","CaseEvent","CaseMember","PrivateNote","CaseCommentEdit","CaseDocument","CaseComment","CasePartyAccount","CaseParty","Case","ShareholderDocument","Shareholder","AuditLog","Alert","Transaction","Account","Customer","Rule","Session","UserRegion","User","RolePermission","Permission","Role","Branch","Region","ClearanceLevel" RESTART IDENTITY CASCADE`,
   );
 
   // access model
@@ -360,6 +360,44 @@ async function main() {
   // round amounts
   for (let i = 0; i < 700; i++) flag("R-ROUND", ...((a) => [a, randomTime(a.branch.tz)] as const)(pick(activeAccounts)), { channel: "WIRE", direction: chance(0.5) ? "IN" : "OUT", base: pick([10000, 25000, 50000, 100000]) });
 
+  // internal transfers: both legs are booked (OUT on the sender, IN on the receiver), linked by
+  // counterpartyAccountId. They are the edges of the account network graph.
+  const accIban = new Map(accountRows.map((a) => [a.id as string, a.iban as string]));
+  const custName = new Map(customers.map((c) => [c.id as string, c.name as string]));
+  const link = (to: Acc) => {
+    const row = tx[tx.length - 1]!;
+    Object.assign(row, { counterpartyAccountId: to.id, counterpartyIban: accIban.get(to.id), counterpartyName: custName.get(to.customerId), counterpartyCountry: to.branch.country });
+  };
+  const transfer = (from: Acc, to: Acc, at: Date, base: number, rule?: string) => {
+    if (rule) flag(rule, from, at, { channel: "WIRE", direction: "OUT", base });
+    else addTx(from, at, { channel: "WIRE", direction: "OUT", base });
+    link(to);
+    addTx(to, at, { channel: "WIRE", direction: "IN", base });
+    link(from);
+  };
+  const byRegion = (region: string) => activeAccounts.filter((a) => a.branch.region === region);
+  // everyday payments between customers, mostly inside one region
+  for (let i = 0; i < 2600; i++) {
+    const from = pick(activeAccounts);
+    const to = pick(chance(0.85) ? byRegion(from.branch.region) : activeAccounts);
+    if (to.id !== from.id) transfer(from, to, randomTime(from.branch.tz), Math.min(lognormal(2500, 1.1), 200_000));
+  }
+  // money-mule rings: money hops through 5-8 accounts within days, then leaves to a high-risk country
+  for (let r = 0; r < 14; r++) {
+    const region = r < 8 ? "EU" : r < 11 ? "TR" : "GULF";
+    const ring = f.helpers.arrayElements(byRegion(region), int(5, 8));
+    for (let wave = 0, waves = int(2, 4); wave < waves; wave++) {
+      let at = randomTime(ring[0]!.branch.tz);
+      let base = lognormal(48000, 0.5);
+      for (let k = 0; k < ring.length - 1; k++) {
+        transfer(ring[k]!, ring[k + 1]!, at, base, k > 0 ? "R-RAPID" : undefined);
+        at = new Date(Math.min(at.getTime() + int(2, 20) * 3_600_000, NOW.getTime() - 60_000));
+        base *= between(0.95, 0.99);
+      }
+      flag("R-HRC", ring.at(-1)!, at, { channel: "WIRE", direction: "OUT", base, country: pick(HIGH_RISK) });
+    }
+  }
+
   for (let i = 0; i < tx.length; i += 5000) await db.transaction.createMany({ data: tx.slice(i, i + 5000) as never });
   console.log(`transactions ${tx.length}`);
 
@@ -418,7 +456,27 @@ async function main() {
     "Branch confirmed the customer came in person for each deposit.",
     "Agree with escalation. Please add the counterparty accounts before submitting.",
   ];
+  // case workflow: version 1 (the release 2 chain) was replaced 30 days ago by version 2, which adds
+  // a compliance review above 1M EUR. Cases opened before that keep version 1.
+  const V2_AT = new Date(NOW.getTime() - 30 * DAY);
+  const definition = await db.workflowDefinition.create({ data: { key: "case", name: "Case investigation" } });
+  const v1 = await db.workflowVersion.create({
+    data: {
+      definitionId: definition.id, version: 1, status: "ARCHIVED", graph: defaultWorkflowV1 as never, note: "Fixed approval chain.",
+      createdById: compliance[0]!, publishedById: compliance[0]!, publishedAt: new Date(NOW.getTime() - 400 * DAY), createdAt: new Date(NOW.getTime() - 401 * DAY),
+    },
+  });
+  const v2 = await db.workflowVersion.create({
+    data: {
+      definitionId: definition.id, version: 2, status: "PUBLISHED", graph: defaultWorkflowV2 as never, note: "Compliance review for cases above 1M EUR.",
+      createdById: compliance[0]!, publishedById: compliance[0]!, publishedAt: V2_AT, createdAt: new Date(V2_AT.getTime() - 2 * DAY),
+    },
+  });
+  const categoryOf = (g: WorkflowGraph, step: string) => g.steps.find((x) => x.id === step)!.category;
+  const transitionOf = (g: WorkflowGraph, from: string, to: string) => g.transitions.find((x) => x.from === from && x.to === to)!.id;
+
   let caseNo = 1001;
+  let large = 0;
   for (const group of groups) {
     const first = group[0]!;
     const cust = customerById.get(first.customerId)!;
@@ -432,7 +490,28 @@ async function main() {
     const later = (h: number) => new Date(Math.min(createdAt.getTime() + h * 3_600_000, NOW.getTime() - 60_000));
     const approver = region === "EU" ? compliance[0]! : pick([...supervisors, ...compliance]);
     const recommendation = status === "REPORTED" ? "FILE_SAR" : status === "CLOSED" ? pick(["MONITOR", "CLOSE"]) : status === "OPEN" ? (chance(0.4) ? "FILE_SAR" : null) : pick(["FILE_SAR", "FILE_SAR", "MONITOR"]);
-    const total = group.reduce((sum, a) => sum + Number(txById.get(a.transactionId)?.baseAmount ?? 0), 0);
+    const onV2 = createdAt >= V2_AT;
+    const graph = onV2 ? defaultWorkflowV2 : defaultWorkflowV1;
+    // a few recent cases are large enough for the compliance review of version 2
+    const isLarge = onV2 && ["PENDING_APPROVAL", "APPROVED", "REPORTED"].includes(status) && large < 6 && chance(0.7);
+    if (isLarge) large++;
+    const alertTotal = group.reduce((sum, a) => sum + Number(txById.get(a.transactionId)?.baseAmount ?? 0), 0);
+    const total = isLarge ? between(1_200_000, 3_600_000) : alertTotal;
+    // the steps this case went through, ending in the step it is in now
+    const middle = isLarge ? ["supervisor_review", "compliance_review"] : ["supervisor_review"];
+    const path =
+      status === "OPEN" ? ["investigation"]
+      : status === "PENDING_APPROVAL" ? ["investigation", ...middle]
+      : status === "APPROVED" ? ["investigation", ...middle, "approved"]
+      : status === "REPORTED" ? ["investigation", ...middle, "approved", "reported"]
+      : chance(0.25) ? ["investigation", "closed"] : ["investigation", ...middle, "approved", "closed"];
+    const finished = status === "REPORTED" || status === "CLOSED";
+    // in-progress cases entered their step recently, some beyond the step's SLA
+    const sla = graph.steps.find((x) => x.id === path.at(-1))!.slaHours ?? 24;
+    const enteredNow = finished ? later(path.length * 25) : new Date(Math.max(createdAt.getTime() + 3_600_000, NOW.getTime() - between(0.05, 1.3) * sla * 3_600_000));
+    const enteredAt = path.map((_, i) => (i === 0 ? createdAt : new Date(createdAt.getTime() + ((enteredNow.getTime() - createdAt.getTime()) * i) / (path.length - 1))));
+    const actorFor = (to: string) => (to === "supervisor_review" ? creator : to === "reported" || to === "compliance_review" ? compliance[0]! : approver);
+    const at = (step: string) => enteredAt[path.indexOf(step)] ?? null;
     const rule = ruleCodeById.get(first.ruleId)!;
     const members = [...new Set([creator, chance(0.5) ? pick(analystsByRegion[region]!) : creator])];
     const c = await db.case.create({
@@ -443,7 +522,7 @@ async function main() {
         priority: first.riskLevel === "HIGH" ? pick(["HIGH", "CRITICAL"]) : pick(["MEDIUM", "HIGH"]),
         riskLevel: first.riskLevel as never,
         typology: TYPOLOGY[rule] ?? "other",
-        summary: `${group.length} escalated alert(s) on ${cust.name as string}. ${RULES.find((r) => r.code === rule)!.description} Total of about EUR ${Math.round(total).toLocaleString("en-US")} over the review period.`,
+        summary: `${group.length} escalated alert(s) on ${cust.name as string}.${isLarge ? " Related transfers over the period add up to more than EUR 1 million." : ""} ${RULES.find((r) => r.code === rule)!.description} Total of about EUR ${Math.round(total).toLocaleString("en-US")} over the review period.`,
         findings: status === "OPEN" && chance(0.5) ? null : "Activity does not match the customer profile; funds move on within days to accounts abroad. Source of funds not documented.",
         recommendation: recommendation as never,
         totalAmount: money(total),
@@ -455,11 +534,14 @@ async function main() {
         clearanceRank: Math.max(...group.map((a) => a.clearanceRank)),
         branchId: first.branchId,
         createdById: creator,
-        approvedById: ["APPROVED", "REPORTED", "CLOSED"].includes(status) ? approver : null,
-        submittedAt: status === "OPEN" ? null : later(30),
-        approvedAt: ["APPROVED", "REPORTED", "CLOSED"].includes(status) ? later(60) : null,
-        reportedAt: status === "REPORTED" ? later(80) : null,
-        closedAt: status === "CLOSED" ? later(90) : null,
+        approvedById: path.includes("approved") ? approver : null,
+        submittedAt: at("supervisor_review"),
+        approvedAt: at("approved"),
+        reportedAt: at("reported"),
+        closedAt: at("closed"),
+        workflowVersionId: onV2 ? v2.id : v1.id,
+        step: path.at(-1)!,
+        stepEnteredAt: enteredAt.at(-1)!,
         createdAt,
         members: { create: members.map((m) => ({ userId: m, addedById: creator })) },
         parties: {
@@ -472,11 +554,16 @@ async function main() {
         },
         events: {
           create: [
-            { type: "created", actorId: creator, createdAt },
-            ...(status !== "OPEN" ? [{ type: "status_changed", actorId: creator, data: { from: "OPEN", to: "PENDING_APPROVAL" }, createdAt: later(30) }] : []),
-            ...(["APPROVED", "REPORTED", "CLOSED"].includes(status) ? [{ type: "status_changed", actorId: approver, data: { from: "PENDING_APPROVAL", to: "APPROVED" }, createdAt: later(60) }] : []),
-            ...(status === "REPORTED" ? [{ type: "status_changed", actorId: compliance[0]!, data: { from: "APPROVED", to: "REPORTED" }, createdAt: later(80) }] : []),
-            ...(status === "CLOSED" ? [{ type: "status_changed", actorId: approver, data: { from: "APPROVED", to: "CLOSED" }, createdAt: later(90) }] : []),
+            { type: "created", actorId: creator, data: { toStep: "investigation" }, createdAt },
+            ...path.slice(1).map((to, i) => ({
+              type: "status_changed",
+              actorId: actorFor(to),
+              data: {
+                from: categoryOf(graph, path[i]!), to: categoryOf(graph, to), fromStep: path[i], toStep: to,
+                transitionId: transitionOf(graph, path[i]!, to), note: to === "closed" ? "No suspicious activity after review of documents." : null,
+              },
+              createdAt: enteredAt[i + 1]!,
+            })),
           ],
         },
       },

@@ -24,8 +24,10 @@ export const useChartColors = (): ChartColors | null => {
   const { resolvedTheme } = useTheme();
   const [colors, setColors] = useState<ChartColors | null>(null);
   useEffect(() => {
-    const id = requestAnimationFrame(() => setColors(readColors()));
-    return () => cancelAnimationFrame(id);
+    // After next-themes has switched the attribute (its effect runs later in the same commit).
+    // A timer rather than an animation frame, so background tabs get colors too.
+    const id = setTimeout(() => setColors(readColors()), 0);
+    return () => clearTimeout(id);
   }, [resolvedTheme]);
   return colors;
 };

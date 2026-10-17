@@ -1,9 +1,11 @@
 import { errAsync, okAsync, ResultAsync } from "neverthrow";
-import type { CaseBoard, CaseCreate, CaseDetail, CaseRow, CaseTransition, CaseUpdate, Comment, CommentInput, GridQuery } from "@aml/shared";
+import {
+  availableTransitions, slaDeadline, startStep, stepOf, workflowGraphSchema,
+  type CaseBoard, type CaseCreate, type CaseDetail, type CaseFacts, type CaseRow, type CaseTransition, type CaseUpdate, type Comment, type CommentInput, type GridQuery,
+} from "@aml/shared";
 import { can, scopeOf, type Principal } from "../../shared/access";
 import { appError } from "../../shared/errors";
 import { toAlertRow } from "../../shared/mappers";
-import { allowedTransitions, transitionError } from "./case-policy";
 import type { CasesRepository } from "./cases.repository";
 
 /** Side channel for live updates (Socket.IO in production, a no-op in tests). */
@@ -57,6 +59,23 @@ const toComment = (c: CommentSource): Comment => ({
 
 const notFound = () => appError.notFound("Case not found");
 
+type WorkflowSource = {
+  step: string; createdById: string; totalAmount: { toNumber?: () => number } | null; _count: { alerts: number };
+  riskLevel: string; priority: string; recommendation: string | null; findings: string | null;
+};
+
+/** The facts the workflow engine looks at (conditions and requirements). */
+export const caseFacts = (c: WorkflowSource): CaseFacts => ({
+  step: c.step,
+  createdById: c.createdById,
+  totalAmount: Number(c.totalAmount ?? 0),
+  alertCount: c._count.alerts,
+  riskLevel: c.riskLevel,
+  priority: c.priority,
+  recommendation: c.recommendation,
+  hasFindings: Boolean(c.findings?.trim()),
+});
+
 export const createCasesService = ({ repo, notify }: { repo: CasesRepository; notify: Notifier }) => {
   /** Case in scope (layers 1-3) plus whether the user is a member (layer 4). */
   const load = (p: Principal, code: string) =>
@@ -75,9 +94,13 @@ export const createCasesService = ({ repo, notify }: { repo: CasesRepository; no
     detail: (p: Principal, code: string) =>
       load(p, code).andThen(({ c, isMember }) => {
         const actorIds = [...new Set(c.events.map((e) => e.actorId).filter((x): x is string => Boolean(x)))];
-        return repo.userNames(actorIds).map((users): CaseDetail => {
+        if (!c.workflowVersion) return errAsync(appError.unexpected("Case has no workflow version"));
+        const version = c.workflowVersion;
+        const graph = workflowGraphSchema.parse(version.graph);
+        const step = stepOf(graph, c.step);
+        return repo.latestPublishedVersion("case").andThen((latest) => repo.userNames(actorIds).map((users): CaseDetail => {
           const names = new Map(users.map((u) => [u.id, u.name]));
-          const facts = { status: c.status, createdById: c.createdById, recommendation: c.recommendation, hasFindings: Boolean(c.findings?.trim()) };
+          const actions = availableTransitions(graph, caseFacts(c), { userId: p.userId, role: p.role, isMember });
           const open = c.status === "OPEN" || c.status === "DRAFT";
           return {
             case: {
@@ -104,15 +127,28 @@ export const createCasesService = ({ repo, notify }: { repo: CasesRepository; no
             documents: c.documents.map((d) => ({ id: d.id, name: d.name, mimeType: d.mimeType, size: d.size, uploadedByName: names.get(d.uploadedById) ?? "", createdAt: d.createdAt.toISOString() })),
             members: c.members.map((m) => ({ id: m.user.id, name: m.user.name, role: m.user.role.key })),
             events: c.events.map((e) => ({ id: e.id, type: e.type, actorName: e.actorId ? (names.get(e.actorId) ?? null) : null, data: e.data, createdAt: e.createdAt.toISOString() })),
+            workflow: {
+              versionId: version.id,
+              version: version.version,
+              isLatest: latest?.id === version.id,
+              step: c.step,
+              stepName: step?.name ?? { en: c.step },
+              stepEnteredAt: c.stepEnteredAt.toISOString(),
+              slaDueAt: slaDeadline(graph, c.step, c.stepEnteredAt)?.toISOString() ?? null,
+              graph,
+            },
             allowed: {
-              transitions: allowedTransitions(facts, p, isMember),
+              transitions: actions.map((a) => ({
+                id: a.transition.id, label: a.transition.label, to: a.to.id, toName: a.to.name, toCategory: a.to.category,
+                requireReason: a.transition.requireReason, requireSar: a.transition.requireSar, blocked: a.blocked,
+              })),
               edit: isMember && open,
               comment: isMember,
               manageMembers: can(p, "cases.approve"),
               isMember,
             },
           };
-        });
+        }));
       }),
 
     create: (p: Principal, input: CaseCreate) =>
@@ -125,8 +161,15 @@ export const createCasesService = ({ repo, notify }: { repo: CasesRepository; no
             repo.customersByCodes(input.parties.map((x) => x.customerCode).filter((x): x is string => Boolean(x))),
           ] as const).map(([alerts, customers]) => ({ b, alerts, customers })),
         )
-        .andThen(({ b, alerts, customers }) =>
+        .andThen((x) =>
+          repo.publishedWorkflow("case").andThen((wf) => {
+            const start = wf ? startStep(workflowGraphSchema.parse(wf.graph)) : undefined;
+            return wf && start ? okAsync({ ...x, workflow: { versionId: wf.id, step: start.id, category: start.category } }) : errAsync(appError.unexpected("No published case workflow"));
+          }),
+        )
+        .andThen(({ b, alerts, customers, workflow }) =>
           repo.create(input, {
+            workflow,
             branchId: b.id,
             userId: p.userId,
             alertIds: alerts.map((a) => a.id),
@@ -146,20 +189,26 @@ export const createCasesService = ({ repo, notify }: { repo: CasesRepository; no
           return { code: c.code };
         }),
 
+    /** The engine decides again on the server; the buttons in the UI are only a hint. */
     transition: (p: Principal, code: string, input: CaseTransition) =>
       load(p, code)
         .andThen(({ c, isMember }) => {
-          const facts = { status: c.status, createdById: c.createdById, recommendation: c.recommendation, hasFindings: Boolean(c.findings?.trim()) };
-          const error = transitionError(facts, p, input.to, isMember);
-          if (error) return errAsync(appError.forbidden(error));
-          if (input.to === "REPORTED" && !input.sarReference) return errAsync(appError.validation("SAR reference is required", [{ path: ["sarReference"], message: "errors.required" }]));
-          return okAsync(c);
+          if (!c.workflowVersion) return errAsync(appError.unexpected("Case has no workflow version"));
+          const graph = workflowGraphSchema.parse(c.workflowVersion.graph);
+          const action = availableTransitions(graph, caseFacts(c), { userId: p.userId, role: p.role, isMember }).find((a) => a.transition.id === input.transitionId);
+          if (!action) return errAsync(appError.forbidden("This action is not available for you at this step"));
+          if (action.blocked === "fourEyes") return errAsync(appError.forbidden("Four-eyes rule: you opened this case, so someone else must take this step"));
+          if (action.blocked === "findings") return errAsync(appError.forbidden("Add findings and a recommendation first"));
+          if (action.transition.requireReason && !input.note) return errAsync(appError.validation("A reason is required", [{ path: ["note"], message: "errors.required" }]));
+          if (action.transition.requireSar && !input.sarReference) return errAsync(appError.validation("SAR reference is required", [{ path: ["sarReference"], message: "errors.required" }]));
+          const move = { fromStep: c.step, toStep: action.to.id, from: c.status, to: action.to.category, transitionId: action.transition.id };
+          return repo.transition(c.id, move, p.userId, input).map((updated) => ({ updated, roles: action.to.roles }));
         })
-        .andThen((c) => repo.transition(c.id, c.status, input.to, p.userId, input))
-        .map((c) => {
-          notify.toCase(c.id, "case:updated", { code: c.code, status: c.status });
-          if (c.status === "PENDING_APPROVAL") notify.toRole("SUPERVISOR", "notification", { type: "case_awaiting_approval", code: c.code });
-          return { code: c.code, status: c.status };
+        .map(({ updated, roles }) => {
+          notify.toCase(updated.id, "case:updated", { code: updated.code, status: updated.status });
+          // Whoever works at the next step hears about it (the same engine fills their inbox).
+          roles.forEach((role) => notify.toRole(role, "notification", { type: "case_step", code: updated.code, step: updated.step }));
+          return { code: updated.code, status: updated.status };
         }),
 
     eligibleMembers: (p: Principal, code: string) =>

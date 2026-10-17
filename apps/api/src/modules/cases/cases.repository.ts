@@ -1,5 +1,5 @@
 import { ResultAsync } from "neverthrow";
-import type { CaseCreate, CaseStatus, CaseUpdate, GridQuery } from "@aml/shared";
+import type { CaseCreate, CaseStatus, CaseUpdate, GridQuery, WorkflowCategory } from "@aml/shared";
 import type { Db } from "../../db/prisma";
 import { Prisma } from "../../generated/prisma/client";
 import type { AccessScope } from "../../shared/access";
@@ -52,6 +52,7 @@ const detailInclude = {
   documents: { where: { commentId: null }, orderBy: { createdAt: "desc" } },
   members: { include: { user: { select: { id: true, name: true, role: { select: { key: true } } } } } },
   events: { orderBy: { createdAt: "desc" }, take: 50 },
+  workflowVersion: { select: { id: true, version: true, status: true, graph: true } },
 } satisfies Prisma.CaseInclude;
 
 export const createCasesRepository = (db: Db) => ({
@@ -105,7 +106,20 @@ export const createCasesRepository = (db: Db) => ({
   customersByCodes: (codes: string[]) =>
     ResultAsync.fromPromise(db.customer.findMany({ where: { code: { in: codes } }, select: { id: true, code: true, clearanceRank: true } }), dbError),
 
-  create: (input: CaseCreate, data: { branchId: string; userId: string; alertIds: string[]; clearanceRank: number; customerIds: Map<string, string> }) =>
+  /** The version new cases start on. */
+  publishedWorkflow: (key: string) =>
+    ResultAsync.fromPromise(
+      db.workflowVersion.findFirst({ where: { definition: { key }, status: "PUBLISHED" }, select: { id: true, version: true, graph: true } }),
+      dbError,
+    ),
+
+  latestPublishedVersion: (key: string) =>
+    ResultAsync.fromPromise(db.workflowVersion.findFirst({ where: { definition: { key }, status: "PUBLISHED" }, select: { id: true } }), dbError),
+
+  create: (
+    input: CaseCreate,
+    data: { branchId: string; userId: string; alertIds: string[]; clearanceRank: number; customerIds: Map<string, string>; workflow: { versionId: string; step: string; category: WorkflowCategory } },
+  ) =>
     ResultAsync.fromPromise(
       db.$transaction(async (tx) => {
         const last = await tx.case.findFirst({ orderBy: { code: "desc" }, select: { code: true } });
@@ -125,6 +139,9 @@ export const createCasesRepository = (db: Db) => ({
             clearanceRank: data.clearanceRank,
             branchId: data.branchId,
             createdById: data.userId,
+            workflowVersionId: data.workflow.versionId,
+            step: data.workflow.step,
+            status: data.workflow.category,
             members: { create: { userId: data.userId, addedById: data.userId } },
             parties: {
               create: input.parties.map((p) => ({
@@ -137,7 +154,7 @@ export const createCasesRepository = (db: Db) => ({
                 accounts: { create: p.accounts.map((a) => ({ iban: a.iban.replace(/\s+/g, "").toUpperCase(), bankName: a.bankName, currency: a.currency })) },
               })),
             },
-            events: { create: { type: "created", actorId: data.userId } },
+            events: { create: { type: "created", actorId: data.userId, data: { toStep: data.workflow.step } } },
           },
         });
         if (data.alertIds.length) await tx.alert.updateMany({ where: { id: { in: data.alertIds } }, data: { caseId: created.id } });
@@ -157,19 +174,26 @@ export const createCasesRepository = (db: Db) => ({
       dbError,
     ),
 
-  transition: (id: string, from: CaseStatus, to: CaseStatus, userId: string, extra: { note?: string; sarReference?: string }) =>
+  /** Moves the case to another step; the status follows the step's category. */
+  transition: (
+    id: string,
+    move: { fromStep: string; toStep: string; from: CaseStatus; to: WorkflowCategory; transitionId: string },
+    userId: string,
+    extra: { note?: string; sarReference?: string },
+  ) =>
     ResultAsync.fromPromise(
       db.$transaction(async (tx) => {
         const now = new Date();
+        const { to } = move;
         const stamps: Prisma.CaseUpdateInput =
-          to === "PENDING_APPROVAL" ? { submittedAt: now }
+          to === "PENDING_APPROVAL" && move.from === "OPEN" ? { submittedAt: now }
           : to === "APPROVED" ? { approvedAt: now, approvedBy: { connect: { id: userId } } }
           : to === "REPORTED" ? { reportedAt: now, sarReference: extra.sarReference ?? null }
           : to === "CLOSED" ? { closedAt: now }
           : {};
-        const c = await tx.case.update({ where: { id }, data: { status: to, ...stamps } });
-        await tx.caseEvent.create({ data: { caseId: id, actorId: userId, type: "status_changed", data: { from, to, note: extra.note ?? null } } });
-        await tx.auditLog.create({ data: { userId, action: "case.transition", entity: "case", entityId: id, data: { from, to } } });
+        const c = await tx.case.update({ where: { id }, data: { status: to, step: move.toStep, stepEnteredAt: now, ...stamps } });
+        await tx.caseEvent.create({ data: { caseId: id, actorId: userId, type: "status_changed", data: { ...move, note: extra.note ?? null } } });
+        await tx.auditLog.create({ data: { userId, action: "case.transition", entity: "case", entityId: id, data: move } });
         return c;
       }),
       dbError,

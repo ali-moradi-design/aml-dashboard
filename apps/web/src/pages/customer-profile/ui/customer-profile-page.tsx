@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Share2 } from "lucide-react";
 import type Highcharts from "highcharts";
 import { useTranslation } from "react-i18next";
 import { formatIban } from "@aml/shared";
@@ -14,6 +15,7 @@ import { isHttpError } from "@/shared/api";
 import { useHref, useLocale } from "@/shared/i18n/use-locale";
 import { formatCompact, formatDate, formatDateTime, formatMoney, formatNumber, formatPercent } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
+import { Button } from "@/shared/ui/button";
 import { Chart } from "@/shared/ui/chart";
 import { Gauge } from "@/shared/ui/gauge";
 import { Note, Panel, PanelHeader } from "@/shared/ui/panel";
@@ -54,7 +56,14 @@ export const CustomerProfilePage = ({ code }: { code: string }) => {
             {t(`customerType.${c.type}`)} · {t(`country.${c.country}`, { defaultValue: c.country })} · {t(`city.${c.branchCity}`, { defaultValue: c.branchCity })} · {t("customer.since", { date: formatDate(c.createdAt, locale) })}
           </p>
         </div>
-        {can("customers.manage") ? <EditKycDialog customer={c} /> : null}
+        <div className="flex flex-wrap gap-2">
+          {can("transactions.view") ? (
+            <Button variant="outline" asChild>
+              <Link href={href(`/network?customer=${c.code}`)}><Share2 /> {t("customer.showNetwork")}</Link>
+            </Button>
+          ) : null}
+          {can("customers.manage") ? <EditKycDialog customer={c} /> : null}
+        </div>
       </div>
 
       <div className="flex flex-col gap-6 xl:flex-row">

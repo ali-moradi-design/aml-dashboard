@@ -56,7 +56,10 @@ API enforces this on every request.
   threaded comments with @mentions and edit history, documents, private notes, live updates
   over Socket.IO), detection rules with performance stats and an AND/OR rule builder;
   tables moved from AG Grid to TanStack Table
-- [ ] Release 3: account network graph, workflow designer
+- [x] Release 3: account network graph (Sigma.js, ForceAtlas2 layout, Louvain clusters,
+  recursive SQL for neighbors and shortest paths, masked accounts outside the user's access),
+  case workflow designer (React Flow, live validation, versioning: open cases keep their
+  version) with a server-side engine that drives the case page and the new My work inbox
 - [ ] Release 4: reports, jobs, data import, news, notifications, settings, admin
 - [ ] Release 5: German, Turkish and Arabic
 

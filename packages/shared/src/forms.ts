@@ -228,7 +228,8 @@ export const caseUpdateSchema = z.object({
 export type CaseUpdate = z.infer<typeof caseUpdateSchema>;
 
 export const caseTransitionSchema = z.object({
-  to: z.enum(["OPEN", "PENDING_APPROVAL", "APPROVED", "REPORTED", "CLOSED"]),
+  /** A transition id from the case's workflow version; the server re-checks it with the engine. */
+  transitionId: z.string().min(1),
   note: z.string().trim().max(2000).optional(),
   sarReference: z.string().trim().optional(),
 });

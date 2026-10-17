@@ -11,10 +11,13 @@ import { createCasesService } from "./modules/cases/cases.service";
 import { createCustomersModule } from "./modules/customers";
 import { createDraftsModule } from "./modules/drafts";
 import { createHealthModule } from "./modules/health";
+import { createMyWorkModule } from "./modules/my-work";
+import { createNetworkModule } from "./modules/network";
 import { createOverviewModule } from "./modules/overview";
 import { createReferenceModule } from "./modules/reference";
 import { createRulesModule } from "./modules/rules";
 import { createTransactionsModule } from "./modules/transactions";
+import { createWorkflowsModule } from "./modules/workflows";
 import { createRealtime } from "./realtime/socket";
 
 // Composition root: the only place that creates real dependencies and connects the pieces.
@@ -42,9 +45,12 @@ const app = createApp({
     "/alerts": createAlertsModule(deps),
     "/transactions": createTransactionsModule(deps),
     "/customers": createCustomersModule(deps),
+    "/network": createNetworkModule(deps),
     "/cases": createCasesModule({ ...deps, notify, storageDir: env.STORAGE_DIR }),
     "/rules": createRulesModule(deps),
     "/drafts": createDraftsModule(deps),
+    "/workflows": createWorkflowsModule(deps),
+    "/my-work": createMyWorkModule(deps),
   },
 });
 

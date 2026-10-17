@@ -1,21 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Check, Radio } from "lucide-react";
+import { ArrowLeft, ArrowRight, Radio } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { formatIban, type CaseDetail, type CaseStatus } from "@aml/shared";
+import { formatIban, localized, type CaseDetail, type CaseStatus } from "@aml/shared";
 import { CaseComments } from "@/features/case-comments";
 import { CaseDocuments } from "@/features/case-documents";
 import { CaseFindings } from "@/features/case-findings";
 import { CaseMembers } from "@/features/case-members";
 import { CaseNote } from "@/features/case-note";
 import { CaseTransitionActions } from "@/features/case-transition";
+import { CaseWorkflow } from "./case-workflow";
 import { RiskBadge, StatusBadge } from "@/entities/alert";
 import { CaseStatusBadge, DueLabel, PriorityLabel, useCase, useCaseLive } from "@/entities/case";
 import { useRuleText } from "@/entities/rule";
 import { isHttpError } from "@/shared/api";
 import { useHref, useLocale } from "@/shared/i18n/use-locale";
-import { formatDate, formatDateTime, formatMoney, formatNumber, formatRelative } from "@/shared/lib/format";
+import { formatDate, formatMoney, formatNumber, formatRelative } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
 import { Note, Panel, PanelHeader } from "@/shared/ui/panel";
 import { Skeleton } from "@/shared/ui/skeleton";
@@ -27,48 +28,13 @@ const Item = ({ label, children, mono }: { label: string; children: React.ReactN
   </div>
 );
 
-/** The fixed chain; the last step is either "reported" (SAR filed) or "closed". */
-const Lifecycle = ({ c }: { c: CaseDetail["case"] }) => {
-  const { t } = useTranslation();
-  const locale = useLocale();
-  const end: CaseStatus = c.status === "CLOSED" ? "CLOSED" : "REPORTED";
-  const steps: Array<{ status: CaseStatus; at: string | null; by?: string | null }> = [
-    { status: "OPEN", at: c.createdAt, by: c.createdByName },
-    { status: "PENDING_APPROVAL", at: c.submittedAt },
-    { status: "APPROVED", at: c.approvedAt, by: c.approvedByName },
-    { status: end, at: end === "CLOSED" ? c.closedAt : c.reportedAt },
-  ];
-  const order: CaseStatus[] = ["DRAFT", "OPEN", "PENDING_APPROVAL", "APPROVED", "REPORTED", "CLOSED"];
-  const reached = (s: CaseStatus) => order.indexOf(c.status) >= order.indexOf(s) || (s === "CLOSED" && c.status === "CLOSED");
-
-  return (
-    <ol className="flex flex-col">
-      {steps.map((s, i) => {
-        const done = reached(s.status) && (s.status !== c.status || s.status === end);
-        const current = s.status === c.status && s.status !== end;
-        return (
-          <li key={s.status} className="relative flex gap-3 pb-5 last:pb-0" aria-current={current ? "step" : undefined}>
-            {i < steps.length - 1 ? <span className={cn("absolute start-[11px] top-6 bottom-0 w-px", done ? "bg-brand" : "bg-border")} aria-hidden /> : null}
-            <span className={cn("grid size-6 shrink-0 place-items-center rounded-full border text-xs", done ? "border-brand bg-brand text-on-brand" : current ? "border-brand text-heading" : "border-border text-text-secondary")}>
-              {done ? <Check className="size-3.5" /> : i + 1}
-            </span>
-            <span className="min-w-0">
-              <span className={cn("block text-sm", !done && !current && "text-text-secondary")}>{t(`caseStatus.${s.status}`)}</span>
-              {s.at && (done || current) ? <span className="text-xs text-text-secondary">{formatDateTime(s.at, locale)}{s.by ? ` · ${s.by}` : ""}</span> : null}
-              {s.status === "REPORTED" && c.sarReference ? <span className="block font-mono text-xs text-text-secondary">{c.sarReference}</span> : null}
-            </span>
-          </li>
-        );
-      })}
-    </ol>
-  );
-};
-
-const eventText = (e: CaseDetail["events"][number], t: (k: string, o?: Record<string, unknown>) => string) => {
-  const data = (e.data ?? {}) as { from?: CaseStatus; to?: CaseStatus; name?: string; note?: string | null };
+const eventText = (e: CaseDetail["events"][number], t: (k: string, o?: Record<string, unknown>) => string, stepName: (id: string) => string) => {
+  const data = (e.data ?? {}) as { from?: CaseStatus; to?: CaseStatus; fromStep?: string; toStep?: string; name?: string; note?: string | null };
   switch (e.type) {
     case "status_changed":
-      return t("caseEvent.status_changed", { from: t(`caseStatus.${data.from}`), to: t(`caseStatus.${data.to}`) }) + (data.note ? `: “${data.note}”` : "");
+      return (data.fromStep && data.toStep
+        ? t("caseEvent.status_changed", { from: stepName(data.fromStep), to: stepName(data.toStep) })
+        : t("caseEvent.status_changed", { from: t(`caseStatus.${data.from}`), to: t(`caseStatus.${data.to}`) })) + (data.note ? `: “${data.note}”` : "");
     case "document_added":
       return t("caseEvent.document_added", { name: data.name });
     default:
@@ -96,6 +62,7 @@ export const CaseDetailPage = ({ code }: { code: string }) => {
   }
 
   const { case: c, parties, alerts, events } = data;
+  const stepName = (id: string) => localized(data.workflow.graph.steps.find((s) => s.id === id)?.name ?? { en: id }, locale);
 
   return (
     <>
@@ -134,6 +101,11 @@ export const CaseDetailPage = ({ code }: { code: string }) => {
               <Item label={t("caseDetail.alerts")}>{formatNumber(c.alertCount, locale)}</Item>
               <Item label={t("caseDetail.clearance")}>{t(`clearance.${c.clearanceRank}`, { defaultValue: String(c.clearanceRank) })}</Item>
             </dl>
+          </Panel>
+
+          <Panel>
+            <PanelHeader eyebrow={t("workflow.panel")} />
+            <CaseWorkflow detail={data} />
           </Panel>
 
           <Panel>
@@ -183,10 +155,6 @@ export const CaseDetailPage = ({ code }: { code: string }) => {
 
         <div className="flex w-full flex-col gap-6 xl:w-[360px] xl:shrink-0">
           <Panel>
-            <PanelHeader eyebrow={t("caseDetail.lifecycle")} />
-            <Lifecycle c={c} />
-          </Panel>
-          <Panel>
             <PanelHeader eyebrow={t("caseDetail.team")} />
             <CaseMembers detail={data} />
           </Panel>
@@ -207,7 +175,7 @@ export const CaseDetailPage = ({ code }: { code: string }) => {
             <ol className="flex flex-col gap-3">
               {events.slice(0, 12).map((e) => (
                 <li key={e.id} className="text-sm">
-                  <span className="block">{eventText(e, t)}</span>
+                  <span className="block">{eventText(e, t, stepName)}</span>
                   <span className="text-xs text-text-secondary">{e.actorName ? `${e.actorName} · ` : ""}{formatRelative(e.createdAt, locale)}</span>
                 </li>
               ))}

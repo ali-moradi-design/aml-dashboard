@@ -74,24 +74,26 @@ model ClearanceLevel {
 }
 
 model User {
-  id            String        @id @default(cuid())
-  email         String        @unique
-  name          String
-  passwordHash  String
-  roleId        String
-  role          Role          @relation(fields: [roleId], references: [id])
-  clearanceRank Int
-  regions       UserRegion[]
-  sessions      Session[]
-  assigned      Alert[]       @relation("AlertAssignee")
-  decided       Alert[]       @relation("AlertDecider")
-  casesCreated  Case[]        @relation("CaseCreator")
-  casesApproved Case[]        @relation("CaseApprover")
-  caseMembers   CaseMember[]
-  comments      CaseComment[]
-  notes         PrivateNote[]
-  drafts        FormDraft[]
-  createdAt     DateTime      @default(now())
+  id                        String            @id @default(cuid())
+  email                     String            @unique
+  name                      String
+  passwordHash              String
+  roleId                    String
+  role                      Role              @relation(fields: [roleId], references: [id])
+  clearanceRank             Int
+  regions                   UserRegion[]
+  sessions                  Session[]
+  assigned                  Alert[]           @relation("AlertAssignee")
+  decided                   Alert[]           @relation("AlertDecider")
+  casesCreated              Case[]            @relation("CaseCreator")
+  casesApproved             Case[]            @relation("CaseApprover")
+  workflowVersionsCreated   WorkflowVersion[] @relation("WorkflowVersionCreator")
+  workflowVersionsPublished WorkflowVersion[] @relation("WorkflowVersionPublisher")
+  caseMembers               CaseMember[]
+  comments                  CaseComment[]
+  notes                     PrivateNote[]
+  drafts                    FormDraft[]
+  createdAt                 DateTime          @default(now())
 }
 
 model UserRegion {
@@ -193,18 +195,19 @@ enum AccountStatus {
 }
 
 model Account {
-  id           String        @id @default(cuid())
-  iban         String        @unique
-  currency     String
-  status       AccountStatus @default(ACTIVE)
-  balance      Decimal       @db.Decimal(18, 2)
-  openedAt     DateTime
-  customerId   String
-  customer     Customer      @relation(fields: [customerId], references: [id])
-  branchId     String
-  branch       Branch        @relation(fields: [branchId], references: [id])
-  transactions Transaction[]
-  alerts       Alert[]
+  id                String        @id @default(cuid())
+  iban              String        @unique
+  currency          String
+  status            AccountStatus @default(ACTIVE)
+  balance           Decimal       @db.Decimal(18, 2)
+  openedAt          DateTime
+  customerId        String
+  customer          Customer      @relation(fields: [customerId], references: [id])
+  branchId          String
+  branch            Branch        @relation(fields: [branchId], references: [id])
+  transactions      Transaction[] @relation("AccountTransactions")
+  incomingTransfers Transaction[] @relation("IncomingTransfers")
+  alerts            Alert[]
 
   @@index([customerId])
 }
@@ -222,23 +225,27 @@ enum Direction {
 }
 
 model Transaction {
-  id                  String    @id @default(cuid())
-  ref                 String    @unique // TX-00012345
-  accountId           String
-  account             Account   @relation(fields: [accountId], references: [id])
-  branchId            String
-  branch              Branch    @relation(fields: [branchId], references: [id])
-  direction           Direction
-  channel             Channel
-  amount              Decimal   @db.Decimal(18, 2)
-  currency            String
-  baseAmount          Decimal   @db.Decimal(18, 2) // in EUR
-  counterpartyName    String
-  counterpartyIban    String?
-  counterpartyCountry String
-  bookedAt            DateTime
-  alerts              Alert[]
+  id                    String    @id @default(cuid())
+  ref                   String    @unique // TX-00012345
+  accountId             String
+  account               Account   @relation("AccountTransactions", fields: [accountId], references: [id])
+  branchId              String
+  branch                Branch    @relation(fields: [branchId], references: [id])
+  direction             Direction
+  channel               Channel
+  amount                Decimal   @db.Decimal(18, 2)
+  currency              String
+  baseAmount            Decimal   @db.Decimal(18, 2) // in EUR
+  counterpartyName      String
+  counterpartyIban      String?
+  counterpartyCountry   String
+  /// Set when the other side is an account at this bank: the edges of the account network graph.
+  counterpartyAccountId String?
+  counterpartyAccount   Account?  @relation("IncomingTransfers", fields: [counterpartyAccountId], references: [id])
+  bookedAt              DateTime
+  alerts                Alert[]
 
+  @@index([counterpartyAccountId, bookedAt])
   @@index([bookedAt])
   @@index([accountId, bookedAt])
   @@index([branchId, bookedAt])
@@ -342,41 +349,47 @@ enum CaseRecommendation {
 }
 
 model Case {
-  id             String              @id @default(cuid())
-  code           String              @unique // CS-1001
-  title          String
-  status         CaseStatus          @default(OPEN)
-  priority       CasePriority        @default(MEDIUM)
-  riskLevel      RiskLevel
-  typology       String // structuring, layering, ...
-  summary        String
-  findings       String?
-  recommendation CaseRecommendation?
-  totalAmount    Decimal?            @db.Decimal(18, 2) // EUR
-  periodStart    DateTime?
-  periodEnd      DateTime?
-  dueAt          DateTime
-  sarReference   String?
-  clearanceRank  Int                 @default(1)
-  branchId       String
-  branch         Branch              @relation(fields: [branchId], references: [id])
-  createdById    String
-  createdBy      User                @relation("CaseCreator", fields: [createdById], references: [id])
-  approvedById   String?
-  approvedBy     User?               @relation("CaseApprover", fields: [approvedById], references: [id])
-  submittedAt    DateTime?
-  approvedAt     DateTime?
-  reportedAt     DateTime?
-  closedAt       DateTime?
-  alerts         Alert[]
-  parties        CaseParty[]
-  documents      CaseDocument[]
-  comments       CaseComment[]
-  notes          PrivateNote[]
-  members        CaseMember[]
-  events         CaseEvent[]
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
+  id                String              @id @default(cuid())
+  code              String              @unique // CS-1001
+  title             String
+  status            CaseStatus          @default(OPEN)
+  priority          CasePriority        @default(MEDIUM)
+  riskLevel         RiskLevel
+  typology          String // structuring, layering, ...
+  summary           String
+  findings          String?
+  recommendation    CaseRecommendation?
+  totalAmount       Decimal?            @db.Decimal(18, 2) // EUR
+  periodStart       DateTime?
+  periodEnd         DateTime?
+  dueAt             DateTime
+  sarReference      String?
+  clearanceRank     Int                 @default(1)
+  branchId          String
+  branch            Branch              @relation(fields: [branchId], references: [id])
+  createdById       String
+  createdBy         User                @relation("CaseCreator", fields: [createdById], references: [id])
+  approvedById      String?
+  approvedBy        User?               @relation("CaseApprover", fields: [approvedById], references: [id])
+  submittedAt       DateTime?
+  approvedAt        DateTime?
+  reportedAt        DateTime?
+  closedAt          DateTime?
+  /// Workflow version the case started with; it keeps it when a newer version is published.
+  workflowVersionId String?
+  workflowVersion   WorkflowVersion?    @relation(fields: [workflowVersionId], references: [id])
+  /// Current step key in that version's graph (status above is the step's category).
+  step              String              @default("investigation")
+  stepEnteredAt     DateTime            @default(now())
+  alerts            Alert[]
+  parties           CaseParty[]
+  documents         CaseDocument[]
+  comments          CaseComment[]
+  notes             PrivateNote[]
+  members           CaseMember[]
+  events            CaseEvent[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
 
   @@index([status, createdAt])
   @@index([branchId])
@@ -501,4 +514,41 @@ model FormDraft {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, kind])
+}
+
+// ---------- Workflow (model B: designed in React Flow, stored as JSON) ----------
+
+enum WorkflowVersionStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model WorkflowDefinition {
+  id        String            @id @default(cuid())
+  key       String            @unique // "case"
+  name      String
+  versions  WorkflowVersion[]
+  createdAt DateTime          @default(now())
+}
+
+model WorkflowVersion {
+  id            String                @id @default(cuid())
+  definitionId  String
+  definition    WorkflowDefinition    @relation(fields: [definitionId], references: [id])
+  version       Int
+  status        WorkflowVersionStatus @default(DRAFT)
+  /// { steps: [...], transitions: [...] } validated with workflowGraphSchema
+  graph         Json
+  note          String?
+  createdById   String
+  createdBy     User                  @relation("WorkflowVersionCreator", fields: [createdById], references: [id])
+  publishedById String?
+  publishedBy   User?                 @relation("WorkflowVersionPublisher", fields: [publishedById], references: [id])
+  publishedAt   DateTime?
+  cases         Case[]
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  @@unique([definitionId, version])
 }

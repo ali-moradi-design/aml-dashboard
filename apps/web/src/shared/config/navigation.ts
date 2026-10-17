@@ -51,7 +51,7 @@ export const footerNav: NavItem[] = [
 ];
 
 /** Latest shipped release; later sections render the "coming soon" page. */
-export const CURRENT_RELEASE = 2;
+export const CURRENT_RELEASE = 3;
 
 /** Sections that render the "coming soon" page until their release ships. */
 export const upcomingSections = [...navGroups.flatMap((g) => g.items), ...footerNav].filter((i) => i.release > CURRENT_RELEASE);

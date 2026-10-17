@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { alertRowSchema, alertStatuses, riskLevels, transactionRowSchema } from "./domain";
+import { localizedTextSchema, workflowCategories, workflowGraphSchema } from "./workflow";
 
 // Response shapes for release 2 screens (customers, cases, rules).
 
@@ -137,9 +138,32 @@ export const caseDetailSchema = z.object({
   documents: z.array(z.object({ id: z.string(), name: z.string(), mimeType: z.string(), size: z.number(), uploadedByName: z.string(), createdAt: z.string() })),
   members: z.array(userRefSchema),
   events: z.array(z.object({ id: z.string(), type: z.string(), actorName: z.string().nullable(), data: z.unknown(), createdAt: z.string() })),
-  /** What the signed-in user may do right now (four-eyes rule already applied). */
+  /** Where the case is in its own workflow version (open cases keep the version they started with). */
+  workflow: z.object({
+    versionId: z.string(),
+    version: z.number(),
+    isLatest: z.boolean(),
+    step: z.string(),
+    stepName: localizedTextSchema,
+    stepEnteredAt: z.string(),
+    slaDueAt: z.string().nullable(),
+    graph: workflowGraphSchema,
+  }),
+  /** What the signed-in user may do right now, decided by the workflow engine on the server. */
   allowed: z.object({
-    transitions: z.array(z.enum(caseStatuses)),
+    transitions: z.array(
+      z.object({
+        id: z.string(),
+        label: localizedTextSchema,
+        to: z.string(),
+        toName: localizedTextSchema,
+        toCategory: z.enum(workflowCategories),
+        requireReason: z.boolean(),
+        requireSar: z.boolean(),
+        /** Visible but not allowed yet: findings missing, or four-eyes. */
+        blocked: z.enum(["findings", "fourEyes"]).nullable(),
+      }),
+    ),
     edit: z.boolean(),
     comment: z.boolean(),
     manageMembers: z.boolean(),

@@ -51,7 +51,13 @@ Decided with the author on 2026-10-17. Earlier decisions from `brief.md`
 - Tables: TanStack Table v9 (headless, MIT). Sorting and paging run in the API,
   React Query owns the rows, markup and RTL are ours. Replaced AG Grid Enterprise
   in release 2: no license watermark, and the look follows the design tokens fully.
-- Account graph: Sigma.js. Workflow designer: React Flow.
+- Account graph: Sigma.js 4 on graphology (ForceAtlas2 layout, Louvain clusters). Neighbors
+  and shortest paths come from Postgres `WITH RECURSIVE` over internal transfers; the walk only
+  expands from accounts inside the user's regions and clearance, others are shown masked.
+- Workflow designer: React Flow. The graph is JSON per version (draft, published, archived);
+  publishing archives the previous version and open cases keep the version they started with.
+  One pure engine in `@aml/shared` (validation, available actions, SLA) is used by the
+  designer, the API and the My work inbox.
 
 ## Quality
 

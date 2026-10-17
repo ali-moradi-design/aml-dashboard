@@ -51,3 +51,9 @@ export const formatHours = (hours: number, locale: Locale) => {
   const spaced = locale === "fa" || locale === "ar";
   return spaced ? `${formatNumber(h, locale)} ${hu} ${formatNumber(m, locale)} ${mu}` : `${formatNumber(h, locale)}${hu} ${formatNumber(m, locale)}${mu}`;
 };
+
+/** Short duration for deadlines: "36 h", "3 d" (days from 48 hours), in the locale's own units. */
+export const formatDuration = (hours: number, locale: Locale) => {
+  const days = Math.abs(hours) >= 48;
+  return new Intl.NumberFormat(intlLocale[locale], { style: "unit", unit: days ? "day" : "hour", unitDisplay: "short", maximumFractionDigits: 0 }).format(days ? hours / 24 : hours);
+};
