@@ -23,11 +23,38 @@ Requirements: Node 24, pnpm 12, Docker.
 ```bash
 pnpm install
 cp apps/api/.env.example apps/api/.env
-pnpm db:up      # Postgres in Docker
-pnpm dev        # web on :3000, api on :4000
+pnpm db:up                                   # Postgres in Docker
+pnpm --filter @aml/api exec prisma migrate deploy
+pnpm --filter @aml/api db:seed               # ~150K fictional transactions, ~5K alerts
+pnpm dev                                     # web on :3000, api on :4000
 ```
 
 Other commands: `pnpm build`, `pnpm typecheck`, `pnpm test`, `pnpm format`.
+
+### Demo accounts
+
+All demo accounts use the password `demo1234` (fictional people, generated data). The login
+page also has one-click buttons for them.
+
+| Role | Email | Regions | Clearance |
+| --- | --- | --- | --- |
+| Analyst | lena.weber@northbank.example | Europe | 2 |
+| Supervisor | omar.haddad@northbank.example | Gulf, Türkiye | 3 |
+| Compliance manager | elif.kaya@northbank.example | all | 4 |
+| System admin | james.carter@northbank.example | all | 4 |
+
+Each account sees only the alerts and transactions of its regions and clearance level; the
+API enforces this on every request.
+
+## Release status
+
+- [x] Release 1: login and sessions, layered access model, overview with insight charts,
+  alerts grid and alert decision, transactions grid with AND/OR advanced search,
+  light/dark theme, English and Persian (RTL)
+- [ ] Release 2: cases, customers and KYC, rule builder
+- [ ] Release 3: account network graph, workflow designer
+- [ ] Release 4: reports, jobs, data import, news, notifications, settings, admin
+- [ ] Release 5: German, Turkish and Arabic
 
 ## Licenses of third-party parts
 

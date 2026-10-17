@@ -24,7 +24,7 @@ export const sendResult = <T>(res: Response, result: Result<T, AppError>, succes
 
 /** Turns a function that returns ResultAsync into an Express handler. */
 export const handle =
-  <T>(run: (req: Request) => ResultAsync<T, AppError>, successStatus = 200): RequestHandler =>
+  <T>(run: (req: Request, res: Response) => ResultAsync<T, AppError>, successStatus = 200): RequestHandler =>
   async (req, res) => {
-    sendResult(res, await run(req), successStatus);
+    sendResult(res, await run(req, res), successStatus);
   };

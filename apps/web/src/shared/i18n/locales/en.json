@@ -1,19 +1,352 @@
 {
   "app": {
-    "name": "AML Monitor"
+    "name": "AML Monitor",
+    "tagline": "Northbank demo"
   },
-  "overview": {
-    "title": "Overview",
-    "subtitle": "Project skeleton is running. Screens come next."
+  "nav": {
+    "overview": "Overview",
+    "alerts": "Alerts",
+    "cases": "Cases",
+    "transactions": "Transactions",
+    "customers": "Customers",
+    "network": "Account network",
+    "myWork": "My work",
+    "reports": "Reports",
+    "news": "News",
+    "rules": "Rules",
+    "jobs": "Scheduled jobs",
+    "import": "Data import",
+    "workflow": "Workflow",
+    "admin": "Admin",
+    "help": "Help",
+    "settings": "Settings"
   },
-  "system": {
-    "apiStatus": "API status",
-    "database": "Database",
-    "checking": "Checking…",
-    "unreachable": "API is not reachable. Start it with pnpm dev."
+  "navGroup": {
+    "monitoring": "Monitoring",
+    "workspace": "Workspace",
+    "configuration": "Configuration"
+  },
+  "sidebar": {
+    "expand": "Expand sidebar",
+    "collapse": "Collapse sidebar"
   },
   "theme": {
     "light": "Light theme",
     "dark": "Dark theme"
+  },
+  "appBar": {
+    "search": "Search alerts or customers",
+    "notifications": "Notifications",
+    "notificationsSoon": "Live notifications arrive in release 4."
+  },
+  "user": {
+    "clearance": "Clearance level {{rank}} of 4",
+    "signOut": "Sign out"
+  },
+  "role": {
+    "ANALYST": "Analyst",
+    "SUPERVISOR": "Supervisor",
+    "COMPLIANCE_MANAGER": "Compliance manager",
+    "ADMIN": "System admin"
+  },
+  "risk": {
+    "HIGH": "High",
+    "MEDIUM": "Medium",
+    "LOW": "Low"
+  },
+  "alertStatus": {
+    "NEW": "New",
+    "IN_REVIEW": "In review",
+    "CLOSED_FALSE_POSITIVE": "False positive",
+    "ESCALATED": "Escalated"
+  },
+  "direction": {
+    "IN": "Incoming",
+    "OUT": "Outgoing"
+  },
+  "channel": {
+    "CASH": "Cash",
+    "WIRE": "Wire",
+    "CARD": "Card",
+    "ONLINE": "Online"
+  },
+  "customerType": {
+    "PERSON": "Person",
+    "COMPANY": "Company"
+  },
+  "common": {
+    "yes": "Yes",
+    "no": "No"
+  },
+  "errors": {
+    "generic": "Something went wrong. Try again in a moment.",
+    "retry": "Try again"
+  },
+  "login": {
+    "heroTitle": "Find the signal in every transaction.",
+    "heroText": "Rules flag suspicious activity, analysts review the alerts, and serious ones become cases and reports.",
+    "stat": {
+      "transactions": {
+        "value": "153K",
+        "label": "transactions monitored"
+      },
+      "alerts": {
+        "value": "5",
+        "label": "detection rules"
+      },
+      "languages": {
+        "value": "5",
+        "label": "languages"
+      }
+    },
+    "fictional": "Demo with fictional data. No real customers or banks.",
+    "title": "Sign in",
+    "subtitle": "Use your work email, or pick a demo account below.",
+    "email": "Work email",
+    "emailInvalid": "Enter a valid email address.",
+    "password": "Password",
+    "wrongCredentials": "Email or password is wrong.",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "demoAccounts": "Demo accounts",
+    "footer": "Portfolio project · fictional bank · all data is generated"
+  },
+  "overview": {
+    "title": "Overview",
+    "subtitle": "{{greeting}}, {{name}}. {{count}} high-risk alerts need a decision.",
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "export": "Export",
+    "kpi": {
+      "open": "Open alerts",
+      "vsLastWeek": "new vs last week",
+      "high": "High-risk open",
+      "today": "raised today",
+      "inReview": "In review",
+      "overdue": "older than 24h",
+      "review": "Median review time",
+      "onTarget": "on target",
+      "overTarget": "over target",
+      "target": "target 4h"
+    },
+    "trend": {
+      "eyebrow": "Alert trend · last 7 days",
+      "insightUp": "Alerts rose {{pct}} this week, but {{share}} were closed as false positives.",
+      "insightDown": "Alerts fell {{pct}} this week; {{share}} were closed as false positives.",
+      "created": "New alerts",
+      "falsePositive": "Closed as false positive",
+      "average": "7-day average",
+      "avg": "avg",
+      "statCreated": "new alerts this week",
+      "statFp": "closed as false positive ({{share}})",
+      "statEscalated": "escalated (30 days)"
+    },
+    "rules": {
+      "eyebrow": "Alerts by rule · last 7 days",
+      "insight": "{{rule}} drives {{share}} of alerts.",
+      "alerts": "alerts",
+      "rule": "Rule",
+      "count": "Alerts",
+      "hitRate": "Hit rate",
+      "note": "Hit rate = alerts that were escalated. {{best}} finds the most real cases; {{worst}} ({{rate}}) is a candidate for tuning."
+    },
+    "heat": {
+      "eyebrow": "When alerts are raised · last 30 days, per 2 hours",
+      "insight": "Weekdays peak around midday, following branch opening hours.",
+      "callout": "Strongest slot: {{day}} {{from}}–{{to}} with {{count}} alerts, {{times}}× the average slot. Check for structured cash deposits.",
+      "localTime": "Hours are in each branch's local time."
+    },
+    "funnel": {
+      "eyebrow": "Review funnel · last 30 days",
+      "insight": "1 in {{ratio}} alerts is escalated; {{reported}} went to the regulator.",
+      "raised": "Raised",
+      "reviewed": "Reviewed",
+      "escalated": "Escalated",
+      "reported": "Reported",
+      "note": "Arrows show how many move on to the next step."
+    },
+    "branches": {
+      "eyebrow": "Open alerts by branch and risk",
+      "insight": "{{city}} has the highest share of high-risk alerts ({{share}}).",
+      "high": "{{share}} high"
+    },
+    "needs": {
+      "eyebrow": "Needs a decision",
+      "insight_one": "{{count}} high-risk alert is waiting longer than 24 hours.",
+      "insight_other": "{{count}} high-risk alerts are waiting longer than 24 hours.",
+      "none": "No high-risk alert is waiting longer than 24 hours.",
+      "viewAll": "View all alerts",
+      "col": {
+        "alert": "Alert",
+        "customer": "Customer",
+        "rule": "Rule",
+        "amount": "Amount",
+        "waiting": "Waiting",
+        "risk": "Risk"
+      },
+      "hours": "{{hours}}h",
+      "days": "{{days}}d"
+    }
+  },
+  "alerts": {
+    "title": "Alerts",
+    "subtitle": "{{count}} alerts match the filters.",
+    "subtitleLoading": "Loading…",
+    "unassigned": "Unassigned",
+    "col": {
+      "code": "Alert",
+      "created": "Raised",
+      "risk": "Risk",
+      "score": "Score",
+      "status": "Status",
+      "rule": "Rule",
+      "customer": "Customer",
+      "branch": "Branch",
+      "amount": "Amount",
+      "assignee": "Assignee"
+    },
+    "filters": {
+      "search": "Search by alert ID or customer",
+      "allRules": "All rules",
+      "allBranches": "All branches",
+      "mine": "Assigned to me",
+      "clear": "Clear filters"
+    }
+  },
+  "alertDetail": {
+    "back": "Back to alerts",
+    "notFound": "This alert does not exist or is outside your regions or clearance.",
+    "score": "Score {{score}}",
+    "summary": "{{rule}} on {{customer}}.",
+    "trigger": "What triggered the alert",
+    "ruleCriteria": "Rule {{code}} criteria",
+    "history": "Account activity",
+    "historyTitle": "Last {{count}} transactions on this account. The flagged one is highlighted.",
+    "tx": {
+      "date": "Date",
+      "direction": "Direction",
+      "channel": "Channel",
+      "counterparty": "Counterparty",
+      "amount": "Amount",
+      "base": "In EUR",
+      "country": "Counterparty country",
+      "ref": "Reference"
+    },
+    "decision": {
+      "eyebrow": "Decision",
+      "choose": "What did the review show?",
+      "CLOSE_FALSE_POSITIVE": "False positive",
+      "CLOSE_FALSE_POSITIVE_hint": "Activity fits the customer profile",
+      "ESCALATE": "Escalate",
+      "ESCALATE_hint": "Needs a case and a supervisor",
+      "note": "Reason",
+      "notePlaceholder": "What did you check, and why is this your decision?",
+      "noteTooShort": "Write at least 10 characters.",
+      "alreadyDecided": "Someone already decided this alert. Reload to see the decision.",
+      "saving": "Saving…",
+      "submit_CLOSE_FALSE_POSITIVE": "Close as false positive",
+      "submit_ESCALATE": "Escalate alert"
+    },
+    "decidedBy": "Decided by {{name}} on {{date}}",
+    "noPermission": "Your role can view this alert but not decide it.",
+    "customer": "Customer",
+    "customerCode": "Customer ID",
+    "customerType": "Type",
+    "country": "Country",
+    "occupation": "Occupation",
+    "riskScore": "Risk score",
+    "pep": "Politically exposed",
+    "iban": "IBAN",
+    "opened": "Account opened",
+    "previous": "Earlier alerts for this customer",
+    "noPrevious": "No earlier alerts."
+  },
+  "criteria": {
+    "combinator": {
+      "and": "All",
+      "or": "Any"
+    },
+    "combinatorHint": {
+      "and": "Every condition must match",
+      "or": "At least one condition must match"
+    },
+    "field": {
+      "baseAmount": "Amount in EUR",
+      "amount": "Amount",
+      "currency": "Currency",
+      "channel": "Channel",
+      "direction": "Direction",
+      "counterpartyCountry": "Counterparty country",
+      "counterpartyName": "Counterparty name",
+      "branchCode": "Branch code",
+      "bookedAt": "Date"
+    },
+    "op": {
+      "eq": "is",
+      "neq": "is not",
+      "gt": "greater than",
+      "gte": "at least",
+      "lt": "less than",
+      "lte": "at most",
+      "between": "between",
+      "in": "is one of",
+      "contains": "contains"
+    },
+    "enum": {
+      "CASH": "Cash",
+      "WIRE": "Wire",
+      "CARD": "Card",
+      "ONLINE": "Online",
+      "IN": "Incoming",
+      "OUT": "Outgoing"
+    },
+    "from": "From",
+    "to": "To",
+    "listHint": "Comma-separated, e.g. XA, XB",
+    "remove": "Remove condition",
+    "removeGroup": "Remove group",
+    "addCondition": "Condition",
+    "addGroup": "Group"
+  },
+  "transactions": {
+    "title": "Transactions",
+    "subtitle": "{{count}} transactions match.",
+    "search": "Search by reference, counterparty or IBAN",
+    "advanced": "Advanced search",
+    "presets": "Start from:",
+    "preset": {
+      "structuring": "Cash just under 10K",
+      "highRisk": "High-risk countries",
+      "largeWires": "Large or offshore wires"
+    },
+    "apply": "Apply search",
+    "reset": "Reset",
+    "col": {
+      "ref": "Reference",
+      "date": "Booked",
+      "direction": "Direction",
+      "channel": "Channel",
+      "amount": "Amount",
+      "base": "In EUR",
+      "customer": "Customer",
+      "counterparty": "Counterparty",
+      "country": "Country",
+      "iban": "IBAN",
+      "branch": "Branch"
+    }
+  },
+  "comingSoon": {
+    "text": "This screen arrives in release {{release}}. The release plan is in docs/releases.md.",
+    "back": "Back to overview"
+  },
+  "ruleName": {
+    "R-STRUCT": "Structuring below limit",
+    "R-RAPID": "Rapid in and out",
+    "R-HRC": "High-risk country transfer",
+    "R-DORMANT": "Dormant account active",
+    "R-ROUND": "Repeated round amounts"
   }
 }

@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { defaultLocale, isLocale, locales } from "@aml/shared";
 
+const SESSION_COOKIE = "aml_session";
+
 const pickLocale = (request: NextRequest) => {
   const saved = request.cookies.get("aml-locale")?.value;
   if (saved && isLocale(saved)) return saved;
@@ -12,15 +14,30 @@ const pickLocale = (request: NextRequest) => {
   return match ?? defaultLocale;
 };
 
-/** Sends every URL without a locale prefix to /{locale}/... */
+/**
+ * 1. Adds the locale prefix to every URL.
+ * 2. Optimistic auth check: no session cookie → login page. The API still checks every request;
+ *    this only avoids flashing a signed-in screen to a signed-out visitor.
+ */
 export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const hasLocale = locales.some((l) => pathname === `/${l}` || pathname.startsWith(`/${l}/`));
-  if (hasLocale) return NextResponse.next();
+  const { pathname, search } = request.nextUrl;
+  const locale = locales.find((l) => pathname === `/${l}` || pathname.startsWith(`/${l}/`));
 
-  const url = request.nextUrl.clone();
-  url.pathname = `/${pickLocale(request)}${pathname === "/" ? "" : pathname}`;
-  return NextResponse.redirect(url);
+  if (!locale) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/${pickLocale(request)}${pathname === "/" ? "" : pathname}`;
+    return NextResponse.redirect(url);
+  }
+
+  const isLogin = pathname === `/${locale}/login`;
+  const hasSession = request.cookies.has(SESSION_COOKIE);
+  if (!hasSession && !isLogin) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/${locale}/login`;
+    url.search = `?next=${encodeURIComponent(pathname + search)}`;
+    return NextResponse.redirect(url);
+  }
+  return NextResponse.next();
 }
 
 export const config = {

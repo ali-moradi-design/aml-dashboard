@@ -1,5 +1,4 @@
-// Database schema. Models are added with the data model of release 1
-// (users, roles, regions, customers, accounts, transactions, alerts, cases).
+// Database schema. Release 1: access model, bank data, rules and alerts.
 
 generator client {
   provider = "prisma-client"
@@ -8,4 +7,260 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// ---------- Access ----------
+
+enum RoleKey {
+  ANALYST
+  SUPERVISOR
+  COMPLIANCE_MANAGER
+  ADMIN
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  key         RoleKey          @unique
+  name        String
+  permissions RolePermission[]
+  users       User[]
+}
+
+model Permission {
+  id    String           @id @default(cuid())
+  key   String           @unique // e.g. "alerts.view", "alerts.decide"
+  roles RolePermission[]
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model Region {
+  id       String       @id @default(cuid())
+  code     String       @unique
+  name     String
+  branches Branch[]
+  users    UserRegion[]
+}
+
+model Branch {
+  id           String        @id @default(cuid())
+  code         String        @unique
+  name         String
+  city         String
+  country      String
+  timezone     String        @default("UTC") // IANA zone, e.g. Europe/Berlin; heatmaps use branch local time
+  lat          Float
+  lng          Float
+  regionId     String
+  region       Region        @relation(fields: [regionId], references: [id])
+  customers    Customer[]
+  accounts     Account[]
+  transactions Transaction[]
+  alerts       Alert[]
+}
+
+// Rank 1 (public) to 4 (strictly confidential). A user sees a record when user.rank >= record.rank.
+model ClearanceLevel {
+  rank Int    @id
+  name String
+}
+
+model User {
+  id            String       @id @default(cuid())
+  email         String       @unique
+  name          String
+  passwordHash  String
+  roleId        String
+  role          Role         @relation(fields: [roleId], references: [id])
+  clearanceRank Int
+  regions       UserRegion[]
+  sessions      Session[]
+  assigned      Alert[]      @relation("AlertAssignee")
+  decided       Alert[]      @relation("AlertDecider")
+  createdAt     DateTime     @default(now())
+}
+
+model UserRegion {
+  userId   String
+  regionId String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  region   Region @relation(fields: [regionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, regionId])
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  tokenHash  String   @unique // SHA-256 of the cookie token; the raw token is never stored
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userAgent  String?
+  ip         String?
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+  expiresAt  DateTime
+
+  @@index([userId])
+}
+
+// ---------- Bank ----------
+
+enum CustomerType {
+  PERSON
+  COMPANY
+}
+
+model Customer {
+  id            String        @id @default(cuid())
+  code          String        @unique // CU-10021
+  type          CustomerType
+  name          String
+  country       String
+  occupation    String?
+  riskScore     Int // 0-100
+  pep           Boolean       @default(false) // politically exposed person
+  clearanceRank Int           @default(1)
+  branchId      String
+  branch        Branch        @relation(fields: [branchId], references: [id])
+  accounts      Account[]
+  alerts        Alert[]
+  createdAt     DateTime      @default(now())
+
+  @@index([branchId])
+}
+
+enum AccountStatus {
+  ACTIVE
+  DORMANT
+  CLOSED
+}
+
+model Account {
+  id           String        @id @default(cuid())
+  iban         String        @unique
+  currency     String
+  status       AccountStatus @default(ACTIVE)
+  balance      Decimal       @db.Decimal(18, 2)
+  openedAt     DateTime
+  customerId   String
+  customer     Customer      @relation(fields: [customerId], references: [id])
+  branchId     String
+  branch       Branch        @relation(fields: [branchId], references: [id])
+  transactions Transaction[]
+  alerts       Alert[]
+
+  @@index([customerId])
+}
+
+enum Channel {
+  CASH
+  WIRE
+  CARD
+  ONLINE
+}
+
+enum Direction {
+  IN
+  OUT
+}
+
+model Transaction {
+  id                  String    @id @default(cuid())
+  ref                 String    @unique // TX-00012345
+  accountId           String
+  account             Account   @relation(fields: [accountId], references: [id])
+  branchId            String
+  branch              Branch    @relation(fields: [branchId], references: [id])
+  direction           Direction
+  channel             Channel
+  amount              Decimal   @db.Decimal(18, 2)
+  currency            String
+  baseAmount          Decimal   @db.Decimal(18, 2) // in EUR
+  counterpartyName    String
+  counterpartyIban    String?
+  counterpartyCountry String
+  bookedAt            DateTime
+  alerts              Alert[]
+
+  @@index([bookedAt])
+  @@index([accountId, bookedAt])
+  @@index([branchId, bookedAt])
+  @@index([baseAmount])
+}
+
+// ---------- Monitoring ----------
+
+enum RiskLevel {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+model Rule {
+  id          String    @id @default(cuid())
+  code        String    @unique // R-STRUCT
+  name        String
+  description String
+  criteria    Json // AND/OR tree, see packages/shared criteria schema
+  riskLevel   RiskLevel
+  enabled     Boolean   @default(true)
+  alerts      Alert[]
+  createdAt   DateTime  @default(now())
+}
+
+enum AlertStatus {
+  NEW
+  IN_REVIEW
+  CLOSED_FALSE_POSITIVE
+  ESCALATED
+}
+
+model Alert {
+  id            String       @id @default(cuid())
+  code          String       @unique // AL-24817
+  ruleId        String
+  rule          Rule         @relation(fields: [ruleId], references: [id])
+  customerId    String
+  customer      Customer     @relation(fields: [customerId], references: [id])
+  accountId     String
+  account       Account      @relation(fields: [accountId], references: [id])
+  transactionId String?
+  transaction   Transaction? @relation(fields: [transactionId], references: [id])
+  branchId      String
+  branch        Branch       @relation(fields: [branchId], references: [id])
+  riskLevel     RiskLevel
+  score         Int // 0-100
+  status        AlertStatus  @default(NEW)
+  clearanceRank Int          @default(1)
+  assigneeId    String?
+  assignee      User?        @relation("AlertAssignee", fields: [assigneeId], references: [id])
+  decidedById   String?
+  decidedBy     User?        @relation("AlertDecider", fields: [decidedById], references: [id])
+  decisionNote  String?
+  decidedAt     DateTime?
+  createdAt     DateTime
+
+  @@index([status, createdAt])
+  @@index([branchId, createdAt])
+  @@index([ruleId])
+  @@index([customerId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String // "alert.decide", "auth.login"
+  entity    String
+  entityId  String?
+  data      Json?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
 }

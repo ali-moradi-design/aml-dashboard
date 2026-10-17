@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
+import { useMounted } from "@/shared/lib/browser";
 
 const options = [
   { value: "light", Icon: Sun, label: "theme.light" },
@@ -15,8 +15,7 @@ export const ThemeToggle = () => {
   const { theme, setTheme } = useTheme();
   const { t } = useTranslation();
   // The stored theme is only known in the browser; render a neutral state until then.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useMounted();
 
   return (
     <div role="radiogroup" className="flex h-10 items-center gap-0.5 rounded-md border border-border bg-muted p-[3px]">
@@ -31,7 +30,7 @@ export const ThemeToggle = () => {
             aria-label={t(label)}
             onClick={() => setTheme(value)}
             className={`grid h-8 w-[34px] place-items-center rounded-sm transition-colors duration-200 ${
-              active ? "bg-card text-heading shadow-sm dark:bg-accent dark:text-on-accent" : "text-text-secondary hover:text-text"
+              active ? "bg-card text-heading shadow-sm dark:bg-brand dark:text-on-brand" : "text-text-secondary hover:text-text"
             }`}
           >
             <Icon className="size-[18px]" strokeWidth={1.75} />

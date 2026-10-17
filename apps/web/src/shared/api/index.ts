@@ -1,2 +1,2 @@
-export { request, isHttpError } from "./http";
+export { request, post, del, isHttpError } from "./http";
 export type { HttpError } from "./http";

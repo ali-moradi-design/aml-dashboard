@@ -1,11 +1,17 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 @import "./tokens.css";
 
-/* `dark:` follows the data-theme attribute set by the theme toggle, not the OS setting. */
+/* `dark:` follows the data-theme attribute set by next-themes, not the OS setting. */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-/* Map design tokens into Tailwind, so classes like bg-card, text-heading, border-border work. */
+/*
+ * Map design tokens into Tailwind. Project names (page, card, heading, brand, risk-*) and the
+ * names shadcn/ui components expect (background, primary, accent, muted-foreground, ...) both
+ * point at the same tokens, so shadcn components look like the Figma design.
+ */
 @theme inline {
+  /* project tokens */
   --color-page: var(--page);
   --color-card: var(--card);
   --color-muted: var(--muted);
@@ -13,10 +19,10 @@
   --color-text: var(--text);
   --color-text-secondary: var(--text-secondary);
   --color-heading: var(--heading);
-  --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-accent-soft: var(--accent-soft);
-  --color-on-accent: var(--on-accent);
+  --color-brand: var(--accent);
+  --color-brand-hover: var(--accent-hover);
+  --color-brand-soft: var(--accent-soft);
+  --color-on-brand: var(--on-accent);
   --color-link: var(--link);
 
   --color-chart-1: var(--chart-1);
@@ -41,6 +47,23 @@
   --color-sidebar-active: var(--sidebar-active);
   --color-sidebar-active-text: var(--sidebar-active-text);
   --color-sidebar-indicator: var(--sidebar-indicator);
+
+  /* shadcn/ui names */
+  --color-background: var(--page);
+  --color-foreground: var(--text);
+  --color-card-foreground: var(--text);
+  --color-popover: var(--card);
+  --color-popover-foreground: var(--text);
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--on-accent);
+  --color-secondary: var(--muted);
+  --color-secondary-foreground: var(--text);
+  --color-muted-foreground: var(--text-secondary);
+  --color-accent: var(--muted);
+  --color-accent-foreground: var(--text);
+  --color-destructive: var(--risk-high);
+  --color-input: var(--border);
+  --color-ring: var(--accent);
 
   --font-sans: var(--font-huninn), var(--font-huninn-ext), var(--font-vazirmatn), system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
@@ -69,8 +92,22 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+* {
+  border-color: var(--border);
+}
+
 /* Numbers, IBANs and account numbers stay left-to-right inside RTL text. */
 .ltr-nums {
   direction: ltr;
   unicode-bidi: isolate;
+}
+
+/* Respect users who ask for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

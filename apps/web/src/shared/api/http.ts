@@ -6,19 +6,15 @@ export type HttpError = {
   status: number;
   code: string;
   message: string;
+  issues?: unknown;
 };
 
 export const isHttpError = (value: unknown): value is HttpError =>
   typeof value === "object" && value !== null && (value as HttpError).kind === "http";
 
 const toHttpError = async (res: Response): Promise<HttpError> => {
-  const body = (await res.json().catch(() => ({}))) as { code?: string; message?: string };
-  return {
-    kind: "http",
-    status: res.status,
-    code: body.code ?? "UNKNOWN",
-    message: body.message ?? res.statusText,
-  };
+  const body = (await res.json().catch(() => ({}))) as { code?: string; message?: string; issues?: unknown };
+  return { kind: "http", status: res.status, code: body.code ?? "UNKNOWN", message: body.message ?? res.statusText, issues: body.issues };
 };
 
 /**
@@ -34,3 +30,6 @@ export const request = async <T>(path: string, schema: ZodType<T>, init: Request
   if (!res.ok) throw await toHttpError(res);
   return schema.parse(await res.json());
 };
+
+export const post = <T>(path: string, schema: ZodType<T>, body: unknown) => request(path, schema, { method: "POST", body: JSON.stringify(body) });
+export const del = <T>(path: string, schema: ZodType<T>) => request(path, schema, { method: "DELETE" });
