@@ -15,12 +15,17 @@ const makeQueryClient = () =>
     },
   });
 
+// next-themes inlines a script that sets the theme before paint. It must run in the server HTML,
+// but switching the locale re-renders this layout on the client, where React 19 warns about any
+// executable <script>. On the client the theme is already applied, so the script becomes inert data.
+const themeScriptProps = typeof window === "undefined" ? undefined : { type: "application/json" };
+
 export const Providers = ({ locale, children }: { locale: Locale; children: ReactNode }) => {
   const [queryClient] = useState(makeQueryClient);
   const [i18n] = useState(() => createClientI18n(locale));
 
   return (
-    <ThemeProvider attribute="data-theme" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
+    <ThemeProvider attribute="data-theme" defaultTheme="light" enableSystem={false} disableTransitionOnChange scriptProps={themeScriptProps}>
       <QueryClientProvider client={queryClient}>
         <I18nextProvider i18n={i18n}>{children}</I18nextProvider>
         <ReactQueryDevtools buttonPosition="bottom-left" />
