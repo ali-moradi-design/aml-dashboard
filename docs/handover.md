@@ -4,7 +4,7 @@ Working notes for whoever continues the project (a person or a new Claude sessio
 Read this first, then `docs/brief.md`, `docs/releases.md`, `docs/decisions.md` and
 `docs/tech-decisions.md`.
 
-Last update: 2026-10-17, during release 4.
+Last update: 2026-10-17, after release 5 (the planned scope is complete).
 
 ## Status
 
@@ -13,8 +13,8 @@ Last update: 2026-10-17, during release 4.
 | 1 Core (login, access model, overview, alerts, transactions) | done | `1f27dce` |
 | 2 Forms (customers and KYC, cases, rules; TanStack Table) | done | `6247288` |
 | 3 Graph and workflow (network, workflow designer, My work) | done | `f16200d` |
-| 4 Completion | in progress (API done, screens partly done) | see below |
-| 5 Remaining languages (de, tr, ar) | not started | |
+| 4 Completion (news, jobs, import, reports, settings, admin, help, palette) | done | `ce90c2c` (API) + `47770a4` (screens) |
+| 5 Remaining languages (de, tr, ar) | done | `009dfdb` |
 
 ## How to run
 
@@ -35,7 +35,8 @@ Demo password for every account: `demo1234`.
 | james.carter@northbank.example | System admin | all | 4 |
 
 Checks: `pnpm -r typecheck`, `pnpm --filter @aml/web lint`, `cd apps/api && npx vitest run`
-(33 tests), `pnpm --filter @aml/web build`.
+(33 tests), `pnpm --filter @aml/web build`, and `python scripts/i18n-missing-keys.py . <locale>`
+for translations.
 
 ## Hard rules (from the brief and the author)
 
@@ -106,79 +107,65 @@ Release 3:
   Versions: draft, published, archived; open cases keep their version.
 - My work (`/my-work`): `apps/api/src/modules/my-work`, same engine as the case page.
 
-Release 4 (in progress):
-- Done, API side (all tested with curl, unit tests in
-  `apps/api/src/modules/completion/completion.test.ts`):
-  notifications (`/notifications`), news (`/news`, sanitize-html, uploads, audience
-  filter, read receipts), jobs (`/jobs`, pg-boss schedules from the Job table, runners in
-  `apps/api/src/jobs/runners.ts`: rule-run, kyc-expiry, sla-check, news-notify),
-  imports (`/imports`, validate then commit), reports (`/reports`, Excel export
-  `/reports/export.xlsx`), settings (`/settings`: profile, avatar, preferences, password,
-  system settings), admin (`/admin`: users, role permissions, branches, clearance names,
-  audit log), search (`/search`, for the command palette).
-- Shared contracts: `packages/shared/src/completion.ts`.
-- Done, web side: notification bell in the app bar (live), notification center page
-  (`/notifications`), news entity, news editor feature (TipTap, cover crop with
-  `shared/ui/image-crop-dialog.tsx`, attachments, audience, schedule), upload and
-  download helpers in `shared/api/http.ts`.
-- Fixed on the way: the overview heatmap converted time zones the wrong way
-  (timestamps are UTC without zone; now `(x AT TIME ZONE 'UTC') AT TIME ZONE tz`).
+Release 4:
+- API (unit tests in `apps/api/src/modules/completion/completion.test.ts`): notifications
+  (`/notifications`), news (`/news`, sanitize-html, uploads, audience filter, read receipts),
+  jobs (`/jobs`, pg-boss schedules from the Job table, runners in `apps/api/src/jobs/runners.ts`:
+  rule-run, kyc-expiry, sla-check, news-notify), imports (`/imports`, validate then commit),
+  reports (`/reports`, Excel export `/reports/export.xlsx`), settings (`/settings`: profile,
+  avatar, preferences, password, system settings), admin (`/admin`: users, role permissions,
+  branches, clearance names, audit log), search (`/search`). Contracts:
+  `packages/shared/src/completion.ts`.
+- Entities (one request and one hook per call): `entities/news`, `job`, `import`, `report`,
+  `settings` (also `usePreferences`), `admin`, `search`, `notification`.
+- Screens: news list, detail (read on open, readers for managers), new and edit
+  (`pages/news*`, editor in `features/news-editor`); latest news on the overview
+  (`pages/overview/ui/latest-news.tsx`); jobs (`pages/jobs`, schedule dialog with cron presets
+  and a browser-side next-runs preview in `features/job-schedule`); import wizard
+  (`features/import-wizard`: papaparse / `read-excel-file/browser`, auto-mapping, preview, server
+  check with row errors, commit or discard, CSV template); reports (`pages/reports`: Sankey with
+  prefixed node ids, 24-hour heatmap, workload bars, funnel, countries table; Excel via
+  `download()`, PDF via the print stylesheet in `globals.css`); settings (`pages/settings`,
+  sections in the URL `?section=`); admin (`pages/admin`, tabs in the URL `?tab=`); help;
+  command palette (`features/command-palette`, cmdk, Ctrl K / ⌘K, the app bar search box opens it).
+- Highcharts modules (heatmap, sankey, funnel) are registered once in `shared/ui/chart.tsx`,
+  after the core; importing a module before the core breaks at load.
+- Preferences applied in the app: digits (`setDigitPreference` in `shared/lib/format.ts`, set
+  by `AppLayout`, which waits for `/settings/me` and keys `<main>` on the digit setting),
+  density (`data-density` on `<html>`, `.data-cell` rule in `globals.css`), start page (login
+  page), quick access (first group in the sidebar and in the palette).
+- Every section ships, so the "coming soon" route and page were removed;
+  `CURRENT_RELEASE = 4` in `shared/config/navigation.ts`.
 
-## Remaining work
-
-Release 4 screens (APIs exist):
-1. News pages: list (`/news`, cards, pinned first, state badges and read counts for
-   managers), detail (`/news/[id]`, render the sanitized HTML with a `.news-body` style
-   in globals.css, mark read on open, readers list for managers), new and edit routes
-   using `NewsEditor`. Latest news widget on the overview page.
-2. Jobs page (`/jobs`): cards with next run, last run, success rate, duration
-   sparkline; edit dialog with cron presets and a next-runs preview (cron-parser in the
-   browser); "Run now"; run history.
-3. Import page (`/import`): wizard (choose kind and file, parse CSV with papaparse or
-   Excel with `read-excel-file/browser` `readSheet`, map columns with auto-match,
-   preview, server validation with row errors, commit), template download, history.
-4. Reports page (`/reports`): range presets; Sankey (highcharts/modules/sankey; prefix
-   node ids so branch and counterparty countries differ), heatmap, workload bars,
-   funnel (highcharts/modules/funnel), countries table; Excel export via `download()`;
-   PDF through a print stylesheet.
-5. Settings page (`/settings`): profile with avatar crop (round), appearance (digits,
-   density, start page, language, theme), notification types, quick access (max 6),
-   security (password, sessions via existing `/auth/sessions`), system (admin only).
-   Apply preferences in the app (digits in `shared/lib/format.ts`, density for tables,
-   start page after login, quick access in the sidebar).
-6. Admin page (`/admin`): users (table and form with `userInputSchema`), role and
-   permission matrix, regions and branches, clearance names, audit log (DataTable,
-   `POST /admin/audit`).
-7. Help page (`/help`): short guide and keyboard shortcuts.
-8. Command palette (cmdk) on Ctrl K in the app layout: pages, actions (new case, new
-   customer), search results from `/search`, quick access first.
-9. Set `CURRENT_RELEASE = 4` in `apps/web/src/shared/config/navigation.ts` once the
-   pages exist; add routes for every new page under `app/[locale]/(app)`.
-10. Translations: run the missing-keys check (see below) and add en and fa keys for
-    notifications, news, newsEditor, crop, jobs, import, reports, settings, admin,
-    help, palette, errors (stepId, passwordWrong, passwordMatch, passwordSame,
-    passwordLetters, passwordDigits, cron, branchCode, branchCodeTaken, oneRegion,
-    oneCountry, unknownAccount, customerType, country, currency, direction, channel,
-    date, invalid, noRows, tooManyRows, newsBody, expiryAfterPublish, min3).
-    `notifications.text.<type>` uses the data fields (code, by, step, title, job,
-    count, file).
-11. Verify in the browser (light, dark, Persian), build, update README release status,
-    commit "Release 4".
-
-Release 5: German, Turkish and Arabic text for every key in `en.json`; check German
-length against the layout; Arabic uses RTL like Persian; Highcharts and Intl already
-follow the locale.
-
-After the project: run graphify on the repo (`/graphify`), update Figma (final logo,
-dark-mode navy interactive colors, the login screen, then screens of the new releases;
-the Figma connector needs to be authorized again), and refresh these notes.
+Release 5:
+- `apps/web/src/shared/i18n/locales/{de,tr,ar}.json` with every key of `en.json`, loaded in
+  `shared/i18n/create-i18n.ts`. Arabic has all six plural categories (forms not written by hand
+  repeat `_other`, so i18next never falls back to English); many Arabic counts use the
+  "label: n" pattern to stay grammatical for every number.
+- German was checked on every screen for text that overflows its control (the network period
+  labels were shortened to "1 Mon." etc.).
+- Content that comes from the database stays as stored: workflow step names (English and
+  Persian), news posts, clearance level names, region names from the API in some places.
 
 ## Missing translation keys check
 
-`missing_keys.py` lived in the old session's scratchpad. It scans `t("...")` calls in
-`apps/web/src` and `app`, plus `errors.*` in `packages/shared/src/forms.ts`, and lists
-keys absent from `en.json`. Plural keys (`_one`/`_other`) show up as false positives.
-Rewrite it if needed; it is 30 lines of Python.
+`python scripts/i18n-missing-keys.py . <locale>` scans `t("...")` calls in `apps/web/src`
+and `app`, plus `errors.*` in `packages/shared`, and lists keys absent from the locale file.
+Template keys are reported by prefix; `ruleDescription.${code}` only exists in Persian (the
+English text comes from the API). Plural keys (`_one`/`_other`) count as present.
+
+## Remaining ideas (not planned)
+
+- Swap Vazirmatn for the commercial Persian font once its license is bought (see
+  `docs/decisions.md`, one CSS variable).
+- Workflow step names and transition labels are stored in English and Persian only; German,
+  Turkish and Arabic show the English name. A `name.{de,tr,ar}` field in the workflow JSON
+  would fix that.
+- Playwright tests for RTL layouts and the main flows (planned in tech decisions, not written).
+- Print stylesheet keeps the current theme; printing from the dark theme gives dark cards.
+- Deployment (Docker Compose, Nginx, GitHub Actions) as described in `docs/tech-decisions.md`.
+- `appBar.notificationsSoon` is an unused key from release 1 and can be removed from all
+  locale files.
 
 ## Known environment quirks
 
@@ -189,3 +176,7 @@ Rewrite it if needed; it is 30 lines of Python.
   "aml-dashboard" before stopping them.
 - Next's instant-navigation check is limited to opted-in segments
   (`experimental.instantInsights.validationLevel = "manual-warning"`).
+- The Turbopack dev server sometimes does not pick up appended CSS in `globals.css`; restart
+  `next dev` if a new rule is missing from the served stylesheet. Stopping the web dev server
+  that `pnpm dev` started also stops the API; start `pnpm --filter @aml/api dev` again.
+- `next build` and `next dev` share `.next`; run the build when no dev page is loading.
