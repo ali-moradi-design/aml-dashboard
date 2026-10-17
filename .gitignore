@@ -24,6 +24,8 @@ Thumbs.db
 # graphify: keep the graph and report, skip local machine files
 graphify-out/cache/
 graphify-out/.graphify_python
+graphify-out/.graphify_root
+graphify-out/cost.json
 
 # Prisma generated client
 apps/api/src/generated/

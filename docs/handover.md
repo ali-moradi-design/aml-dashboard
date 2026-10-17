@@ -154,6 +154,16 @@ and `app`, plus `errors.*` in `packages/shared`, and lists keys absent from the 
 Template keys are reported by prefix; `ruleDescription.${code}` only exists in Persian (the
 English text comes from the API). Plural keys (`_one`/`_other`) count as present.
 
+## Post-project tasks
+
+- Graphify: the knowledge graph of the repo is in `graphify-out/` (graph.json, graph.html,
+  GRAPH_REPORT.md, labels, manifest are committed; cache, interpreter path, scan root and cost
+  are ignored). Rebuild with `/graphify . --update` after larger changes.
+- Figma (file in `docs/decisions.md`): not updated yet. On 2026-10-17 the Figma MCP answered
+  that the Starter plan's tool-call limit was reached, so no write was possible. Still to do:
+  final logo, dark-mode navy interactive colors, the login screen, and frames for the network
+  graph, workflow designer, My work and the release 4 screens.
+
 ## Remaining ideas (not planned)
 
 - Swap Vazirmatn for the commercial Persian font once its license is bought (see
