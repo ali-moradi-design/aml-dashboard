@@ -64,6 +64,7 @@ model Branch {
   accounts     Account[]
   transactions Transaction[]
   alerts       Alert[]
+  cases        Case[]
 }
 
 // Rank 1 (public) to 4 (strictly confidential). A user sees a record when user.rank >= record.rank.
@@ -73,18 +74,24 @@ model ClearanceLevel {
 }
 
 model User {
-  id            String       @id @default(cuid())
-  email         String       @unique
+  id            String        @id @default(cuid())
+  email         String        @unique
   name          String
   passwordHash  String
   roleId        String
-  role          Role         @relation(fields: [roleId], references: [id])
+  role          Role          @relation(fields: [roleId], references: [id])
   clearanceRank Int
   regions       UserRegion[]
   sessions      Session[]
-  assigned      Alert[]      @relation("AlertAssignee")
-  decided       Alert[]      @relation("AlertDecider")
-  createdAt     DateTime     @default(now())
+  assigned      Alert[]       @relation("AlertAssignee")
+  decided       Alert[]       @relation("AlertDecider")
+  casesCreated  Case[]        @relation("CaseCreator")
+  casesApproved Case[]        @relation("CaseApprover")
+  caseMembers   CaseMember[]
+  comments      CaseComment[]
+  notes         PrivateNote[]
+  drafts        FormDraft[]
+  createdAt     DateTime      @default(now())
 }
 
 model UserRegion {
@@ -117,23 +124,66 @@ enum CustomerType {
   COMPANY
 }
 
+enum KycStatus {
+  PENDING
+  VERIFIED
+  EXPIRED
+  REJECTED
+}
+
 model Customer {
-  id            String        @id @default(cuid())
-  code          String        @unique // CU-10021
-  type          CustomerType
-  name          String
-  country       String
-  occupation    String?
-  riskScore     Int // 0-100
-  pep           Boolean       @default(false) // politically exposed person
-  clearanceRank Int           @default(1)
-  branchId      String
-  branch        Branch        @relation(fields: [branchId], references: [id])
-  accounts      Account[]
-  alerts        Alert[]
-  createdAt     DateTime      @default(now())
+  id                    String        @id @default(cuid())
+  code                  String        @unique // CU-10021
+  type                  CustomerType
+  name                  String
+  country               String
+  city                  String?
+  addressLine           String?
+  email                 String?       @unique
+  phone                 String?
+  occupation            String?
+  employer              String?
+  dateOfBirth           DateTime?
+  nationality           String?
+  registrationNumber    String? // companies
+  incorporationDate     DateTime? // companies
+  industry              String? // companies
+  sourceOfFunds         String?
+  expectedMonthlyVolume Decimal?      @db.Decimal(18, 2) // EUR
+  riskScore             Int // 0-100
+  pep                   Boolean       @default(false) // politically exposed person
+  kycStatus             KycStatus     @default(VERIFIED)
+  kycReviewedAt         DateTime?
+  clearanceRank         Int           @default(1)
+  branchId              String
+  branch                Branch        @relation(fields: [branchId], references: [id])
+  accounts              Account[]
+  alerts                Alert[]
+  shareholders          Shareholder[]
+  caseParties           CaseParty[]
+  createdAt             DateTime      @default(now())
 
   @@index([branchId])
+}
+
+model Shareholder {
+  id           String                @id @default(cuid())
+  customerId   String
+  customer     Customer              @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  name         String
+  type         CustomerType
+  country      String
+  sharePercent Decimal               @db.Decimal(5, 2)
+  documents    ShareholderDocument[]
+}
+
+model ShareholderDocument {
+  id            String      @id @default(cuid())
+  shareholderId String
+  shareholder   Shareholder @relation(fields: [shareholderId], references: [id], onDelete: Cascade)
+  kind          String // passport, id-card, register-extract
+  number        String
+  expiresAt     DateTime?
 }
 
 enum AccountStatus {
@@ -245,6 +295,8 @@ model Alert {
   decidedBy     User?        @relation("AlertDecider", fields: [decidedById], references: [id])
   decisionNote  String?
   decidedAt     DateTime?
+  caseId        String?
+  case          Case?        @relation(fields: [caseId], references: [id])
   createdAt     DateTime
 
   @@index([status, createdAt])
@@ -263,4 +315,190 @@ model AuditLog {
   createdAt DateTime @default(now())
 
   @@index([createdAt])
+}
+
+// ---------- Cases (release 2) ----------
+
+enum CaseStatus {
+  DRAFT
+  OPEN
+  PENDING_APPROVAL
+  APPROVED
+  REPORTED
+  CLOSED
+}
+
+enum CasePriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum CaseRecommendation {
+  FILE_SAR
+  MONITOR
+  CLOSE
+}
+
+model Case {
+  id             String              @id @default(cuid())
+  code           String              @unique // CS-1001
+  title          String
+  status         CaseStatus          @default(OPEN)
+  priority       CasePriority        @default(MEDIUM)
+  riskLevel      RiskLevel
+  typology       String // structuring, layering, ...
+  summary        String
+  findings       String?
+  recommendation CaseRecommendation?
+  totalAmount    Decimal?            @db.Decimal(18, 2) // EUR
+  periodStart    DateTime?
+  periodEnd      DateTime?
+  dueAt          DateTime
+  sarReference   String?
+  clearanceRank  Int                 @default(1)
+  branchId       String
+  branch         Branch              @relation(fields: [branchId], references: [id])
+  createdById    String
+  createdBy      User                @relation("CaseCreator", fields: [createdById], references: [id])
+  approvedById   String?
+  approvedBy     User?               @relation("CaseApprover", fields: [approvedById], references: [id])
+  submittedAt    DateTime?
+  approvedAt     DateTime?
+  reportedAt     DateTime?
+  closedAt       DateTime?
+  alerts         Alert[]
+  parties        CaseParty[]
+  documents      CaseDocument[]
+  comments       CaseComment[]
+  notes          PrivateNote[]
+  members        CaseMember[]
+  events         CaseEvent[]
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@index([status, createdAt])
+  @@index([branchId])
+}
+
+enum PartyRole {
+  SUBJECT
+  COUNTERPARTY
+  BENEFICIAL_OWNER
+  OTHER
+}
+
+model CaseParty {
+  id         String             @id @default(cuid())
+  caseId     String
+  case       Case               @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  customerId String?
+  customer   Customer?          @relation(fields: [customerId], references: [id])
+  name       String
+  type       CustomerType
+  role       PartyRole
+  country    String
+  notes      String?
+  accounts   CasePartyAccount[]
+}
+
+model CasePartyAccount {
+  id       String    @id @default(cuid())
+  partyId  String
+  party    CaseParty @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  iban     String
+  bankName String
+  currency String
+}
+
+model CaseDocument {
+  id           String       @id @default(cuid())
+  caseId       String
+  case         Case         @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  commentId    String?
+  comment      CaseComment? @relation(fields: [commentId], references: [id])
+  name         String
+  mimeType     String
+  size         Int
+  storageKey   String
+  uploadedById String
+  createdAt    DateTime     @default(now())
+}
+
+model CaseComment {
+  id        String            @id @default(cuid())
+  caseId    String
+  case      Case              @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User              @relation(fields: [authorId], references: [id])
+  parentId  String?
+  parent    CaseComment?      @relation("CommentThread", fields: [parentId], references: [id])
+  replies   CaseComment[]     @relation("CommentThread")
+  body      String
+  mentions  String[] // user ids
+  edits     CaseCommentEdit[]
+  documents CaseDocument[]
+  createdAt DateTime          @default(now())
+  editedAt  DateTime?
+  deletedAt DateTime?
+
+  @@index([caseId, createdAt])
+}
+
+model CaseCommentEdit {
+  id        String      @id @default(cuid())
+  commentId String
+  comment   CaseComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  body      String // previous text
+  editedAt  DateTime    @default(now())
+}
+
+/// Visible only to its author (access layer 4 applies to comments and notes).
+model PrivateNote {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  body      String
+  updatedAt DateTime @updatedAt
+
+  @@unique([caseId, authorId])
+}
+
+model CaseMember {
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  addedById String
+  createdAt DateTime @default(now())
+
+  @@id([caseId, userId])
+}
+
+model CaseEvent {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  actorId   String?
+  type      String // created, status_changed, party_added, document_added, member_added, comment_added
+  data      Json?
+  createdAt DateTime @default(now())
+
+  @@index([caseId, createdAt])
+}
+
+/// Autosaved drafts of multi-step forms, one per user and form.
+model FormDraft {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      String // "case", "customer"
+  data      Json
+  step      Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, kind])
 }

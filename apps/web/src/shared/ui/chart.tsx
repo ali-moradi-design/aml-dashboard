@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Highcharts from "highcharts";
 import "highcharts/modules/heatmap";
 import HighchartsReact from "highcharts-react-official";
@@ -59,8 +59,16 @@ type ChartProps = {
 
 export const Chart = ({ options, height, className }: ChartProps) => {
   const colors = useChartColors();
-  if (!colors) return <div style={{ height }} className={className} aria-hidden />;
-  const merged = Highcharts.merge(baseOptions(colors), options(colors), { chart: { height } });
+  const built = colors ? options(colors) : null;
+  // Parents rebuild options on every render; hand Highcharts the same object until the content
+  // changes, otherwise each re-render calls chart.update() and can freeze the opening animation.
+  const key = JSON.stringify(built);
+  const merged = useMemo(
+    () => (colors && built ? Highcharts.merge(baseOptions(colors), built, { chart: { height } }) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `key` stands for `built`
+    [key, colors, height],
+  );
+  if (!merged) return <div style={{ height }} className={className} aria-hidden />;
   return (
     <div className={className} dir="ltr">
       <HighchartsReact highcharts={Highcharts} options={merged} />

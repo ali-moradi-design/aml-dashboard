@@ -24,6 +24,7 @@ export const createAlertsService = ({ repo, now = () => new Date() }: { repo: Al
               decisionNote: a.decisionNote,
               decidedAt: a.decidedAt?.toISOString() ?? null,
               decidedByName: a.decidedBy?.name ?? null,
+              caseCode: a.case?.code ?? null,
             },
             rule: { code: a.rule.code, name: a.rule.name, description: a.rule.description, criteria: a.rule.criteria },
             customer: {

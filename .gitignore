@@ -27,3 +27,6 @@ graphify-out/.graphify_python
 
 # Prisma generated client
 apps/api/src/generated/
+
+# uploaded case documents (local storage)
+apps/api/storage/

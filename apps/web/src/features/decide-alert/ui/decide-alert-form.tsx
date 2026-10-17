@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { alertDecisionSchema, type AlertDecision } from "@aml/shared";
 import { useDecideAlert } from "@/entities/alert";
@@ -16,7 +16,7 @@ export const DecideAlertForm = ({ alertId }: { alertId: string }) => {
   const { t } = useTranslation();
   const decide = useDecideAlert();
   const form = useForm<AlertDecision>({ resolver: zodResolver(alertDecisionSchema), defaultValues: { decision: "CLOSE_FALSE_POSITIVE", note: "" } });
-  const decision = form.watch("decision");
+  const decision = useWatch({ control: form.control, name: "decision" });
   const noteError = form.formState.errors.note;
 
   const submit = (values: AlertDecision) => decide.mutate({ id: alertId, ...values });

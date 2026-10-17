@@ -12,7 +12,7 @@ Rule: each feature gets its look right first, then its code.
 
 - Foundation: Turborepo, Next.js, Node.js service skeleton, Postgres, CI, lint, tests.
 - i18n foundation: locale routes (`/en`, `/de`, `/tr`, `/ar`, `/fa`), `dir="rtl"`,
-  logical CSS only, mirrored icons, `Intl` formatting, fonts, AG Grid RTL.
+  logical CSS only, mirrored icons, `Intl` formatting, fonts, RTL tables.
   Full text in English and Persian only; the other three languages are filled in later.
 - Login with demo accounts per role; layered access model checked on the server.
 - Overview with KPI cards and charts (different per role).

@@ -63,7 +63,7 @@ export const sessionInfoSchema = z.object({
 });
 export type SessionInfo = z.infer<typeof sessionInfoSchema>;
 
-// ---------- Grid queries (AG Grid server-side row model) ----------
+// ---------- Grid queries (server-side sorting and paging) ----------
 
 export const sortItemSchema = z.object({ colId: z.string(), sort: z.enum(["asc", "desc"]) });
 
@@ -129,6 +129,8 @@ export const alertDetailSchema = z.object({
     decisionNote: z.string().nullable(),
     decidedAt: z.string().nullable(),
     decidedByName: z.string().nullable(),
+    /** Set once the alert was escalated into an investigation case. */
+    caseCode: z.string().nullable(),
   }),
   rule: z.object({ code: z.string(), name: z.string(), description: z.string(), criteria: z.unknown() }),
   customer: z.object({

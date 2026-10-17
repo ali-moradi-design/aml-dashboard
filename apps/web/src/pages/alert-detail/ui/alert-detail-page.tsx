@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, FolderPlus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { criteriaGroupSchema, type TransactionRow } from "@aml/shared";
 import { DecideAlertForm } from "@/features/decide-alert";
@@ -12,6 +12,7 @@ import { isHttpError } from "@/shared/api";
 import { useHref, useLocale } from "@/shared/i18n/use-locale";
 import { formatDate, formatDateTime, formatMoney, formatNumber } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
+import { Button } from "@/shared/ui/button";
 import { Panel, PanelHeader } from "@/shared/ui/panel";
 import { Skeleton } from "@/shared/ui/skeleton";
 
@@ -94,7 +95,7 @@ export const AlertDetailPage = ({ id }: { id: string }) => {
           <RiskBadge level={alert.riskLevel} />
           <StatusBadge status={alert.status} />
           <span className="text-text-secondary">
-            {t("alertDetail.score", { score: formatNumber(alert.score, locale) })} · {formatDateTime(alert.createdAt, locale)} · {alert.branchCity}
+            {t("alertDetail.score", { score: formatNumber(alert.score, locale) })} · {formatDateTime(alert.createdAt, locale)} · {t(`city.${alert.branchCity}`, { defaultValue: alert.branchCity })}
           </span>
         </div>
         <p className="text-base text-text">{t("alertDetail.summary", { rule: ruleText.name(rule.code, rule.name), customer: customer.name })}</p>
@@ -150,6 +151,16 @@ export const AlertDetailPage = ({ id }: { id: string }) => {
                 {!can("alerts.decide") && open ? <p className="text-text-secondary">{t("alertDetail.noPermission")}</p> : null}
               </div>
             )}
+            {alert.caseCode ? (
+              <Link href={href(`/cases/${alert.caseCode}`)} className="flex items-center justify-between rounded-md bg-muted p-3 text-sm hover:bg-border">
+                <span>{t("alertDetail.inCase")}</span>
+                <span className="font-mono text-link">{alert.caseCode}</span>
+              </Link>
+            ) : alert.status === "ESCALATED" && can("cases.create") ? (
+              <Button asChild variant="outline">
+                <Link href={href(`/cases/new?alert=${alert.code}`)}><FolderPlus /> {t("alertDetail.createCase")}</Link>
+              </Button>
+            ) : null}
           </Panel>
 
           <Panel>

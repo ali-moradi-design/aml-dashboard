@@ -51,7 +51,11 @@ API enforces this on every request.
 - [x] Release 1: login and sessions, layered access model, overview with insight charts,
   alerts grid and alert decision, transactions grid with AND/OR advanced search,
   light/dark theme, English and Persian (RTL)
-- [ ] Release 2: cases, customers and KYC, rule builder
+- [x] Release 2: customers with KYC profile and a multi-step onboarding form, cases
+  (table and board views, a creation wizard prefilled from an alert, four-eyes approval chain,
+  threaded comments with @mentions and edit history, documents, private notes, live updates
+  over Socket.IO), detection rules with performance stats and an AND/OR rule builder;
+  tables moved from AG Grid to TanStack Table
 - [ ] Release 3: account network graph, workflow designer
 - [ ] Release 4: reports, jobs, data import, news, notifications, settings, admin
 - [ ] Release 5: German, Turkish and Arabic
@@ -60,5 +64,5 @@ API enforces this on every request.
 
 - Fonts (Huninn, Vazirmatn, Geist Mono): SIL Open Font License, files and
   licenses in `apps/web/src/shared/assets/fonts`.
-- Highcharts and AG Grid Enterprise (added later) are used under their
-  non-commercial / evaluation terms; AG Grid shows a watermark without a key.
+- Highcharts is used under its non-commercial terms. Tables are built on
+  TanStack Table (MIT), so there is no grid license or watermark.

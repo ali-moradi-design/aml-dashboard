@@ -5,9 +5,15 @@ import { createDb } from "./db/prisma";
 import { createScheduler } from "./jobs/scheduler";
 import { createAlertsModule } from "./modules/alerts";
 import { createAuthModule } from "./modules/auth";
+import { createCasesModule, type Notifier } from "./modules/cases";
+import { createCasesRepository } from "./modules/cases/cases.repository";
+import { createCasesService } from "./modules/cases/cases.service";
+import { createCustomersModule } from "./modules/customers";
+import { createDraftsModule } from "./modules/drafts";
 import { createHealthModule } from "./modules/health";
 import { createOverviewModule } from "./modules/overview";
 import { createReferenceModule } from "./modules/reference";
+import { createRulesModule } from "./modules/rules";
 import { createTransactionsModule } from "./modules/transactions";
 import { createRealtime } from "./realtime/socket";
 
@@ -16,6 +22,15 @@ const env = loadEnv();
 const db = createDb(env.DATABASE_URL);
 const auth = createAuthModule({ db, secureCookies: env.NODE_ENV === "production" });
 const deps = { db, requireAuth: auth.requireAuth };
+
+// Modules publish live updates through this notifier; Socket.IO is attached once the server exists.
+const silent: Notifier = { toCase: () => {}, toUser: () => {}, toRole: () => {} };
+let live: Notifier = silent;
+const notify: Notifier = {
+  toCase: (...a) => live.toCase(...a),
+  toUser: (...a) => live.toUser(...a),
+  toRole: (...a) => live.toRole(...a),
+};
 
 const app = createApp({
   webOrigin: env.WEB_ORIGIN,
@@ -26,11 +41,21 @@ const app = createApp({
     "/overview": createOverviewModule(deps),
     "/alerts": createAlertsModule(deps),
     "/transactions": createTransactionsModule(deps),
+    "/customers": createCustomersModule(deps),
+    "/cases": createCasesModule({ ...deps, notify, storageDir: env.STORAGE_DIR }),
+    "/rules": createRulesModule(deps),
+    "/drafts": createDraftsModule(deps),
   },
 });
 
 const server = createServer(app);
-const io = createRealtime(server, env.WEB_ORIGIN);
+const cases = createCasesService({ repo: createCasesRepository(db), notify });
+const realtime = createRealtime(server, {
+  webOrigin: env.WEB_ORIGIN,
+  authenticate: async (token) => (await auth.service.authenticate(token)).unwrapOr(null),
+  canJoinCase: async (p, code) => (await cases.caseId(p, code)).map((c) => (c.isMember ? c.id : null)).unwrapOr(null),
+});
+live = realtime.notifier;
 const scheduler = createScheduler(env.DATABASE_URL);
 
 server.listen(env.PORT, () => {
@@ -45,7 +70,7 @@ void scheduler.start().match(
 
 const shutdown = async () => {
   await scheduler.stop();
-  await io.close();
+  await realtime.io.close();
   await db.$disconnect();
   server.close(() => process.exit(0));
 };

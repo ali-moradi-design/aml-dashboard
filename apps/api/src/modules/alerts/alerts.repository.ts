@@ -69,6 +69,7 @@ export const createAlertsRepository = (db: Db) => ({
           customer: true,
           account: true,
           decidedBy: { select: { name: true } },
+          case: { select: { code: true } },
           transaction: { include: transactionRowInclude },
         },
       }),

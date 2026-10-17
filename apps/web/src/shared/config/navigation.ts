@@ -50,5 +50,8 @@ export const footerNav: NavItem[] = [
   { key: "settings", path: "/settings", icon: Settings, permission: "overview.view", release: 4 },
 ];
 
+/** Latest shipped release; later sections render the "coming soon" page. */
+export const CURRENT_RELEASE = 2;
+
 /** Sections that render the "coming soon" page until their release ships. */
-export const upcomingSections = [...navGroups.flatMap((g) => g.items), ...footerNav].filter((i) => i.release > 1);
+export const upcomingSections = [...navGroups.flatMap((g) => g.items), ...footerNav].filter((i) => i.release > CURRENT_RELEASE);

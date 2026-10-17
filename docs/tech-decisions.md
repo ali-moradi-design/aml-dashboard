@@ -48,7 +48,9 @@ Decided with the author on 2026-10-17. Earlier decisions from `brief.md`
 - Forms: React Hook Form + Zod.
 - Translations: i18next, locale in the URL (`/en`, `/fa`, ...).
 - Charts: Highcharts (non-commercial license; say so in the README).
-- Grids: AG Grid Enterprise (watermark without a key; say so in the README).
+- Tables: TanStack Table v9 (headless, MIT). Sorting and paging run in the API,
+  React Query owns the rows, markup and RTL are ours. Replaced AG Grid Enterprise
+  in release 2: no license watermark, and the look follows the design tokens fully.
 - Account graph: Sigma.js. Workflow designer: React Flow.
 
 ## Quality

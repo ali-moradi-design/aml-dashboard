@@ -21,7 +21,7 @@ export type CriteriaField = keyof typeof criteriaFields;
 export const criteriaFieldSchema = z.enum(Object.keys(criteriaFields) as [CriteriaField, ...CriteriaField[]]);
 
 export const operatorsByType = {
-  number: ["eq", "neq", "gt", "gte", "lt", "lte", "between"],
+  number: ["eq", "neq", "gt", "gte", "lt", "lte", "between", "in"],
   enum: ["eq", "neq", "in"],
   text: ["eq", "neq", "contains", "in"],
   date: ["gte", "lte", "between"],

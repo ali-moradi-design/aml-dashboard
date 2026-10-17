@@ -10,7 +10,7 @@
  */
 import { fakerDE, fakerEN_GB, fakerTR, faker as base } from "@faker-js/faker";
 import argon2 from "argon2";
-import { permissions as allPermissions, type CriteriaGroup } from "@aml/shared";
+import { ibanFrom, permissions as allPermissions, type CriteriaGroup } from "@aml/shared";
 import { createDb } from "../src/db/prisma";
 
 try {
@@ -84,7 +84,7 @@ const sameDay = (tz: string, at: Date, hourFrom: number, hourTo: number) => {
   return clampNow(zoned(tz, p.y, p.m, p.d, int(hourFrom, hourTo), int(0, 59), int(0, 59)));
 };
 
-const iban = (country: string) => `${country}${int(10, 99)}${f.string.numeric(country === "TR" ? 22 : country === "AE" ? 19 : 18)}`;
+const iban = (country: string) => ibanFrom(country, f.string.numeric(country === "TR" ? 22 : country === "AE" ? 19 : 18));
 
 const GULF_FIRST = ["Omar", "Layla", "Yousef", "Mariam", "Khalid", "Noura", "Hamdan", "Aisha", "Rashid", "Salma", "Tariq", "Hessa", "Faisal", "Reem"];
 const GULF_LAST = ["Al Mansouri", "Haddad", "Nasser", "Al Falasi", "Saleh", "Karam", "Rahman", "Farouk", "Al Suwaidi", "Bakr"];
@@ -157,7 +157,7 @@ const RULE_SCORE: Record<string, [number, number]> = { "R-STRUCT": [62, 98], "R-
 async function main() {
   console.time("seed");
   await db.$executeRawUnsafe(
-    `TRUNCATE "AuditLog","Alert","Transaction","Account","Customer","Rule","Session","UserRegion","User","RolePermission","Permission","Role","Branch","Region","ClearanceLevel" RESTART IDENTITY CASCADE`,
+    `TRUNCATE "FormDraft","CaseEvent","CaseMember","PrivateNote","CaseCommentEdit","CaseDocument","CaseComment","CasePartyAccount","CaseParty","Case","ShareholderDocument","Shareholder","AuditLog","Alert","Transaction","Account","Customer","Rule","Session","UserRegion","User","RolePermission","Permission","Role","Branch","Region","ClearanceLevel" RESTART IDENTITY CASCADE`,
   );
 
   // access model
@@ -205,6 +205,7 @@ async function main() {
     { email: "yousef.nasser@northbank.example", name: "Yousef Nasser", role: "ANALYST", rank: 2, regions: ["GULF"] },
   ];
   const analystsByRegion: Record<string, string[]> = { EU: [], TR: [], GULF: [] };
+  const userId: Record<string, string> = {};
   for (const u of USERS) {
     const user = await db.user.create({
       data: {
@@ -213,6 +214,7 @@ async function main() {
       },
     });
     if (u.role === "ANALYST") u.regions.forEach((r) => analystsByRegion[r]!.push(user.id));
+    userId[u.email] = user.id;
   }
 
   const ruleId: Record<string, string> = {};
@@ -221,6 +223,7 @@ async function main() {
   // customers and accounts
   type Acc = { id: string; customerId: string; branch: (typeof BRANCHES)[number]; currency: string; dormant: boolean; clearance: number };
   const customers: Array<Record<string, unknown>> = [];
+  const companies: Array<{ id: string; country: string }> = [];
   const accounts: Acc[] = [];
   const accountRows: Array<Record<string, unknown>> = [];
   let customerNo = 10000;
@@ -230,9 +233,27 @@ async function main() {
       const company = chance(0.3);
       const pep = !company && chance(0.02);
       const clearance = pep ? 4 : chance(0.08) ? 3 : chance(0.5) ? 2 : 1;
+      const code = `CU-${customerNo++}`;
+      const name = company ? companyName(b.country) : personName(b.country);
+      const slug = name.toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, ".").replace(/^\.|\.$/g, "");
+      if (company) companies.push({ id, country: b.country });
       customers.push({
-        id, code: `CU-${customerNo++}`, type: company ? "COMPANY" : "PERSON",
-        name: company ? companyName(b.country) : personName(b.country),
+        id, code, type: company ? "COMPANY" : "PERSON",
+        name,
+        email: `${slug}.${code.slice(3)}@example.com`,
+        phone: `+${{ DE: 49, GB: 44, TR: 90, AE: 971 }[b.country]} ${int(100, 999)} ${int(1000000, 9999999)}`,
+        city: b.city,
+        addressLine: `${int(1, 220)} ${pick(["Main Street", "Harbour Road", "Market Square", "Park Avenue", "Station Road", "Garden Lane"])}`,
+        dateOfBirth: company ? null : new Date(NOW.getTime() - int(20, 75) * 365 * DAY),
+        nationality: company ? null : chance(0.85) ? b.country : pick(["DE", "GB", "TR", "AE", "NL", "FR"]),
+        employer: company || chance(0.4) ? null : companyName(b.country),
+        registrationNumber: company ? `${b.country}-${f.string.numeric(8)}` : null,
+        incorporationDate: company ? new Date(NOW.getTime() - int(400, 9000) * DAY) : null,
+        industry: company ? pick(["Wholesale trade", "Logistics", "Real estate", "Textiles", "Electronics", "Consulting", "Construction"]) : null,
+        sourceOfFunds: company ? "business" : pick(["salary", "salary", "business", "investments", "inheritance"]),
+        expectedMonthlyVolume: money(company ? lognormal(120000, 1) : lognormal(4000, 0.8)),
+        kycStatus: chance(0.05) ? "PENDING" : chance(0.04) ? "EXPIRED" : "VERIFIED",
+        kycReviewedAt: new Date(NOW.getTime() - int(10, 700) * DAY),
         country: chance(0.85) ? b.country : pick(["DE", "GB", "TR", "AE", "NL", "FR", "US"]),
         occupation: company ? null : pick(["Engineer", "Teacher", "Doctor", "Shop owner", "Consultant", "Student", "Retired", "Driver", "Lawyer", "Architect"]),
         riskScore: pep ? int(60, 90) : int(5, chance(0.1) ? 85 : 55),
@@ -256,6 +277,23 @@ async function main() {
   await db.customer.createMany({ data: customers as never });
   await db.account.createMany({ data: accountRows as never });
   console.log(`customers ${customers.length}, accounts ${accounts.length}`);
+
+  // shareholders (with identity documents) for every company; shares add up to 100%
+  for (const c of companies) {
+    const n = int(1, 3);
+    const cuts = Array.from({ length: n - 1 }, () => int(10, 80)).sort((a, b) => a - b);
+    const shares = [...cuts, 100].map((v, i, arr) => v - (i ? arr[i - 1]! : 0)).filter((v) => v > 0);
+    for (const share of shares) {
+      const person = chance(0.75);
+      await db.shareholder.create({
+        data: {
+          customerId: c.id, name: person ? personName(c.country) : companyName(c.country), type: person ? "PERSON" : "COMPANY",
+          country: chance(0.8) ? (c.country as never) : pick(["CH", "NL", "AE", "XA"]), sharePercent: share,
+          documents: { create: [{ kind: person ? "passport" : "register-extract", number: f.string.alphanumeric({ length: 9, casing: "upper" }), expiresAt: person ? new Date(NOW.getTime() + int(-60, 2500) * DAY) : null }] },
+        },
+      });
+    }
+  }
 
   // transactions
   const activeAccounts = accounts.filter((a) => !a.dormant);
@@ -359,6 +397,99 @@ async function main() {
   });
   for (let i = 0; i < alerts.length; i += 5000) await db.alert.createMany({ data: alerts.slice(i, i + 5000) as never });
   console.log(`alerts ${alerts.length}`);
+
+  // cases built from escalated alerts
+  const supervisors = [userId["omar.haddad@northbank.example"]!];
+  const compliance = [userId["elif.kaya@northbank.example"]!];
+  const escalated = alerts.filter((a) => a.status === "ESCALATED");
+  const byCustomer = new Map<string, typeof alerts>();
+  for (const a of escalated) byCustomer.set(a.customerId, [...(byCustomer.get(a.customerId) ?? []), a]);
+  const customerById = new Map(customers.map((c) => [c.id as string, c]));
+  const accountById = new Map(accountRows.map((a) => [a.id as string, a]));
+  const txById = new Map(tx.map((t) => [t.id as string, t]));
+  const ruleCodeById = new Map(Object.entries(ruleId).map(([code, id]) => [id, code]));
+  const TYPOLOGY: Record<string, string> = { "R-STRUCT": "structuring", "R-RAPID": "layering", "R-HRC": "high_risk_jurisdiction", "R-DORMANT": "dormant_account", "R-ROUND": "trade_based" };
+  const groups = [...byCustomer.values()].sort((a, b) => b.length - a.length).slice(0, 90);
+  const COMMENTS = [
+    "Pulled the last 90 days of statements; the deposits cluster around the end of each week.",
+    "Customer profile says salaried employee, but monthly inflow is about ten times the declared income.",
+    "Counterparty appears in two other open cases. Linking them for the supervisor.",
+    "Requested source-of-funds documents from the branch.",
+    "Branch confirmed the customer came in person for each deposit.",
+    "Agree with escalation. Please add the counterparty accounts before submitting.",
+  ];
+  let caseNo = 1001;
+  for (const group of groups) {
+    const first = group[0]!;
+    const cust = customerById.get(first.customerId)!;
+    const acc = accountById.get(first.accountId)!;
+    const t = txById.get(first.transactionId)!;
+    const region = (BRANCHES.find((b) => branchId[b.code] === first.branchId) ?? BRANCHES[0]).region;
+    const creator = first.decidedById ?? pick(analystsByRegion[region]!);
+    const status = weighted<string>([["OPEN", 35], ["PENDING_APPROVAL", 20], ["APPROVED", 10], ["REPORTED", 20], ["CLOSED", 15]]);
+    const created = new Date(Math.min(...group.map((a) => (a.decidedAt ?? a.createdAt).getTime())) + int(1, 20) * 3_600_000);
+    const createdAt = created > NOW ? new Date(NOW.getTime() - 3_600_000) : created;
+    const later = (h: number) => new Date(Math.min(createdAt.getTime() + h * 3_600_000, NOW.getTime() - 60_000));
+    const approver = region === "EU" ? compliance[0]! : pick([...supervisors, ...compliance]);
+    const recommendation = status === "REPORTED" ? "FILE_SAR" : status === "CLOSED" ? pick(["MONITOR", "CLOSE"]) : status === "OPEN" ? (chance(0.4) ? "FILE_SAR" : null) : pick(["FILE_SAR", "FILE_SAR", "MONITOR"]);
+    const total = group.reduce((sum, a) => sum + Number(txById.get(a.transactionId)?.baseAmount ?? 0), 0);
+    const rule = ruleCodeById.get(first.ruleId)!;
+    const members = [...new Set([creator, chance(0.5) ? pick(analystsByRegion[region]!) : creator])];
+    const c = await db.case.create({
+      data: {
+        code: `CS-${caseNo++}`,
+        title: `${RULES.find((r) => r.code === rule)!.name}: ${cust.name as string}`,
+        status: status as never,
+        priority: first.riskLevel === "HIGH" ? pick(["HIGH", "CRITICAL"]) : pick(["MEDIUM", "HIGH"]),
+        riskLevel: first.riskLevel as never,
+        typology: TYPOLOGY[rule] ?? "other",
+        summary: `${group.length} escalated alert(s) on ${cust.name as string}. ${RULES.find((r) => r.code === rule)!.description} Total of about EUR ${Math.round(total).toLocaleString("en-US")} over the review period.`,
+        findings: status === "OPEN" && chance(0.5) ? null : "Activity does not match the customer profile; funds move on within days to accounts abroad. Source of funds not documented.",
+        recommendation: recommendation as never,
+        totalAmount: money(total),
+        periodStart: new Date(createdAt.getTime() - 60 * DAY),
+        periodEnd: createdAt,
+        // Work still in progress is due around now (a few overdue); finished cases kept their old deadline.
+        dueAt: ["OPEN", "PENDING_APPROVAL", "APPROVED"].includes(status) ? new Date(NOW.getTime() + int(-4, 21) * DAY) : new Date(createdAt.getTime() + int(10, 30) * DAY),
+        sarReference: status === "REPORTED" ? `SAR-2026-${f.string.numeric(5)}` : null,
+        clearanceRank: Math.max(...group.map((a) => a.clearanceRank)),
+        branchId: first.branchId,
+        createdById: creator,
+        approvedById: ["APPROVED", "REPORTED", "CLOSED"].includes(status) ? approver : null,
+        submittedAt: status === "OPEN" ? null : later(30),
+        approvedAt: ["APPROVED", "REPORTED", "CLOSED"].includes(status) ? later(60) : null,
+        reportedAt: status === "REPORTED" ? later(80) : null,
+        closedAt: status === "CLOSED" ? later(90) : null,
+        createdAt,
+        members: { create: members.map((m) => ({ userId: m, addedById: creator })) },
+        parties: {
+          create: [
+            { customerId: cust.id as string, name: cust.name as string, type: cust.type as never, role: "SUBJECT", country: cust.country as string, accounts: { create: [{ iban: acc.iban as string, bankName: "Northbank", currency: acc.currency as string }] } },
+            ...(t && t.channel !== "CASH"
+              ? [{ name: t.counterpartyName as string, type: "COMPANY" as never, role: "COUNTERPARTY" as never, country: t.counterpartyCountry as string, accounts: { create: t.counterpartyIban ? [{ iban: t.counterpartyIban as string, bankName: pick(["Alpine Private Bank", "Harbour Trust", "Desert Commerce Bank", "Offshore Capital Ltd"]), currency: t.currency as string }] : [] } }]
+              : []),
+          ],
+        },
+        events: {
+          create: [
+            { type: "created", actorId: creator, createdAt },
+            ...(status !== "OPEN" ? [{ type: "status_changed", actorId: creator, data: { from: "OPEN", to: "PENDING_APPROVAL" }, createdAt: later(30) }] : []),
+            ...(["APPROVED", "REPORTED", "CLOSED"].includes(status) ? [{ type: "status_changed", actorId: approver, data: { from: "PENDING_APPROVAL", to: "APPROVED" }, createdAt: later(60) }] : []),
+            ...(status === "REPORTED" ? [{ type: "status_changed", actorId: compliance[0]!, data: { from: "APPROVED", to: "REPORTED" }, createdAt: later(80) }] : []),
+            ...(status === "CLOSED" ? [{ type: "status_changed", actorId: approver, data: { from: "APPROVED", to: "CLOSED" }, createdAt: later(90) }] : []),
+          ],
+        },
+      },
+    });
+    await db.alert.updateMany({ where: { id: { in: group.map((a) => a.id) } }, data: { caseId: c.id } });
+    // a short discussion with one reply and a mention
+    const root = await db.caseComment.create({ data: { caseId: c.id, authorId: creator, body: pick(COMMENTS), createdAt: later(2) } });
+    if (members.length > 1) {
+      await db.caseComment.create({ data: { caseId: c.id, authorId: members[1]!, parentId: root.id, body: pick(COMMENTS), mentions: [creator], createdAt: later(5) } });
+    }
+    if (chance(0.6)) await db.caseComment.create({ data: { caseId: c.id, authorId: creator, body: pick(COMMENTS), createdAt: later(20) } });
+  }
+  console.log(`cases ${groups.length}`);
   console.timeEnd("seed");
 }
 
