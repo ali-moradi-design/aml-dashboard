@@ -24,7 +24,8 @@
   "navGroup": {
     "monitoring": "Monitoring",
     "workspace": "Workspace",
-    "configuration": "Configuration"
+    "configuration": "Configuration",
+    "quickAccess": "Quick access"
   },
   "sidebar": {
     "expand": "Expand sidebar",
@@ -108,7 +109,30 @@
     "max100": "Cannot be more than 100.",
     "ruleCode": "Use R- followed by 2–20 capital letters, digits or dashes.",
     "ruleCodeTaken": "Another rule already uses this code.",
-    "stepId": "Use 2-31 lowercase letters, digits or underscores, starting with a letter."
+    "stepId": "Use 2-31 lowercase letters, digits or underscores, starting with a letter.",
+    "branchCode": "Use three capital letters, e.g. BER.",
+    "branchCodeTaken": "Another branch already uses this code.",
+    "channel": "Use CASH, WIRE, CARD or ONLINE.",
+    "country": "Use a two-letter country code we support.",
+    "cron": "This is not a valid schedule (cron expression).",
+    "currency": "Use EUR, USD, TRY or AED.",
+    "customerType": "Use PERSON or COMPANY.",
+    "date": "Not a valid date.",
+    "direction": "Use IN or OUT.",
+    "expiryAfterPublish": "Must be after the publish time.",
+    "invalid": "This value is not valid.",
+    "min3": "At least 3 characters.",
+    "newsBody": "Write at least a few sentences.",
+    "noRows": "The file has no data rows.",
+    "oneCountry": "Pick at least one country.",
+    "oneRegion": "Pick at least one region.",
+    "passwordDigits": "Use at least one digit.",
+    "passwordLetters": "Use at least one letter.",
+    "passwordMatch": "The passwords do not match.",
+    "passwordSame": "Choose a password that differs from the current one.",
+    "passwordWrong": "The current password is wrong.",
+    "tooManyRows": "Up to 5,000 rows per file.",
+    "unknownAccount": "No account with this IBAN in your regions."
   },
   "login": {
     "heroTitle": "Find the signal in every transaction.",
@@ -203,8 +227,8 @@
     },
     "needs": {
       "eyebrow": "Needs a decision",
-      "insight_one": "{{count}} high-risk alert is waiting longer than 24 hours.",
-      "insight_other": "{{count}} high-risk alerts are waiting longer than 24 hours.",
+      "insight_one": "{{n}} high-risk alert is waiting longer than 24 hours.",
+      "insight_other": "{{n}} high-risk alerts are waiting longer than 24 hours.",
       "none": "No high-risk alert is waiting longer than 24 hours.",
       "viewAll": "View all alerts",
       "col": {
@@ -217,6 +241,13 @@
       },
       "hours": "{{hours}}h",
       "days": "{{days}}d"
+    },
+    "news": {
+      "eyebrow": "Latest news",
+      "unread_one": "{{n}} unread post for you",
+      "unread_other": "{{n}} unread posts for you",
+      "allRead": "You are up to date",
+      "all": "All news"
     }
   },
   "alerts": {
@@ -368,10 +399,6 @@
       "branch": "Branch"
     }
   },
-  "comingSoon": {
-    "text": "This screen arrives in release {{release}}. The release plan is in docs/releases.md.",
-    "back": "Back to overview"
-  },
   "ruleName": {
     "R-STRUCT": "Structuring below limit",
     "R-RAPID": "Rapid in and out",
@@ -403,7 +430,8 @@
     "draftFound": "You have an unfinished draft from {{when}}.",
     "resumeDraft": "Continue the draft",
     "startFresh": "Start fresh",
-    "savedDraft": "Draft saved {{when}}"
+    "savedDraft": "Draft saved {{when}}",
+    "close": "Close"
   },
   "fields": {
     "address": "Address",
@@ -469,7 +497,9 @@
     "US": "United States",
     "XA": "Country XA (fictional)",
     "XB": "Country XB (fictional)",
-    "XC": "Country XC (fictional)"
+    "XC": "Country XC (fictional)",
+    "IT": "Italy",
+    "ES": "Spain"
   },
   "city": {
     "Berlin": "Berlin",
@@ -1082,5 +1112,637 @@
     "mentionedBy": "{{name}} mentioned you",
     "dueIn": "due in {{time}}",
     "overdueBy": "{{time}} overdue"
+  },
+  "crop": {
+    "hint": "Drag to move the image; scroll or use the slider to zoom.",
+    "zoom": "Zoom",
+    "use": "Use this image"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle_zero": "You are all caught up.",
+    "subtitle_one": "{{n}} unread notification",
+    "subtitle_other": "{{n}} unread notifications",
+    "markAll": "Mark all as read",
+    "markRead": "Mark as read",
+    "show": "Show",
+    "all": "All",
+    "unreadOnly": "Unread",
+    "type": "Type",
+    "anyType": "Any type",
+    "empty": "Nothing here yet.",
+    "more": "Load more",
+    "seeAll": "See all notifications",
+    "unread": "Unread",
+    "bellUnread_zero": "Notifications",
+    "bellUnread_one": "Notifications, {{count}} unread",
+    "bellUnread_other": "Notifications, {{count}} unread",
+    "types": {
+      "mention": "Mentions",
+      "case_step": "Case steps",
+      "case_assigned": "Case assignments",
+      "news": "News",
+      "job_failed": "Failed jobs",
+      "kyc_expiry": "KYC expiry",
+      "sla_breach": "SLA breaches",
+      "import_done": "Finished imports"
+    },
+    "text": {
+      "mention": "{{by}} mentioned you in case {{code}}",
+      "case_step": "Case {{code}} moved to “{{step}}”",
+      "case_assigned": "You were added to case {{code}}",
+      "news": "New post: {{title}}",
+      "job_failed": "The scheduled job “{{job}}” failed",
+      "kyc_expiry_one": "{{count}} customer’s KYC review has expired",
+      "kyc_expiry_other": "{{count}} customers’ KYC reviews have expired",
+      "sla_breach": "Case {{code}} is past its SLA at “{{step}}”",
+      "import_done_one": "Imported {{count}} row from {{file}}",
+      "import_done_other": "Imported {{count}} rows from {{file}}"
+    }
+  },
+  "newsEditor": {
+    "title": "Title",
+    "cover": "Cover image",
+    "addCover": "Add a cover image",
+    "cropCover": "Crop the cover image",
+    "body": "Text",
+    "bodyPlaceholder": "Write the announcement…",
+    "attachments": "Attachments",
+    "addFile": "Attach a file",
+    "publishing": "Publishing",
+    "publishAt": "Publish at",
+    "publishHint": "A time in the future schedules the post.",
+    "expiresAt": "Hide after (optional)",
+    "pinned": "Pin to the top",
+    "pinnedHint": "Pinned posts stay first in the list and on the overview.",
+    "audience": "Audience",
+    "audienceHint": "Leave roles and regions empty to reach everyone.",
+    "roles": "Roles",
+    "regions": "Regions",
+    "minClearance": "Minimum clearance",
+    "notifyHint": "Everyone in the audience gets a notification when the post goes live.",
+    "publish": "Publish",
+    "toolbar": "Formatting",
+    "bold": "Bold",
+    "italic": "Italic",
+    "strike": "Strikethrough",
+    "h2": "Heading",
+    "h3": "Subheading",
+    "bullets": "Bulleted list",
+    "numbers": "Numbered list",
+    "quote": "Quote",
+    "link": "Link",
+    "linkUrl": "Link address",
+    "apply": "Apply",
+    "undo": "Undo",
+    "redo": "Redo"
+  },
+  "palette": {
+    "title": "Command palette",
+    "hint": "Search pages, actions, customers, cases and alerts.",
+    "placeholder": "Search or jump to…",
+    "empty": "No matches.",
+    "quickAccess": "Quick access",
+    "results": "Results",
+    "actions": "Actions",
+    "pages": "Pages",
+    "newCase": "New case",
+    "newCustomer": "New customer",
+    "newNews": "New news post",
+    "lightTheme": "Switch to the light theme",
+    "darkTheme": "Switch to the dark theme",
+    "searchAlerts": "Search alerts for “{{query}}”",
+    "move": "move",
+    "open": "open"
+  },
+  "news": {
+    "title": "News",
+    "subtitle_zero": "You have read every post.",
+    "subtitle_one": "{{n}} unread post for you",
+    "subtitle_other": "{{n}} unread posts for you",
+    "new": "New post",
+    "show": "Show",
+    "all": "All",
+    "unreadOnly": "Unread",
+    "scheduledOnly": "Scheduled",
+    "empty": "No posts here.",
+    "pinned": "Pinned",
+    "unread": "Unread",
+    "readOf": "{{read}} of {{total}} read",
+    "state": {
+      "scheduled": "Scheduled",
+      "live": "Live",
+      "expired": "Expired"
+    },
+    "notFound": "This post does not exist or is not meant for you.",
+    "back": "All news",
+    "byline": "By {{author}}",
+    "attachments": "Attachments",
+    "manage": "Manage",
+    "edit": "Edit",
+    "delete": "Delete",
+    "publishAt": "Published",
+    "expiresAt": "Hidden after",
+    "never": "Never",
+    "readers": "Readers",
+    "readersInsight_zero": "Everyone in the audience has read it",
+    "readersInsight_one": "{{n}} person has not read it yet",
+    "readersInsight_other": "{{n}} people have not read it yet",
+    "noReaders": "Nobody has read it yet",
+    "deleteTitle": "Delete this post?",
+    "deleteHint": "The post and its attachments are removed for everyone. This cannot be undone.",
+    "newTitle": "New post",
+    "newSubtitle": "Write an announcement, then choose who sees it and when.",
+    "editTitle": "Edit post",
+    "cannotEdit": "Only the author or a news manager can edit this post."
+  },
+  "jobs": {
+    "title": "Scheduled jobs",
+    "subtitleOk_one": "{{n}} job, and its last run succeeded.",
+    "subtitleOk_other": "{{n}} jobs, and every last run succeeded.",
+    "subtitleFailing_one": "{{n}} job failed on its last run. Check the error below.",
+    "subtitleFailing_other": "{{n}} jobs failed on their last run. Check the errors below.",
+    "names": {
+      "rule-run": "Run detection rules",
+      "kyc-expiry": "KYC expiry check",
+      "sla-check": "Case SLA check",
+      "news-notify": "Announce scheduled news"
+    },
+    "descriptions": {
+      "rule-run": "Checks new transactions against every active rule and raises alerts.",
+      "kyc-expiry": "Marks customers whose KYC review is older than two years as expired and tells compliance.",
+      "sla-check": "Finds cases past their step SLA and reminds the people who act at that step.",
+      "news-notify": "Tells the audience when a scheduled news post goes live."
+    },
+    "paused": "Paused",
+    "schedule": "Schedule",
+    "nextRun": "Next run",
+    "lastRun": "Last run",
+    "never": "Never ran",
+    "successRate": "Success rate (last 14 runs)",
+    "duration": "Duration of the last runs",
+    "avgDuration": "{{value}} s on average",
+    "runNow": "Run now",
+    "running": "Running…",
+    "editSchedule": "Edit schedule",
+    "historyButton": "History",
+    "historyTitle": "Run history",
+    "status": {
+      "RUNNING": "Running",
+      "SUCCEEDED": "Succeeded",
+      "FAILED": "Failed"
+    },
+    "history": {
+      "started": "Started",
+      "duration": "Duration",
+      "result": "Result",
+      "trigger": "Started by",
+      "stats": "Details"
+    },
+    "sec": "s",
+    "bySchedule": "Schedule",
+    "stats": {
+      "checked": "checked",
+      "rules": "rules",
+      "alerts": "alerts",
+      "expired": "expired",
+      "reminded": "reminded",
+      "posts": "posts",
+      "notified": "notified"
+    },
+    "scheduleTitle": "Schedule of “{{name}}”",
+    "scheduleHint": "Pick a preset or write a cron expression. Times use the selected time zone.",
+    "preset": "Preset",
+    "presets": {
+      "every10": "Every 10 minutes",
+      "every15": "Every 15 minutes",
+      "hourly": "Every hour",
+      "nightly": "Every night at 02:00",
+      "weekdays": "Weekdays at 07:00",
+      "weekly": "Mondays at 06:00",
+      "custom": "Custom"
+    },
+    "cron": "Cron expression",
+    "cronHint": "minute hour day month weekday",
+    "timezone": "Time zone",
+    "preview": "Next five runs",
+    "enabled": "Enabled",
+    "enabledHint": "A paused job keeps its schedule but does not run."
+  },
+  "import": {
+    "title": "Data import",
+    "subtitle": "Bring in customers or transactions from CSV or Excel. Every row is checked before anything is saved.",
+    "steps": {
+      "file": "File",
+      "map": "Columns",
+      "preview": "Preview",
+      "check": "Check",
+      "done": "Done"
+    },
+    "kind": "What are you importing?",
+    "kinds": {
+      "customers": "Customers",
+      "transactions": "Transactions"
+    },
+    "kindHint": {
+      "customers": "Customers are added to a branch in your regions with KYC status Pending.",
+      "transactions": "Transactions are booked on existing accounts (found by IBAN) in your regions."
+    },
+    "template": "Download template",
+    "drop": "Drop a CSV or Excel file here, or click to choose one",
+    "dropHint": "Up to 5,000 rows. The first row must hold the column names.",
+    "wrongType": "Choose a .csv or .xlsx file.",
+    "unreadable": "This file could not be read.",
+    "mapEyebrow": "Columns in {{file}}",
+    "mapTitle_one": "Match the columns to the fields ({{n}} row)",
+    "mapTitle_other": "Match the columns to the fields ({{n}} rows)",
+    "notMapped": "Not in the file",
+    "missing": "Required fields without a column: {{fields}}",
+    "otherFile": "Choose another file",
+    "previewEyebrow": "Preview",
+    "previewTitle_one": "First {{shown}} of {{n}} row",
+    "previewTitle_other": "First {{shown}} of {{n}} rows",
+    "row": "Row",
+    "field": "Field",
+    "problem": "Problem",
+    "check": "Check rows",
+    "checking": "Checking…",
+    "rejected": "The server rejected the file. Check the column mapping.",
+    "checkEyebrow": "Check result",
+    "checkOk_one": "{{n}} row is ready to import",
+    "checkOk_other": "All {{n}} rows are ready to import",
+    "checkErrors_one": "{{n}} row has problems; {{valid}} can be imported",
+    "checkErrors_other": "{{n}} rows have problems; {{valid}} can be imported",
+    "total": "Rows in the file",
+    "valid": "Ready",
+    "invalid": "With problems",
+    "partialHint": "Only the ready rows are imported. Fix the others in the file and import them again.",
+    "discard": "Discard",
+    "commit_one": "Import {{n}} row",
+    "commit_other": "Import {{n}} rows",
+    "importing": "Importing…",
+    "doneTitle_one": "{{n}} row imported",
+    "doneTitle_other": "{{n}} rows imported",
+    "doneHint": {
+      "customers": "The new customers are in the customer list with KYC status Pending.",
+      "transactions": "The next rule run checks the new transactions."
+    },
+    "another": "Import another file",
+    "history": "Import history",
+    "historyInsight_zero": "Nothing imported yet",
+    "historyInsight_one": "{{n}} file imported, {{rows}} rows in total",
+    "historyInsight_other": "{{n}} files imported, {{rows}} rows in total",
+    "noHistory": "No imports yet.",
+    "rowsSummary": "{{valid}} of {{total}} rows valid",
+    "status": {
+      "VALIDATED": "Checked",
+      "IMPORTED": "Imported",
+      "DISCARDED": "Discarded"
+    },
+    "fields": {
+      "name": "Name",
+      "type": "Type",
+      "country": "Country",
+      "branchCode": "Branch code",
+      "email": "Email",
+      "phone": "Phone",
+      "riskScore": "Risk score",
+      "iban": "Account IBAN",
+      "bookedAt": "Booked at",
+      "amount": "Amount",
+      "currency": "Currency",
+      "direction": "Direction",
+      "channel": "Channel",
+      "counterpartyName": "Counterparty name",
+      "counterpartyIban": "Counterparty IBAN",
+      "counterpartyCountry": "Counterparty country"
+    }
+  },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "{{from}} to {{to}} · amounts in EUR",
+    "range": "Period",
+    "presets": {
+      "7": "7 days",
+      "30": "30 days",
+      "90": "90 days",
+      "custom": "Custom"
+    },
+    "from": "From",
+    "to": "To",
+    "excel": "Excel",
+    "exporting": "Exporting…",
+    "pdf": "Print or PDF",
+    "printNote": "AML Monitor report. Fictional data for a portfolio demo.",
+    "empty": "No data in this period.",
+    "flows": {
+      "eyebrow": "Money flows · outgoing transfers",
+      "insight": "{{share}} of the top flows ({{amount}}) went to high-risk countries",
+      "from": "Branch country",
+      "to": "Counterparty country",
+      "note": "Red links end in a high-risk country. Domestic flows are included for scale."
+    },
+    "heat": {
+      "eyebrow": "Alerts by weekday and hour",
+      "insight": "{{share}} of alerts were raised at night (22:00–06:00)"
+    },
+    "funnel": {
+      "eyebrow": "From alert to report",
+      "insight": "{{share}} of alerts ended in a report to the FIU ({{reported}})",
+      "alerts": "Alerts",
+      "reviewed": "Reviewed",
+      "escalated": "Escalated",
+      "cases": "Cases",
+      "reported": "Reported"
+    },
+    "workload": {
+      "eyebrow": "Workload per person",
+      "insight": "{{name}} holds {{count}} open alerts, {{times}}× the team average",
+      "open": "Open alerts",
+      "decided": "Decided in the period",
+      "name": "Name",
+      "role": "Role",
+      "median": "Median time to decide",
+      "cases": "Open cases"
+    },
+    "countries": {
+      "eyebrow": "Money in and out per country",
+      "insight": "High-risk countries sent {{ratio}}× as much as they received",
+      "country": "Country",
+      "in": "In",
+      "out": "Out",
+      "net": "Net",
+      "bars": "In and out",
+      "highRisk": "High risk"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Your profile, how the app looks, notifications and security.",
+    "saved": "Saved",
+    "saveFailed": "Could not save. Try again.",
+    "sections": {
+      "profile": "Profile",
+      "appearance": "Appearance",
+      "notifications": "Notifications",
+      "quickAccess": "Quick access",
+      "security": "Security",
+      "system": "System"
+    },
+    "profile": {
+      "eyebrow": "Profile",
+      "title": "How colleagues see you",
+      "photo": "Your photo",
+      "change": "Change photo",
+      "photoHint": "PNG, JPEG or WebP. You can crop it before it is uploaded.",
+      "tooLarge": "Choose an image under 10 MB.",
+      "uploadFailed": "The photo could not be uploaded.",
+      "cropTitle": "Crop your photo",
+      "name": "Name",
+      "email": "Email",
+      "emailHint": "Ask an admin to change your email.",
+      "role": "Role",
+      "regions": "Regions",
+      "clearance": "Clearance",
+      "managedByAdmin": "Role, regions and clearance are managed by an admin."
+    },
+    "appearance": {
+      "eyebrow": "Appearance",
+      "title": "Make the app fit the way you work",
+      "language": "Language",
+      "languageHint": "Changes the address too, so shared links keep the language.",
+      "theme": "Theme",
+      "themeHint": "Remembered on this device.",
+      "digits": "Digits",
+      "digitsHint": "Persian and Arabic can show Latin digits instead.",
+      "digitsOnlyRtl": "Applies when the app is in Persian or Arabic.",
+      "native": "Native",
+      "latin": "Latin",
+      "density": "Table density",
+      "densityHint": "Compact rows fit more on the screen.",
+      "comfortable": "Comfortable",
+      "compact": "Compact",
+      "startPage": "Start page",
+      "startPageHint": "Opens after you sign in."
+    },
+    "notifications": {
+      "eyebrow": "Notifications",
+      "title": "Choose what reaches your bell",
+      "note": "Turned-off types are not stored for you. Notifications you already have stay.",
+      "hints": {
+        "mention": "Someone mentions you in a case comment.",
+        "case_step": "A case moves to a step where you act.",
+        "case_assigned": "You are added to a case.",
+        "news": "A news post for you goes live.",
+        "job_failed": "A scheduled job fails.",
+        "kyc_expiry": "Customer KYC reviews expire.",
+        "sla_breach": "A case passes the SLA of its step.",
+        "import_done": "Your import has finished."
+      }
+    },
+    "quickAccess": {
+      "eyebrow": "Quick access",
+      "title": "{{used}} of {{max}} pages pinned",
+      "hint": "Pinned pages come first in the sidebar and in the command palette (Ctrl K), in the order you pin them.",
+      "full": "You can pin up to {{max}} pages. Unpin one to add another."
+    },
+    "security": {
+      "password": "Password",
+      "passwordTitle": "Change your password",
+      "current": "Current password",
+      "next": "New password",
+      "confirm": "Repeat the new password",
+      "rules": "At least 10 characters, with letters and digits.",
+      "change": "Change password",
+      "changed_zero": "Password changed.",
+      "changed_one": "Password changed. {{n}} other session was signed out.",
+      "changed_other": "Password changed. {{n}} other sessions were signed out.",
+      "sessions": "Sessions",
+      "sessionsTitle_zero": "This is your only session",
+      "sessionsTitle_one": "You are also signed in on {{n}} other device",
+      "sessionsTitle_other": "You are also signed in on {{n}} other devices",
+      "signOutOthers": "Sign out everywhere else",
+      "signOut": "Sign out",
+      "thisDevice": "This device",
+      "unknownDevice": "Unknown device",
+      "signedIn": "Signed in {{when}}",
+      "lastSeen": "last seen {{when}}"
+    },
+    "system": {
+      "eyebrow": "System",
+      "title": "Settings for everyone",
+      "baseCurrency": "Base currency",
+      "baseCurrencyHint": "Reports and rule thresholds use this currency.",
+      "highRisk": "High-risk countries",
+      "highRiskHint": "Transfers to these countries raise the risk score and show in red in reports.",
+      "sla": "Alert SLA in hours",
+      "slaHint": "Time to decide an alert, per risk level.",
+      "audit": "Every change is written to the audit log."
+    }
+  },
+  "admin": {
+    "title": "Admin",
+    "subtitle": "Users, roles and permissions, branches, clearance levels and the audit log.",
+    "edit": "Edit",
+    "sections": {
+      "users": "Users",
+      "roles": "Roles and permissions",
+      "branches": "Regions and branches",
+      "clearance": "Clearance levels",
+      "audit": "Audit log"
+    },
+    "users": {
+      "eyebrow": "Users",
+      "insight_one": "{{n}} account, {{inactive}} disabled",
+      "insight_other": "{{n}} accounts, {{inactive}} disabled",
+      "new": "New user",
+      "newTitle": "New user",
+      "editTitle": "Edit {{name}}",
+      "formHint": "The role sets the permissions; regions and clearance limit which records the user sees.",
+      "name": "Full name",
+      "email": "Email",
+      "role": "Role",
+      "clearance": "Clearance",
+      "regions": "Regions",
+      "password": "Password",
+      "passwordHint": "At least 10 characters. Share it in a safe way.",
+      "resetPassword": "New password (optional)",
+      "resetHint": "Leave empty to keep the current password. A reset signs the user out.",
+      "active": "Active",
+      "activeHint": "Disabled users cannot sign in, and their sessions end at once.",
+      "selfLock": "You cannot disable yourself or remove your own admin role.",
+      "actions": "Actions",
+      "never": "Never",
+      "activeBadge": "Active",
+      "disabled": "Disabled",
+      "col": {
+        "name": "User",
+        "role": "Role",
+        "regions": "Regions",
+        "clearance": "Clearance",
+        "lastLogin": "Last sign-in",
+        "status": "Status"
+      }
+    },
+    "roles": {
+      "eyebrow": "Roles and permissions",
+      "title": "What each role may do",
+      "permission": "Permission",
+      "users_one": "{{n}} user",
+      "users_other": "{{n}} users",
+      "saveHint": "Save each role after you change it.",
+      "ownRole": "You cannot change the permissions of your own role.",
+      "note": "The server checks the permission on every request; hiding a menu item is only a convenience. The admin role always keeps admin rights."
+    },
+    "permissions": {
+      "overview_view": "See the overview",
+      "alerts_view": "See alerts",
+      "alerts_decide": "Decide alerts",
+      "cases_view": "See cases",
+      "cases_create": "Open cases",
+      "cases_approve": "Approve cases",
+      "transactions_view": "See transactions",
+      "customers_view": "See customers",
+      "customers_manage": "Onboard and edit customers",
+      "rules_view": "See rules",
+      "rules_manage": "Edit rules",
+      "jobs_manage": "Manage scheduled jobs",
+      "import_manage": "Import data",
+      "reports_view": "See reports",
+      "workflow_manage": "Design workflows",
+      "news_create": "Write news",
+      "admin_manage": "Administer the system"
+    },
+    "branches": {
+      "insight": "{{regions}} regions with {{branches}} branches. Users see the records of the branches in their regions.",
+      "region": "Region",
+      "new": "Add branch",
+      "newTitle": "New branch",
+      "editTitle": "Edit branch {{code}}",
+      "formHint": "Times on charts use the branch time zone.",
+      "code": "Code",
+      "codeHint": "Three capital letters",
+      "city": "City",
+      "country": "Country",
+      "timezone": "Time zone",
+      "customers": "Customers"
+    },
+    "clearance": {
+      "eyebrow": "Clearance levels",
+      "title": "Names of the four clearance levels",
+      "name": "Name of level {{rank}}",
+      "note": "Every record carries a clearance rank; users see records up to their own rank."
+    },
+    "audit": {
+      "when": "When",
+      "user": "User",
+      "system": "System",
+      "action": "Action",
+      "entity": "Record type",
+      "details": "Details",
+      "actionPlaceholder": "Action starts with… (e.g. user.)",
+      "anyEntity": "Any record type",
+      "count_one": "{{n}} entry",
+      "count_other": "{{n}} entries"
+    }
+  },
+  "help": {
+    "title": "Help",
+    "subtitle": "A short guide to the screens, the shortcuts and how access works.",
+    "pagesEyebrow": "Screens",
+    "pagesTitle": "What you can do where",
+    "pages": {
+      "overview": "KPIs and charts for your regions, with a takeaway on every chart.",
+      "alerts": "Review the alerts that rules raise, and decide them.",
+      "cases": "Investigate in cases with a workflow, comments and documents.",
+      "transactions": "Search booked transactions with AND/OR criteria.",
+      "customers": "Customer profiles, KYC and onboarding.",
+      "network": "Follow money between accounts and find rings.",
+      "myWork": "Your next steps across cases, sorted by SLA.",
+      "reports": "Money flows, workload and the review funnel, with Excel and PDF export.",
+      "news": "Announcements for your role and region.",
+      "rules": "Detection rules and how often they hit.",
+      "jobs": "Scheduled jobs, their runs and their schedules.",
+      "import": "Bring in customers and transactions from CSV or Excel.",
+      "workflow": "Design case workflows and publish versions.",
+      "admin": "Users, roles, branches and the audit log.",
+      "settings": "Profile, appearance, notifications and security."
+    },
+    "shortcutsEyebrow": "Keyboard",
+    "shortcutsTitle": "Shortcuts",
+    "shortcuts": {
+      "palette": "Open the command palette",
+      "move": "Move through results",
+      "open": "Open the selected result",
+      "close": "Close a dialog or the palette",
+      "focus": "Move between controls",
+      "segmented": "Switch options in a segmented control"
+    },
+    "accessEyebrow": "Access",
+    "accessTitle": "Four checks on every request",
+    "access": {
+      "permission": {
+        "title": "Permission",
+        "text": "Your role decides which screens and actions you have."
+      },
+      "region": {
+        "title": "Region",
+        "text": "You see the records of branches in your regions only."
+      },
+      "clearance": {
+        "title": "Clearance",
+        "text": "Records above your clearance level stay hidden."
+      },
+      "membership": {
+        "title": "Case membership",
+        "text": "Comments and private notes are for case members only."
+      }
+    },
+    "demo": "Demo: every account uses the password demo1234. All people, companies and transactions are fictional."
+  },
+  "region": {
+    "EU": "Europe",
+    "TR": "Türkiye",
+    "GULF": "Gulf"
   }
 }

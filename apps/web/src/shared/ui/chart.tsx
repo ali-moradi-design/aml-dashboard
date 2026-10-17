@@ -2,7 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Highcharts from "highcharts";
+// Modules register on the Highcharts instance, so they load here, after the core.
 import "highcharts/modules/heatmap";
+import "highcharts/modules/sankey";
+import "highcharts/modules/funnel";
 import HighchartsReact from "highcharts-react-official";
 import { useTheme } from "next-themes";
 

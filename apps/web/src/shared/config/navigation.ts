@@ -9,7 +9,7 @@ export type NavItem = {
   path: string;
   icon: LucideIcon;
   permission: Permission;
-  /** Release that delivers the screen; earlier releases show a "coming soon" page. */
+  /** Release that delivered the screen (see docs/releases.md). */
   release: number;
 };
 
@@ -50,8 +50,5 @@ export const footerNav: NavItem[] = [
   { key: "settings", path: "/settings", icon: Settings, permission: "overview.view", release: 4 },
 ];
 
-/** Latest shipped release; later sections render the "coming soon" page. */
-export const CURRENT_RELEASE = 3;
-
-/** Sections that render the "coming soon" page until their release ships. */
-export const upcomingSections = [...navGroups.flatMap((g) => g.items), ...footerNav].filter((i) => i.release > CURRENT_RELEASE);
+/** Latest shipped release. Every section exists since release 4, so the "coming soon" route is gone. */
+export const CURRENT_RELEASE = 4;

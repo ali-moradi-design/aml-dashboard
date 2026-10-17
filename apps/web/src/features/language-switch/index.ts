@@ -1,1 +1,1 @@
-export { LanguageSwitch } from "./ui/language-switch";
+export { LanguageSwitch, localeNames, useChangeLocale } from "./ui/language-switch";

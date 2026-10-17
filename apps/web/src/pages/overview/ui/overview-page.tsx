@@ -11,6 +11,7 @@ import { PageHeader } from "@/shared/ui/panel";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { AlertHeatmap, AlertTrend, ReviewFunnel, RiskByBranch, RulesBreakdown } from "./charts";
 import { KpiRow } from "./kpi-row";
+import { LatestNews } from "./latest-news";
 import { NeedsDecision } from "./needs-decision";
 
 const greetingKey = () => {
@@ -73,6 +74,7 @@ export const OverviewPage = () => {
             <NeedsDecision data={data} />
             <RiskByBranch data={data} />
           </div>
+          <LatestNews />
         </>
       )}
     </>

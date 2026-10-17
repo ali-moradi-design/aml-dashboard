@@ -24,7 +24,7 @@ export const NeedsDecision = ({ data }: { data: Overview }) => {
     <Panel className="min-w-0 flex-1 gap-4">
       <PanelHeader
         eyebrow={t("overview.needs.eyebrow")}
-        title={overdue ? t("overview.needs.insight", { count: overdue }) : t("overview.needs.none")}
+        title={overdue ? t("overview.needs.insight", { count: overdue, n: formatNumber(overdue, locale) }) : t("overview.needs.none")}
         actions={
           <Link href={`${href("/alerts")}?riskLevel=HIGH&status=NEW&status=IN_REVIEW`} className="text-sm whitespace-nowrap text-link hover:underline">
             {t("overview.needs.viewAll")}

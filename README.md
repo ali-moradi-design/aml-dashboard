@@ -60,7 +60,13 @@ API enforces this on every request.
   recursive SQL for neighbors and shortest paths, masked accounts outside the user's access),
   case workflow designer (React Flow, live validation, versioning: open cases keep their
   version) with a server-side engine that drives the case page and the new My work inbox
-- [ ] Release 4: reports, jobs, data import, news, notifications, settings, admin
+- [x] Release 4: reports (Sankey money flows, alert heatmap, workload, review funnel,
+  country table; Excel export and print-to-PDF), scheduled jobs (pg-boss, cron presets with a
+  next-runs preview, run history), data import wizard (CSV/Excel, column mapping, server
+  validation with row errors), news with a rich-text editor and read receipts, live
+  notification center, settings (profile photo, digits, table density, start page, quick
+  access, notification types, password and sessions), admin (users, role permission matrix,
+  branches, clearance names, audit log), help page and a Ctrl K command palette
 - [ ] Release 5: German, Turkish and Arabic
 
 ## Licenses of third-party parts

@@ -111,3 +111,74 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Compact table density (Settings → Appearance). */
+[data-density="compact"] .data-cell {
+  height: 32px;
+}
+
+/* News posts: HTML from the editor, sanitized on the server. */
+.news-body {
+  font-size: 15px;
+  line-height: 24px;
+  color: var(--text);
+}
+.news-body > * + * {
+  margin-top: 12px;
+}
+.news-body h2 {
+  font-size: 20px;
+  line-height: 28px;
+  color: var(--heading);
+  margin-top: 24px;
+}
+.news-body h3 {
+  font-size: 17px;
+  line-height: 24px;
+  color: var(--heading);
+  margin-top: 20px;
+}
+.news-body ul,
+.news-body ol {
+  padding-inline-start: 22px;
+}
+.news-body ul {
+  list-style: disc;
+}
+.news-body ol {
+  list-style: decimal;
+}
+.news-body li + li {
+  margin-top: 4px;
+}
+.news-body a {
+  color: var(--link);
+  text-decoration: underline;
+}
+.news-body blockquote {
+  border-inline-start: 3px solid var(--accent);
+  padding-inline-start: 14px;
+  color: var(--text-secondary);
+}
+.news-body strong {
+  font-weight: 600;
+}
+
+/* Reports print to PDF through the browser: no navigation, white page, no clipped cards. */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 12mm;
+  }
+  html,
+  body {
+    background: #fff;
+  }
+  main {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+  section {
+    break-inside: avoid;
+  }
+}

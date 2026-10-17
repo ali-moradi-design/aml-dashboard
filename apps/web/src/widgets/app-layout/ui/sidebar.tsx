@@ -6,6 +6,7 @@ import { ChevronLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useOverview } from "@/entities/overview";
 import { useCan } from "@/entities/session";
+import { usePreferences } from "@/entities/settings";
 import { footerNav, navGroups, type NavItem } from "@/shared/config/navigation";
 import { useHref, useLocale } from "@/shared/i18n/use-locale";
 import { formatNumber } from "@/shared/lib/format";
@@ -62,6 +63,9 @@ export const Sidebar = () => {
   const can = useCan();
   const { collapsed, toggle } = useSidebarStore();
   const { data: overview } = useOverview();
+  const { quickAccess } = usePreferences();
+  const allItems = [...navGroups.flatMap((g) => g.items), ...footerNav];
+  const pinned = quickAccess.flatMap((path) => allItems.filter((i) => i.path === path && can(i.permission)));
   const counts: Record<string, number | undefined> = { alerts: overview?.kpis.openAlerts };
   const isActive = (path: string) => {
     const rest = (pathname ?? "").replace(`/${locale}`, "") || "/";
@@ -71,7 +75,7 @@ export const Sidebar = () => {
   return (
     <aside
       className={cn(
-        "sticky top-0 z-20 flex h-dvh shrink-0 flex-col gap-1 border-e border-sidebar-border bg-sidebar px-4 py-5 transition-[width] duration-250 ease-in-out",
+        "sticky top-0 z-20 flex h-dvh print:hidden shrink-0 flex-col gap-1 border-e border-sidebar-border bg-sidebar px-4 py-5 transition-[width] duration-250 ease-in-out",
         collapsed ? "w-[72px]" : "w-[248px]",
       )}
     >
@@ -94,7 +98,7 @@ export const Sidebar = () => {
       <div className="h-5" />
 
       <nav className="flex flex-1 flex-col gap-1 overflow-y-auto overflow-x-hidden">
-        {navGroups.map((group) => {
+        {[{ key: "quickAccess", items: pinned }, ...navGroups].map((group) => {
           const items = group.items.filter((i) => can(i.permission));
           if (!items.length) return null;
           return (
@@ -104,7 +108,7 @@ export const Sidebar = () => {
                 <span className={cn("absolute start-3 h-px w-4 bg-sidebar-border opacity-0 transition-opacity", collapsed && "opacity-100")} />
               </div>
               {items.map((item) => (
-                <NavLink key={item.key} item={item} active={isActive(item.path)} collapsed={collapsed} count={counts[item.key]} />
+                <NavLink key={item.key} item={item} active={isActive(item.path) && (group.key === "quickAccess" || !quickAccess.includes(item.path))} collapsed={collapsed} count={counts[item.key]} />
               ))}
             </div>
           );

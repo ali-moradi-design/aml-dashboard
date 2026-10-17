@@ -7,18 +7,23 @@ import { useLocale } from "@/shared/i18n/use-locale";
 import { setCookie } from "@/shared/lib/browser";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/ui/dropdown-menu";
 
-const names: Record<Locale, string> = { en: "English", de: "Deutsch", tr: "Türkçe", ar: "العربية", fa: "فارسی" };
+export const localeNames: Record<Locale, string> = { en: "English", de: "Deutsch", tr: "Türkçe", ar: "العربية", fa: "فارسی" };
 
 /** Short code in the app bar (EN, DE, ...); full names in the menu. Switching keeps the current page. */
-export const LanguageSwitch = () => {
+/** Switches the URL locale and remembers it in a cookie. */
+export const useChangeLocale = () => {
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
-
-  const change = (next: Locale) => {
+  return (next: Locale) => {
     setCookie("aml-locale", next);
     router.push((pathname ?? "").replace(new RegExp(`^/${locale}(?=/|$)`), `/${next}`));
   };
+};
+
+export const LanguageSwitch = () => {
+  const locale = useLocale();
+  const change = useChangeLocale();
 
   return (
     <DropdownMenu>
@@ -30,7 +35,7 @@ export const LanguageSwitch = () => {
       <DropdownMenuContent align="end" className="min-w-40">
         {locales.map((l) => (
           <DropdownMenuItem key={l} onSelect={() => change(l)} className="justify-between gap-6">
-            <span lang={l}>{names[l]}</span>
+            <span lang={l}>{localeNames[l]}</span>
             <span className="flex items-center gap-2 text-xs text-text-secondary uppercase">
               {l}
               {l === locale ? <Check className="size-3.5" /> : null}

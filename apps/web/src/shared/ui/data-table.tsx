@@ -180,7 +180,7 @@ export const DataTable = <T extends RowData>({ columns, query, resetKey, initial
               ? Array.from({ length: 10 }, (_, i) => (
                   <tr key={i}>
                     {headers.map((h) => (
-                      <td key={h.id} className="h-11 border-b border-border px-3"><Skeleton className="h-3.5 w-3/4" /></td>
+                      <td key={h.id} className="data-cell h-11 border-b border-border px-3"><Skeleton className="h-3.5 w-3/4" /></td>
                     ))}
                   </tr>
                 ))
@@ -195,7 +195,7 @@ export const DataTable = <T extends RowData>({ columns, query, resetKey, initial
                     {row.getAllCells().map((cell) => {
                       const meta = cell.column.columnDef.meta;
                       return (
-                        <td key={cell.id} className={cn("h-11 truncate border-b border-border px-3", meta?.numeric && "ltr-nums text-end", meta?.className)}>
+                        <td key={cell.id} className={cn("data-cell h-11 truncate border-b border-border px-3", meta?.numeric && "ltr-nums text-end", meta?.className)}>
                           <table.FlexRender cell={cell} />
                         </td>
                       );

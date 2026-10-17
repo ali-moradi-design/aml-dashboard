@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -8,6 +9,7 @@ import { loginSchema, type LoginInput } from "@aml/shared";
 import { LanguageSwitch } from "@/features/language-switch";
 import { ThemeToggle } from "@/features/theme-toggle";
 import { useLogin } from "@/entities/session";
+import { getMySettings, settingsKeys } from "@/entities/settings";
 import { isHttpError } from "@/shared/api";
 import { useHref } from "@/shared/i18n/use-locale";
 import { Button } from "@/shared/ui/button";
@@ -30,10 +32,19 @@ export const LoginPage = () => {
   const params = useSearchParams();
   const href = useHref();
   const login = useLogin();
+  const qc = useQueryClient();
   const form = useForm<LoginInput>({ resolver: zodResolver(loginSchema), defaultValues: { email: "", password: "" } });
 
+  // After sign-in: the page the user came from, otherwise the start page from their settings.
   const submit = (values: LoginInput) =>
-    login.mutate(values, { onSuccess: () => router.replace(params?.get("next") ?? href("/")) });
+    login.mutate(values, {
+      onSuccess: async () => {
+        const next = params?.get("next");
+        if (next) return router.replace(next);
+        const settings = await qc.fetchQuery({ queryKey: settingsKeys.me(), queryFn: getMySettings }).catch(() => null);
+        router.replace(href(settings?.preferences.startPage ?? "/"));
+      },
+    });
 
   const serverError = login.error
     ? isHttpError(login.error) && login.error.status === 401
