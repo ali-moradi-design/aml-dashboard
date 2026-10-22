@@ -32,3 +32,4 @@ apps/api/src/generated/
 
 # uploaded case documents (local storage)
 apps/api/storage/
+.impeccable/
