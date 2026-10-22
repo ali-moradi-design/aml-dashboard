@@ -54,8 +54,7 @@ API enforces this on every request.
 - [x] Release 2: customers with KYC profile and a multi-step onboarding form, cases
   (table and board views, a creation wizard prefilled from an alert, four-eyes approval chain,
   threaded comments with @mentions and edit history, documents, private notes, live updates
-  over Socket.IO), detection rules with performance stats and an AND/OR rule builder;
-  tables moved from AG Grid to TanStack Table
+  over Socket.IO), detection rules with performance stats and an AND/OR rule builder
 - [x] Release 3: account network graph (Sigma.js, ForceAtlas2 layout, Louvain clusters,
   recursive SQL for neighbors and shortest paths, masked accounts outside the user's access),
   case workflow designer (React Flow, live validation, versioning: open cases keep their

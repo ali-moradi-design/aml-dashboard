@@ -42,8 +42,8 @@ Roles: analyst, supervisor, compliance manager, system admin.
 
 ## Content and locale rules
 
-- No mention of Iran anywhere (data, text, maps). The high-risk country list is
-  fictional or generic, to avoid political sensitivity.
+- No politically sensitive countries in data, text or maps. The high-risk country
+  list is fictional or generic.
 - Fictional bank with branches in cities such as Berlin, Istanbul, Dubai, London.
 - Multi-currency (EUR, USD, TRY, AED) with a base currency amount on every
   transaction. Fictional international names; no real data.
@@ -52,7 +52,7 @@ Roles: analyst, supervisor, compliance manager, system admin.
 - Use logical CSS only (`ms-*`, `me-*`, `text-start`), never left/right.
   Directional icons mirror in RTL. Chart time axes, account numbers, IBANs and
   amounts stay LTR.
-- AG Grid: `enableRtl` and its official locale packs (verify the languages).
+- Tables: headless, so RTL and translated labels come from our own markup.
 - Fonts: Vazirmatn for Arabic and Persian, a separate Latin font.
 - German text is ~30% longer: no fixed-width buttons or columns; test in Figma.
 - Numbers, dates and money through `Intl`. Arabic and Persian show native digits
@@ -202,8 +202,7 @@ Hand-built with React Hook Form + Zod; the same Zod schema is used on the server
 1. Workflow: model B (React Flow workflow designer).
 2. Repo: `aml-dashboard` (public), subdomain `aml-dashboard.ali-moradi-develop.com`.
    The product name shown in the UI is chosen during design.
-3. AG Grid Enterprise features. Without a license key it shows a watermark and a
-   console message; check the license terms and say so in the README.
+3. Tables: TanStack Table (headless, MIT); sorting and paging run in the API.
 4. Stack (chosen by the shape of the data and the needs, not by popularity):
    - Web app: Next.js (App Router). httpOnly cookie auth, permission checks on the
      server, locale routes (`/en`, `/de`, ...), first data load on the server;

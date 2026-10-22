@@ -1,15 +1,9 @@
 {
   "docs/brief.md": {
-    "mtime": 1792184953.859682,
-    "seen": 1792185309.6780357,
-    "ast_hash": "f440c818590b8ffe80f31427f734725c",
-    "semantic_hash": "f440c818590b8ffe80f31427f734725c"
-  },
-  ".impeccable/config.json": {
-    "mtime": 1792193174.4390924,
-    "seen": 1792231492.7240403,
-    "ast_hash": "3dd761aed32af5c8eae78450ada74c76",
-    "semantic_hash": "3dd761aed32af5c8eae78450ada74c76"
+    "mtime": 1792695989.5174642,
+    "seen": 1792696009.529247,
+    "ast_hash": "629eee0c819af1a3b66762b274afb10c",
+    "semantic_hash": "629eee0c819af1a3b66762b274afb10c"
   },
   ".prettierrc.json": {
     "mtime": 1792193959.0095282,
@@ -690,10 +684,10 @@
     "semantic_hash": "84fd059d9a5e9e29f3fe93277c8ab6b8"
   },
   "apps/web/src/app/providers/providers.tsx": {
-    "mtime": 1792194288.8581612,
-    "seen": 1792231492.724104,
-    "ast_hash": "afb51b824d4aaad2f1dd0407c98804e3",
-    "semantic_hash": "afb51b824d4aaad2f1dd0407c98804e3"
+    "mtime": 1792232247.173752,
+    "seen": 1792695824.310803,
+    "ast_hash": "47492a4c1aa4816726f70713352973ea",
+    "semantic_hash": "47492a4c1aa4816726f70713352973ea"
   },
   "apps/web/src/app/styles/fonts.ts": {
     "mtime": 1792194160.2130964,
@@ -2172,10 +2166,10 @@
     "semantic_hash": "4f4572a0f0d67588576f4b72037e0307"
   },
   "README.md": {
-    "mtime": 1792230942.7458124,
-    "seen": 1792231492.7242327,
-    "ast_hash": "58268697f6de33303117001c926ad79b",
-    "semantic_hash": "58268697f6de33303117001c926ad79b"
+    "mtime": 1792695519.5837808,
+    "seen": 1792695824.3109663,
+    "ast_hash": "9dda716275cb1bc483d6b6402a1ec479",
+    "semantic_hash": "9dda716275cb1bc483d6b6402a1ec479"
   },
   "apps/web/AGENTS.md": {
     "mtime": 1792193198.9709718,
@@ -2207,12 +2201,6 @@
     "ast_hash": "0f85222dcbd61554506da4b635340dd2",
     "semantic_hash": "0f85222dcbd61554506da4b635340dd2"
   },
-  "design-preview/overview.html": {
-    "mtime": 1792193006.431861,
-    "seen": 1792231492.7242355,
-    "ast_hash": "4099215f173a45a17e7cf70905633cdf",
-    "semantic_hash": "4099215f173a45a17e7cf70905633cdf"
-  },
   "docker-compose.yml": {
     "mtime": 1792194528.5534246,
     "seen": 1792231492.7242362,
@@ -2226,10 +2214,10 @@
     "semantic_hash": "6b16007aeb88f11b729781874c6ebbae"
   },
   "docs/handover.md": {
-    "mtime": 1792231238.3547535,
-    "seen": 1792231492.72424,
-    "ast_hash": "43cab099b544d2fcb6aa0ebb0fa09c4d",
-    "semantic_hash": "43cab099b544d2fcb6aa0ebb0fa09c4d"
+    "mtime": 1792232416.6729102,
+    "seen": 1792695824.3109682,
+    "ast_hash": "b84886f40c78c760bb6326ab4256a0b8",
+    "semantic_hash": "b84886f40c78c760bb6326ab4256a0b8"
   },
   "docs/releases.md": {
     "mtime": 1792209849.9555607,
@@ -2238,10 +2226,10 @@
     "semantic_hash": "5f33716b504beba0e2c506fc5ea26553"
   },
   "docs/tech-decisions.md": {
-    "mtime": 1792217276.7308729,
-    "seen": 1792231492.7242413,
-    "ast_hash": "29db3e3f417429495f806ae77d0c0f20",
-    "semantic_hash": "29db3e3f417429495f806ae77d0c0f20"
+    "mtime": 1792695519.58328,
+    "seen": 1792695824.3109686,
+    "ast_hash": "fe477ab2cbd8ce9b2158f0d8177b891d",
+    "semantic_hash": "fe477ab2cbd8ce9b2158f0d8177b891d"
   },
   "pnpm-workspace.yaml": {
     "mtime": 1792195374.3329694,
