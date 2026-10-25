@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { NewsEditPage } from "@/pages/news-edit";
+import { NewsEditPage } from "@/_pages/news-edit";
 
 export default function Page() {
   return (

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { directionOf, isLocale, locales } from "@aml/shared";
-import { Providers } from "@/app/providers";
-import { fontVariables } from "@/app/styles/fonts";
-import "@/app/styles/globals.css";
+import { Providers } from "@/_app/providers";
+import { fontVariables } from "@/_app/styles/fonts";
+import "@/_app/styles/globals.css";
 
 export const metadata: Metadata = {
   title: "AML Monitor",

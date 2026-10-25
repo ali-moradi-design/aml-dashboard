@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { CustomerProfilePage } from "@/pages/customer-profile";
+import { CustomerProfilePage } from "@/_pages/customer-profile";
 
 const Profile = async ({ params }: { params: Promise<{ code: string }> }) => <CustomerProfilePage code={(await params).code} />;
 

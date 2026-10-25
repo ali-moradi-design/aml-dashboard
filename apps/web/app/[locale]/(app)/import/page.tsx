@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { ImportPage } from "@/pages/import";
+import { ImportPage } from "@/_pages/import";
 
 export default function Page() {
   return (

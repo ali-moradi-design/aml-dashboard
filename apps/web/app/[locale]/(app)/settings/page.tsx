@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { SettingsPage } from "@/pages/settings";
+import { SettingsPage } from "@/_pages/settings";
 
 export default function Page() {
   return (

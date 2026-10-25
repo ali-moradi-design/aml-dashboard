@@ -103,7 +103,7 @@ Release 3:
 - Workflow (`/workflow`): shared engine `packages/shared/src/workflow.ts`
   (validation, available actions, SLA), defaults in `workflow-defaults.ts`, API
   `apps/api/src/modules/workflows`, designer `apps/web/src/features/workflow-designer`
-  (React Flow), case page diagram `apps/web/src/pages/case-detail/ui/case-workflow.tsx`.
+  (React Flow), case page diagram `apps/web/src/_pages/case-detail/ui/case-workflow.tsx`.
   Versions: draft, published, archived; open cases keep their version.
 - My work (`/my-work`): `apps/api/src/modules/my-work`, same engine as the case page.
 

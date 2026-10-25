@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { CaseNewPage } from "@/pages/case-new";
+import { CaseNewPage } from "@/_pages/case-new";
 
 const Wizard = async ({ searchParams }: { searchParams: Promise<{ alert?: string }> }) => <CaseNewPage fromAlert={(await searchParams).alert} />;
 

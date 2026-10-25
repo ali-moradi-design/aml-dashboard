@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { HelpPage } from "@/pages/help";
+import { HelpPage } from "@/_pages/help";
 
 export default function Page() {
   return (

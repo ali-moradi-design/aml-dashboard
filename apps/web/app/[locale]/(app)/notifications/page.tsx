@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { NotificationsPage } from "@/pages/notifications";
+import { NotificationsPage } from "@/_pages/notifications";
 
 export default function Page() {
   return (

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { AlertDetailPage } from "@/pages/alert-detail";
+import { AlertDetailPage } from "@/_pages/alert-detail";
 
 const Detail = async ({ params }: { params: Promise<{ id: string }> }) => <AlertDetailPage id={(await params).id} />;
 

@@ -28,10 +28,12 @@ Decided with the author on 2026-10-17. Earlier decisions from `brief.md`
 ## Frontend (`apps/web`)
 
 - Architecture: Feature-Sliced Design (FSD). Layers from top to bottom:
-  `app` (providers, global styles, theme) → `pages` → `widgets` →
+  `_app` (providers, global styles, theme) → `_pages` → `widgets` →
   `features` → `entities` → `shared` (UI kit, API client, lib, config).
   A layer imports only from layers below it; each slice exposes a public
-  `index.ts`. Next.js `src/app` routes stay thin and render FSD pages.
+  `index.ts`. The `app` and `pages` layers carry an underscore so they do not
+  clash with Next.js folders (fsd.how guide for Next.js). Next.js routes live in
+  the root `app/` folder, stay thin and render FSD pages.
 - Styling: Tailwind CSS (required), logical classes such as `ms-*`, `me-*`
   for RTL. The theme (light and dark) is built from the Figma tokens as CSS
   variables and mapped into Tailwind's theme.

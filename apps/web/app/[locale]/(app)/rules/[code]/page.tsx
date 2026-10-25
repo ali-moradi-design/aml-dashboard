@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { RuleDetailPage } from "@/pages/rule-detail";
+import { RuleDetailPage } from "@/_pages/rule-detail";
 
 const Detail = async ({ params }: { params: Promise<{ code: string }> }) => <RuleDetailPage code={(await params).code} />;
 

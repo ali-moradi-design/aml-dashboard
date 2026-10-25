@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { RuleEditPage } from "@/pages/rule-edit";
+import { RuleEditPage } from "@/_pages/rule-edit";
 
 const Edit = async ({ params }: { params: Promise<{ code: string }> }) => <RuleEditPage code={(await params).code} />;
 

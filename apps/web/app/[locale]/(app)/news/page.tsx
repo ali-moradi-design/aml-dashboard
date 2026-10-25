@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { NewsPage } from "@/pages/news";
+import { NewsPage } from "@/_pages/news";
 
 export default function Page() {
   return (

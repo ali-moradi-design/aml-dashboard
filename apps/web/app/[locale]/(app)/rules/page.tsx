@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { RulesPage } from "@/pages/rules";
+import { RulesPage } from "@/_pages/rules";
 
 export default function Page() {
   return (
