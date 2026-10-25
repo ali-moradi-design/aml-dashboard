@@ -138,7 +138,7 @@ export const WorkflowDesigner = (props: Props) => {
 
   return (
     <div className="flex flex-col gap-6 xl:flex-row">
-      <section dir="ltr" className="h-[calc(100dvh-250px)] min-h-[520px] min-w-0 flex-1 overflow-hidden rounded-lg border border-border bg-card">
+      <section dir="ltr" className="h-[calc(100dvh-250px)] min-h-[520px] min-w-0 overflow-hidden xl:flex-1 rounded-lg border border-border bg-card">
         <ReactFlowProvider>
           <Canvas {...props} issues={issues} selection={selection} setSelection={setSelection} />
         </ReactFlowProvider>
