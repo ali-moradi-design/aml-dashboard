@@ -57,10 +57,11 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
         <Sidebar />
         <div className="min-w-0 flex-1">
           <AppBar />
-          {/* Remounted when the digit preference changes, so every number is formatted again. */}
+          {/* Remounted when the digit preference changes, so every number is formatted again.
+              max-w-560 (2240px) fills a 2560px screen (27 inch) next to the sidebar. */}
           <main
             key={prefs?.digits}
-            className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 px-8 pt-7 pb-10"
+            className="mx-auto flex w-full max-w-560 flex-col gap-6 px-8 pt-7 pb-10"
           >
             {children}
           </main>
