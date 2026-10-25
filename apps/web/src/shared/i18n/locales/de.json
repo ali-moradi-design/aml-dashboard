@@ -132,7 +132,9 @@
     "passwordSame": "Wählen Sie ein anderes Passwort als das aktuelle.",
     "passwordWrong": "Das aktuelle Passwort ist falsch.",
     "tooManyRows": "Höchstens 5.000 Zeilen pro Datei.",
-    "unknownAccount": "Kein Konto mit dieser IBAN in Ihren Regionen."
+    "unknownAccount": "Kein Konto mit dieser IBAN in Ihren Regionen.",
+    "uploadDaily": "Das Upload-Limit für heute ist erreicht. Versuchen Sie es morgen erneut.",
+    "storageFull": "Der Demo-Speicher ist voll. Er wird beim nächtlichen Zurücksetzen geleert."
   },
   "login": {
     "heroTitle": "Das Signal in jeder Transaktion finden.",
@@ -794,10 +796,10 @@
     "removeMember": "{{name}} entfernen",
     "documents": "Dokumente",
     "noDocuments": "Noch keine Dokumente.",
-    "dropHint": "Dateien hier ablegen, je bis zu 10 MB.",
+    "dropHint": "Dateien hier ablegen, je bis zu 5 MB.",
     "upload": "Hochladen",
     "uploading": "Wird hochgeladen…",
-    "tooLarge": "{{name}} ist größer als 10 MB.",
+    "tooLarge": "{{name}} ist größer als 5 MB.",
     "uploadFailed": "{{name}} konnte nicht hochgeladen werden.",
     "note": "Private Notiz",
     "notePlaceholder": "Nur Sie sehen diese Notiz.",

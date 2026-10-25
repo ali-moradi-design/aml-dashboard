@@ -1,7 +1,8 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/main.ts"],
+  // The seed is built too, so the nightly demo reset can run it in production (dist/seed.js).
+  entry: { main: "src/main.ts", seed: "prisma/seed.ts" },
   format: ["esm"],
   platform: "node",
   target: "node24",

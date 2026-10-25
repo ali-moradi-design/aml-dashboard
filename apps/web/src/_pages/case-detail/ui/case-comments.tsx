@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Textarea } from "@/shared/ui/textarea";
 import { MentionInput } from "./mention-input";
+import { uploadLimitKey } from "@/shared/api";
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -47,7 +48,7 @@ const Composer = ({ code, people, parentId, onDone, autoFocus }: { code: string;
     setError(null);
     for (const file of Array.from(list ?? [])) {
       if (file.size > MAX_UPLOAD) { setError(t("caseDetail.tooLarge", { name: file.name })); continue; }
-      upload.mutate({ code, file }, { onSuccess: (doc) => setFiles((f) => [...f, doc]), onError: () => setError(t("caseDetail.uploadFailed", { name: file.name })) });
+      upload.mutate({ code, file }, { onSuccess: (doc) => setFiles((f) => [...f, doc]), onError: (e) => setError(t(uploadLimitKey(e) ?? "caseDetail.uploadFailed", { name: file.name })) });
     }
   };
 

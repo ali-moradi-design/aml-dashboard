@@ -7,7 +7,7 @@ import type { Db } from "../../db/prisma";
 import { principalOf, type Principal } from "../../shared/access";
 import { appError } from "../../shared/errors";
 import { handle, sendResult } from "../../shared/http";
-import { createUploader, IMAGE_TYPES } from "../../shared/storage";
+import { createUploader, IMAGE_TYPES, MAX_AVATAR_BYTES } from "../../shared/storage";
 import { loadSystemSettings } from "../../shared/system-settings";
 import { parseWith } from "../../shared/validate";
 import { requirePermission } from "../auth";
@@ -15,7 +15,7 @@ import { requirePermission } from "../auth";
 const dbError = (cause: unknown) => appError.unexpected("Database error", cause);
 
 export const createSettingsModule = ({ db, requireAuth, storageDir }: { db: Db; requireAuth: RequestHandler; storageDir: string }) => {
-  const { dir, upload } = createUploader(storageDir, "avatars", { allowed: IMAGE_TYPES, maxBytes: 3 * 1024 * 1024 });
+  const { dir, upload } = createUploader(storageDir, "avatars", { allowed: IMAGE_TYPES, maxBytes: MAX_AVATAR_BYTES });
 
   const me = (p: Principal) =>
     ResultAsync.fromPromise(Promise.all([db.user.findUniqueOrThrow({ where: { id: p.userId } }), db.userPreference.findUnique({ where: { userId: p.userId } })]), dbError).map(([u, pref]) => ({

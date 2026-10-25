@@ -167,6 +167,21 @@ English text comes from the API). Plural keys (`_one`/`_other`) count as present
   excluded country in its content rules. It predates these notes and was left unchanged;
   rephrase it generically if the public repo must not contain the name at all.
 
+## Public demo safeguards
+
+- Nightly reset: set `DEMO_RESET_CRON` (for example `0 3 * * *`) and `DEMO_RESET_TZ` in the
+  API environment. A fixed pg-boss schedule (`apps/api/src/jobs/demo-reset.ts`, not a Job row,
+  so visitors cannot change it) runs the seed in a child process, deletes every upload and
+  restores job schedules. About 30 s; everyone is signed out. Empty in development.
+  Production runs `dist/seed.js`, which `tsup` builds next to `main.js`.
+- Uploads (`apps/api/src/shared/storage.ts`): 5 MB per document, 3 MB per avatar, 30 uploads
+  per IP per day, 300 MB total. Over the limit the API answers 429 or 507 and the screens show
+  `errors.uploadDaily` or `errors.storageFull`. Behind Nginx, set Express `trust proxy` so the
+  per-IP count sees the visitor's address.
+- Content Security Policy and other security headers for the web app live in
+  `apps/web/next.config.ts`. Inline scripts stay allowed because nonces would need fully
+  dynamic rendering.
+
 ## Remaining ideas (not planned)
 
 - Swap Vazirmatn for the commercial Persian font once its license is bought (see

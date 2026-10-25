@@ -9,8 +9,10 @@ import { useLocale } from "@/shared/i18n/use-locale";
 import { formatDate } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
+import { uploadLimitKey } from "@/shared/api";
+import { MAX_DOCUMENT_BYTES } from "@/shared/config/uploads";
 
-export const MAX_UPLOAD = 10 * 1024 * 1024;
+export const MAX_UPLOAD = MAX_DOCUMENT_BYTES;
 export const ACCEPT = ".pdf,.png,.jpg,.jpeg,.csv,.xlsx,.docx,.txt";
 
 export const formatSize = (bytes: number, locale: string) =>
@@ -34,7 +36,7 @@ export const CaseDocuments = ({ detail }: { detail: CaseDetail }) => {
         setError(t("caseDetail.tooLarge", { name: file.name }));
         continue;
       }
-      upload.mutate({ code: c.code, file }, { onError: () => setError(t("caseDetail.uploadFailed", { name: file.name })) });
+      upload.mutate({ code: c.code, file }, { onError: (e) => setError(t(uploadLimitKey(e) ?? "caseDetail.uploadFailed", { name: file.name })) });
     }
   };
 

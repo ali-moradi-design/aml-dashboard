@@ -132,7 +132,9 @@
     "passwordSame": "Mevcut şifreden farklı bir şifre seçin.",
     "passwordWrong": "Mevcut şifre yanlış.",
     "tooManyRows": "Dosya başına en fazla 5.000 satır.",
-    "unknownAccount": "Bölgelerinizde bu IBAN'a ait hesap yok."
+    "unknownAccount": "Bölgelerinizde bu IBAN'a ait hesap yok.",
+    "uploadDaily": "Bugünkü yükleme sınırına ulaşıldı. Yarın tekrar deneyin.",
+    "storageFull": "Demo depolama alanı dolu. Gece sıfırlamasında boşaltılır."
   },
   "login": {
     "heroTitle": "Her işlemdeki sinyali bulun.",
@@ -794,10 +796,10 @@
     "removeMember": "{{name}} kişisini çıkar",
     "documents": "Belgeler",
     "noDocuments": "Henüz belge yok.",
-    "dropHint": "Dosyaları buraya bırakın, her biri en fazla 10 MB.",
+    "dropHint": "Dosyaları buraya bırakın, her biri en fazla 5 MB.",
     "upload": "Yükle",
     "uploading": "Yükleniyor…",
-    "tooLarge": "{{name}} 10 MB'tan büyük.",
+    "tooLarge": "{{name}} 5 MB'tan büyük.",
     "uploadFailed": "{{name}} yüklenemedi.",
     "note": "Özel not",
     "notePlaceholder": "Bu notu yalnızca siz görürsünüz.",

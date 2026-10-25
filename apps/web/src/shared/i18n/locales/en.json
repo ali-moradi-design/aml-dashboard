@@ -132,7 +132,9 @@
     "passwordSame": "Choose a password that differs from the current one.",
     "passwordWrong": "The current password is wrong.",
     "tooManyRows": "Up to 5,000 rows per file.",
-    "unknownAccount": "No account with this IBAN in your regions."
+    "unknownAccount": "No account with this IBAN in your regions.",
+    "uploadDaily": "Upload limit reached for today. Try again tomorrow.",
+    "storageFull": "Demo storage is full. It empties at the nightly reset."
   },
   "login": {
     "heroTitle": "Find the signal in every transaction.",
@@ -794,10 +796,10 @@
     "removeMember": "Remove {{name}}",
     "documents": "Documents",
     "noDocuments": "No documents yet.",
-    "dropHint": "Drop files here, up to 10 MB each.",
+    "dropHint": "Drop files here, up to 5 MB each.",
     "upload": "Upload",
     "uploading": "Uploading…",
-    "tooLarge": "{{name}} is larger than 10 MB.",
+    "tooLarge": "{{name}} is larger than 5 MB.",
     "uploadFailed": "{{name}} could not be uploaded.",
     "note": "Private note",
     "notePlaceholder": "Only you can see this note.",

@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { profileSchema } from "@aml/shared";
 import { useMe } from "@/entities/session";
 import { useDeleteAvatar, useMySettings, useUpdateProfile, useUploadAvatar } from "@/entities/settings";
-import { apiUrl } from "@/shared/api";
+import { apiUrl, uploadLimitKey } from "@/shared/api";
 import { Button } from "@/shared/ui/button";
 import { a11y, applyServerErrors, Field } from "@/shared/ui/form";
 import { ImageCropDialog } from "@/shared/ui/image-crop-dialog";
@@ -69,7 +69,7 @@ export const ProfileSection = () => {
           />
         </div>
       </div>
-      {photoError || uploadAvatar.isError ? <Note tone="danger">{photoError ?? t("settings.profile.uploadFailed")}</Note> : null}
+      {photoError || uploadAvatar.isError ? <Note tone="danger">{photoError ?? t(uploadLimitKey(uploadAvatar.error) ?? "settings.profile.uploadFailed")}</Note> : null}
 
       <form onSubmit={submit} noValidate className="grid max-w-2xl gap-4 sm:grid-cols-2">
         <Field name="name" label={t("settings.profile.name")} errors={errors} required>

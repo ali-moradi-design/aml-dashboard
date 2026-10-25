@@ -1,37 +1,27 @@
-import { mkdirSync } from "node:fs";
-import { extname, join, resolve } from "node:path";
+import { join } from "node:path";
 import { Router, type RequestHandler } from "express";
-import multer from "multer";
 import { err } from "neverthrow";
 import { z } from "zod";
 import { caseCreateSchema, caseTransitionSchema, caseUpdateSchema, commentInputSchema, gridQuerySchema } from "@aml/shared";
 import type { Db } from "../../db/prisma";
 import { principalOf } from "../../shared/access";
-import { newSessionToken } from "../../shared/crypto";
 import { appError } from "../../shared/errors";
 import { handle, sendResult } from "../../shared/http";
+import { CASE_DOCUMENT_TYPES, createUploader, MAX_DOCUMENT_BYTES } from "../../shared/storage";
 import { parseWith } from "../../shared/validate";
 import { requirePermission } from "../auth";
 import { createCasesRepository } from "./cases.repository";
 import { createCasesService, type Notifier } from "./cases.service";
 
-const ALLOWED = new Set(["application/pdf", "image/png", "image/jpeg", "text/csv", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]);
-
 export const createCasesModule = ({ db, requireAuth, notify, storageDir }: { db: Db; requireAuth: RequestHandler; notify: Notifier; storageDir: string }) => {
   const service = createCasesService({ repo: createCasesRepository(db), notify });
-  const dir = resolve(storageDir);
-  mkdirSync(dir, { recursive: true });
-  const upload = multer({
-    storage: multer.diskStorage({ destination: dir, filename: (_req, file, cb) => cb(null, `${newSessionToken()}${extname(file.originalname).toLowerCase()}`) }),
-    limits: { fileSize: 10 * 1024 * 1024 },
-    fileFilter: (_req, file, cb) => cb(null, ALLOWED.has(file.mimetype)),
-  });
+  const { dir, upload } = createUploader(storageDir, "", { allowed: CASE_DOCUMENT_TYPES, maxBytes: MAX_DOCUMENT_BYTES });
   const code = (req: { params: Record<string, unknown> }) => String(req.params.code);
 
   const uploadDocument: RequestHandler = async (req, res) => {
     const file = req.file;
     if (!file) {
-      sendResult(res, err(appError.validation("Choose a PDF, image, CSV, Excel or Word file up to 10 MB")));
+      sendResult(res, err(appError.validation("Choose a PDF, image, CSV, Excel or Word file up to 5 MB")));
       return;
     }
     sendResult(res, await service.addDocument(principalOf(res), code(req), { name: file.originalname, mimeType: file.mimetype, size: file.size, storageKey: file.filename }), 201);

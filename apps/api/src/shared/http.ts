@@ -8,6 +8,8 @@ const statusOf: Record<AppError["type"], number> = {
   Unauthorized: 401,
   Forbidden: 403,
   Conflict: 409,
+  TooMany: 429,
+  StorageFull: 507,
   Unexpected: 500,
 };
 

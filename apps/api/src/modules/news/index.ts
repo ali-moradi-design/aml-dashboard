@@ -8,7 +8,7 @@ import type { Prisma } from "../../generated/prisma/client";
 import { can, principalOf, type Principal } from "../../shared/access";
 import { appError } from "../../shared/errors";
 import { handle, sendResult } from "../../shared/http";
-import { createUploader, DOCUMENT_TYPES, IMAGE_TYPES } from "../../shared/storage";
+import { createUploader, DOCUMENT_TYPES, IMAGE_TYPES, MAX_DOCUMENT_BYTES } from "../../shared/storage";
 import { parseWith } from "../../shared/validate";
 import { requirePermission } from "../auth";
 import type { Notifications } from "../notifications";
@@ -50,7 +50,7 @@ const postInclude = {
 } satisfies Prisma.NewsPostInclude;
 
 export const createNewsModule = ({ db, requireAuth, storageDir, notifications }: { db: Db; requireAuth: RequestHandler; storageDir: string; notifications: Notifications }) => {
-  const { dir, upload } = createUploader(storageDir, "news", { allowed: DOCUMENT_TYPES, maxBytes: 10 * 1024 * 1024 });
+  const { dir, upload } = createUploader(storageDir, "news", { allowed: DOCUMENT_TYPES, maxBytes: MAX_DOCUMENT_BYTES });
   const manager = (p: Principal) => can(p, "news.create");
 
   const audienceUsers = (n: { audienceRoles: string[]; audienceRegionIds: string[]; minClearance: number }) =>
@@ -115,7 +115,7 @@ export const createNewsModule = ({ db, requireAuth, storageDir, notifications }:
     const file = req.file;
     const kind = req.query.kind === "cover" ? "cover" : "file";
     if (!file || (kind === "cover" && !IMAGE_TYPES.has(file.mimetype))) {
-      sendResult(res, err(appError.validation(kind === "cover" ? "Choose a PNG, JPEG or WebP image up to 10 MB" : "Choose a PDF, image, CSV, Excel or Word file up to 10 MB")));
+      sendResult(res, err(appError.validation(kind === "cover" ? "Choose a PNG, JPEG or WebP image up to 5 MB" : "Choose a PDF, image, CSV, Excel or Word file up to 5 MB")));
       return;
     }
     const row = await db.newsAttachment.create({ data: { kind, name: file.originalname, mimeType: file.mimetype, size: file.size, storageKey: file.filename, uploadedById: principalOf(res).userId } });

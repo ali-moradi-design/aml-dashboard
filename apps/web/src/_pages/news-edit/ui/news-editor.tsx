@@ -9,7 +9,8 @@ import { useTranslation } from "react-i18next";
 import { newsInputSchema, roleKeys, type NewsDetail, type NewsInput } from "@aml/shared";
 import { useSaveNews, useUploadNewsFile } from "@/entities/news";
 import { useReference } from "@/entities/reference";
-import { apiUrl } from "@/shared/api";
+import { apiUrl, uploadLimitKey } from "@/shared/api";
+import { MAX_DOCUMENT_BYTES } from "@/shared/config/uploads";
 import { useHref } from "@/shared/i18n/use-locale";
 import { useUnsavedGuard } from "@/shared/lib/use-unsaved-guard";
 import { Button } from "@/shared/ui/button";
@@ -76,8 +77,8 @@ export const NewsEditor = ({ post }: { post?: NewsDetail }) => {
   const addFiles = (list: FileList | null) => {
     setUploadError(null);
     for (const file of Array.from(list ?? [])) {
-      if (file.size > 10 * 1024 * 1024) { setUploadError(t("caseDetail.tooLarge", { name: file.name })); continue; }
-      uploadFile.mutate({ file, kind: "file" }, { onSuccess: (u) => setFiles((f) => { const next = [...f, u]; setValue("attachmentIds", next.map((y) => y.id), { shouldDirty: true }); return next; }), onError: () => setUploadError(t("caseDetail.uploadFailed", { name: file.name })) });
+      if (file.size > MAX_DOCUMENT_BYTES) { setUploadError(t("caseDetail.tooLarge", { name: file.name })); continue; }
+      uploadFile.mutate({ file, kind: "file" }, { onSuccess: (u) => setFiles((f) => { const next = [...f, u]; setValue("attachmentIds", next.map((y) => y.id), { shouldDirty: true }); return next; }), onError: (e) => setUploadError(t(uploadLimitKey(e) ?? "caseDetail.uploadFailed", { name: file.name })) });
     }
   };
 
@@ -195,7 +196,7 @@ export const NewsEditor = ({ post }: { post?: NewsDetail }) => {
           setCropFile(null);
           uploadFile.mutate({ file: blob, kind: "cover", name }, {
             onSuccess: (u) => { setCoverUrl(apiUrl(u.url)); setValue("coverId", u.id, { shouldDirty: true }); },
-            onError: () => setUploadError(t("caseDetail.uploadFailed", { name })),
+            onError: (e) => setUploadError(t(uploadLimitKey(e) ?? "caseDetail.uploadFailed", { name })),
           });
         }}
       />

@@ -17,6 +17,14 @@ const toHttpError = async (res: Response): Promise<HttpError> => {
   return { kind: "http", status: res.status, code: body.code ?? "UNKNOWN", message: body.message ?? res.statusText, issues: body.issues };
 };
 
+/** Translation key for an upload refused by the demo limits, or null for any other error. */
+export const uploadLimitKey = (error: unknown): "errors.uploadDaily" | "errors.storageFull" | null => {
+  if (!isHttpError(error)) return null;
+  if (error.status === 429) return "errors.uploadDaily";
+  if (error.status === 507) return "errors.storageFull";
+  return null;
+};
+
 /**
  * Calls the API and validates the response with the shared Zod schema.
  * Rejects with an HttpError, which React Query exposes as `error`.

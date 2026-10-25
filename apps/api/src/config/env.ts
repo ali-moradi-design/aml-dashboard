@@ -6,6 +6,9 @@ const envSchema = z.object({
   WEB_ORIGIN: z.url().default("http://localhost:3000"),
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   STORAGE_DIR: z.string().default("storage"),
+  // Public demo: rebuild all data on this cron schedule (for example "0 3 * * *"). Empty = off.
+  DEMO_RESET_CRON: z.string().trim().default(""),
+  DEMO_RESET_TZ: z.string().default("UTC"),
 });
 
 export type Env = z.infer<typeof envSchema>;

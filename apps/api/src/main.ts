@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 import { createApp } from "./app";
 import { loadEnv } from "./config/env";
 import { createDb } from "./db/prisma";
+import { createDemoReset } from "./jobs/demo-reset";
 import { createJobRunner } from "./jobs/runners";
 import { createScheduler } from "./jobs/scheduler";
 import { createAdminModule } from "./modules/admin";
@@ -57,7 +58,10 @@ const notify: Notifier = {
 };
 const news = createNewsModule({ ...deps, storageDir: env.STORAGE_DIR, notifications });
 const runner = createJobRunner({ db, notifications, announceNews: news.announce });
-const scheduler = createScheduler(env.DATABASE_URL, db, runner);
+const demoReset = env.DEMO_RESET_CRON
+  ? { cron: env.DEMO_RESET_CRON, timezone: env.DEMO_RESET_TZ, reset: createDemoReset({ storageDir: env.STORAGE_DIR }) }
+  : undefined;
+const scheduler = createScheduler(env.DATABASE_URL, db, runner, demoReset);
 
 const app = createApp({
   webOrigin: env.WEB_ORIGIN,
