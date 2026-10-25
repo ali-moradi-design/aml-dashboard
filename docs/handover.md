@@ -187,8 +187,8 @@ English text comes from the API). Plural keys (`_one`/`_other`) count as present
 
 ## Remaining ideas (not planned)
 
-- Swap Vazirmatn for the commercial Persian font once its license is bought (see
-  `docs/decisions.md`, one CSS variable).
+- Persian font is Yekan Bakh (commercial, all eight weights). The author confirmed its
+  license covers web embedding and the public repo.
 - Workflow step names and transition labels are stored in English and Persian only; German,
   Turkish and Arabic show the English name. A `name.{de,tr,ar}` field in the workflow JSON
   would fix that.

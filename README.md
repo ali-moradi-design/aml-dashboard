@@ -71,7 +71,8 @@ API enforces this on every request.
 
 ## Licenses of third-party parts
 
-- Fonts (Huninn, Vazirmatn, Geist Mono): SIL Open Font License, files and
-  licenses in `apps/web/src/shared/assets/fonts`.
+- Fonts: Huninn and Geist Mono under the SIL Open Font License; Yekan Bakh
+  (Persian and Arabic) is a commercial font used under its own license. Files are
+  in `apps/web/src/shared/assets/fonts`.
 - Highcharts is used under its non-commercial terms. Tables are built on
   TanStack Table (MIT), so there is no grid license or watermark.

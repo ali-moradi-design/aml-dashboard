@@ -8,12 +8,14 @@
   for the interface. Yellow is used only for medium risk and warnings, never as
   a decorative accent. Red, yellow and green are reserved for risk levels.
 - Fonts: Huninn for all English (Latin) text, Geist Mono for IDs, IBANs and
-  account numbers, Vazirmatn (temporary) for Persian and Arabic.
+  account numbers, Yekan Bakh for Persian and Arabic (replaced the temporary
+  Vazirmatn).
   All fonts are self-hosted in the repo (font files loaded locally, for example
   with `next/font/local`), not loaded from a font CDN. Huninn (jf open-huninn)
   is under the SIL Open Font License; keep its license file next to the font.
 - Huninn has a single weight (Regular). English hierarchy comes from size,
-  color and spacing, not from bold. Persian styles use Vazirmatn weights.
+  color and spacing, not from bold. Persian styles use Yekan Bakh, which ships
+  eight weights (100-500, 700-900; no 600).
 - Text styles in Figma: `en/*`, `fa/*` and `mono/ID` (Display, Heading 1-3,
   KPI, Body large, Body, Body small, Caption). Each style's font family is bound
   to a Typography variable, so a font swap is one variable change.
@@ -70,9 +72,8 @@
 
 ## Open items
 
-- [ ] **Change the Persian font.** Vazirmatn is temporary. The author wants a
-      different, commercial font; switch once its license is bought. Check the
-      license allows web embedding in a public repo, and keep the font file's name
-      free of anything that breaks the content rules in `brief.md`. The font is
-      set in one place: Figma variable `Typography / font/persian` (and later one
-      CSS variable).
+- [x] **Change the Persian font.** Done: Vazirmatn replaced by the commercial
+      Yekan Bakh (all eight weights). The license covers web embedding and the
+      public repo (confirmed by the author). The font is set in one place: Figma
+      variable `Typography / font/persian` and the CSS variable `--font-persian`
+      (`apps/web/src/_app/styles/fonts.ts`).
