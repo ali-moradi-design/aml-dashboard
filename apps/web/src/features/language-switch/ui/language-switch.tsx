@@ -41,7 +41,7 @@ export const LanguageSwitch = () => {
       <DropdownMenuTrigger className="flex h-10 items-center gap-1.5 rounded-md border border-border bg-muted px-2.5 text-text-secondary outline-none hover:text-text focus-visible:ring-2 focus-visible:ring-ring">
         <Globe className="size-4.5" strokeWidth={1.75} />
         <span className="text-text uppercase">{locale}</span>
-        <ChevronDown className="size-4" />
+        <ChevronDown className="hidden size-4 sm:block" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-40">
         {locales.map((l) => (

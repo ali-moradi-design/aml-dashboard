@@ -44,13 +44,13 @@ export const UserMenu = () => {
             {initials(me.name)}
           </span>
         )}
-        <span className="hidden sm:block">
-          <span className="block text-text">{me.name}</span>
-          <span className="block text-xs text-text-secondary">
+        <span className="hidden max-w-56 xl:block">
+          <span className="block truncate text-text">{me.name}</span>
+          <span className="block truncate text-xs text-text-secondary">
             {t(`role.${me.role}`)} · {me.regions.map((r) => r.name).join(", ")}
           </span>
         </span>
-        <ChevronDown className="size-4 text-text-secondary" />
+        <ChevronDown className="hidden size-4 text-text-secondary sm:block" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuLabel className="font-normal">

@@ -61,7 +61,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
               max-w-560 (2240px) fills a 2560px screen (27 inch) next to the sidebar. */}
           <main
             key={prefs?.digits}
-            className="mx-auto flex w-full max-w-560 flex-col gap-6 px-8 pt-7 pb-10"
+            className="mx-auto flex w-full max-w-560 flex-col gap-6 px-4 pt-7 pb-10 md:px-6 xl:px-8"
           >
             {children}
           </main>

@@ -16,6 +16,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { LogoMark } from "@/shared/ui/logo-mark";
+import { MadeBy } from "@/shared/ui/made-by";
 
 // Public demo accounts from the seed script (fictional people).
 const DEMO_PASSWORD = "demo1234";
@@ -94,7 +95,7 @@ export const LoginPage = () => {
           <LanguageSwitch />
         </div>
         <div className="flex flex-1 items-center justify-center">
-          <div className="w-full max-w-md rounded-xl border border-border bg-card p-9">
+          <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 sm:p-9">
             <h2 className="text-2xl text-heading">{t("login.title")}</h2>
             <p className="mt-1.5 text-text-secondary">{t("login.subtitle")}</p>
 
@@ -168,6 +169,7 @@ export const LoginPage = () => {
           </div>
         </div>
         <p className="text-center text-xs text-text-secondary">{t("login.footer")}</p>
+        <MadeBy className="mt-2 text-center" />
       </main>
     </div>
   );

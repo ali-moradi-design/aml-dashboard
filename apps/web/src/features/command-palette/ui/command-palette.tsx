@@ -240,8 +240,10 @@ export const PaletteTrigger = ({ className }: { className?: string }) => {
       )}
     >
       <Search className="size-4.5 shrink-0" strokeWidth={1.75} />
-      <span className="min-w-0 flex-1 truncate text-start">{t("appBar.search")}</span>
-      <kbd className="hidden rounded-sm border border-border bg-card px-1.5 font-mono text-xs sm:block">
+      <span className="hidden min-w-0 flex-1 truncate text-start sm:block">
+        {t("appBar.search")}
+      </span>
+      <kbd className="hidden rounded-sm border border-border bg-card px-1.5 font-mono text-xs lg:block">
         Ctrl K
       </kbd>
     </button>

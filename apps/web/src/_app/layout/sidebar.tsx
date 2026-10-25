@@ -10,8 +10,10 @@ import { usePreferences } from "@/entities/settings";
 import { footerNav, navGroups, type NavItem } from "@/shared/config/navigation";
 import { useHref, useLocale } from "@/shared/i18n/use-locale";
 import { formatNumber } from "@/shared/lib/format";
+import { useMediaQuery } from "@/shared/lib/use-media-query";
 import { cn } from "@/shared/lib/utils";
 import { LogoMark } from "@/shared/ui/logo-mark";
+import { MadeBy } from "@/shared/ui/made-by";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import { useSidebarStore } from "./sidebar-store";
 
@@ -82,13 +84,18 @@ const NavLink = ({
   );
 };
 
-/** Expanded 248px, collapsed 72px. Every row keeps its height in both states, so nothing jumps. */
+/**
+ * Expanded 248px, collapsed 72px. Every row keeps its height in both states, so nothing jumps.
+ * Below 1024px it always stays collapsed so the page keeps its room.
+ */
 export const Sidebar = () => {
   const { t } = useTranslation();
   const pathname = usePathname();
   const locale = useLocale();
   const can = useCan();
-  const { collapsed, toggle } = useSidebarStore();
+  const { collapsed: collapsedByUser, toggle } = useSidebarStore();
+  const narrow = useMediaQuery("(max-width: 1023px)");
+  const collapsed = collapsedByUser || narrow;
   const { data: overview } = useOverview();
   const { quickAccess } = usePreferences();
   const allItems = [...navGroups.flatMap((g) => g.items), ...footerNav];
@@ -110,6 +117,7 @@ export const Sidebar = () => {
     >
       <button
         type="button"
+        hidden={narrow}
         onClick={toggle}
         aria-label={t(collapsed ? "sidebar.expand" : "sidebar.collapse")}
         className="absolute -inset-e-3 top-7 grid size-6 place-items-center rounded-full border border-sidebar-border bg-sidebar text-text-secondary transition-colors hover:text-text"
@@ -168,6 +176,7 @@ export const Sidebar = () => {
       {footerNav.map((item) => (
         <NavLink key={item.key} item={item} active={isActive(item.path)} collapsed={collapsed} />
       ))}
+      <MadeBy compact={collapsed} className={cn("pt-3", collapsed ? "text-center" : "ps-2.5")} />
     </aside>
   );
 };

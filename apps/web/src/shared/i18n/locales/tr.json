@@ -1746,5 +1746,8 @@
     "EU": "Avrupa",
     "TR": "Türkiye",
     "GULF": "Körfez"
+  },
+  "credit": {
+    "madeBy": "<author>Ali Moradi</author> tarafından <heart/> ile yapıldı"
   }
 }
