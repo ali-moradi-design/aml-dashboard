@@ -21,8 +21,18 @@ import { LogoMark } from "@/shared/ui/logo-mark";
 const DEMO_PASSWORD = "demo1234";
 const demoAccounts = [
   { role: "ANALYST", name: "Lena Weber", city: "Berlin", email: "lena.weber@northbank.example" },
-  { role: "SUPERVISOR", name: "Omar Haddad", city: "Dubai", email: "omar.haddad@northbank.example" },
-  { role: "COMPLIANCE_MANAGER", name: "Elif Kaya", city: "Istanbul", email: "elif.kaya@northbank.example" },
+  {
+    role: "SUPERVISOR",
+    name: "Omar Haddad",
+    city: "Dubai",
+    email: "omar.haddad@northbank.example",
+  },
+  {
+    role: "COMPLIANCE_MANAGER",
+    name: "Elif Kaya",
+    city: "Istanbul",
+    email: "elif.kaya@northbank.example",
+  },
   { role: "ADMIN", name: "James Carter", city: "London", email: "james.carter@northbank.example" },
 ] as const;
 
@@ -33,7 +43,10 @@ export const LoginPage = () => {
   const href = useHref();
   const login = useLogin();
   const qc = useQueryClient();
-  const form = useForm<LoginInput>({ resolver: zodResolver(loginSchema), defaultValues: { email: "", password: "" } });
+  const form = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+  });
 
   // After sign-in: the page the user came from, otherwise the start page from their settings.
   const submit = (values: LoginInput) =>
@@ -41,7 +54,9 @@ export const LoginPage = () => {
       onSuccess: async () => {
         const next = params?.get("next");
         if (next) return router.replace(next);
-        const settings = await qc.fetchQuery({ queryKey: settingsKeys.me(), queryFn: getMySettings }).catch(() => null);
+        const settings = await qc
+          .fetchQuery({ queryKey: settingsKeys.me(), queryFn: getMySettings })
+          .catch(() => null);
         router.replace(href(settings?.preferences.startPage ?? "/"));
       },
     });
@@ -79,22 +94,44 @@ export const LoginPage = () => {
           <LanguageSwitch />
         </div>
         <div className="flex flex-1 items-center justify-center">
-          <div className="w-full max-w-[448px] rounded-xl border border-border bg-card p-9">
+          <div className="w-full max-w-md rounded-xl border border-border bg-card p-9">
             <h2 className="text-2xl text-heading">{t("login.title")}</h2>
             <p className="mt-1.5 text-text-secondary">{t("login.subtitle")}</p>
 
-            <form className="mt-6 flex flex-col gap-4" onSubmit={form.handleSubmit(submit)} noValidate>
+            <form
+              className="mt-6 flex flex-col gap-4"
+              onSubmit={form.handleSubmit(submit)}
+              noValidate
+            >
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="email">{t("login.email")}</Label>
-                <Input id="email" type="email" autoComplete="username" placeholder="lena.weber@northbank.example" aria-invalid={!!form.formState.errors.email} {...form.register("email")} />
-                {form.formState.errors.email ? <p className="text-xs text-risk-high-text">{t("login.emailInvalid")}</p> : null}
+                <Input
+                  id="email"
+                  type="email"
+                  autoComplete="username"
+                  placeholder="lena.weber@northbank.example"
+                  aria-invalid={!!form.formState.errors.email}
+                  {...form.register("email")}
+                />
+                {form.formState.errors.email ? (
+                  <p className="text-xs text-risk-high-text">{t("login.emailInvalid")}</p>
+                ) : null}
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="password">{t("login.password")}</Label>
-                <Input id="password" type="password" autoComplete="current-password" aria-invalid={!!form.formState.errors.password} {...form.register("password")} />
+                <Input
+                  id="password"
+                  type="password"
+                  autoComplete="current-password"
+                  aria-invalid={!!form.formState.errors.password}
+                  {...form.register("password")}
+                />
               </div>
               {serverError ? (
-                <p role="alert" className="rounded-md bg-risk-high-bg px-3 py-2 text-sm text-risk-high-text">
+                <p
+                  role="alert"
+                  className="rounded-md bg-risk-high-bg px-3 py-2 text-sm text-risk-high-text"
+                >
                   {serverError}
                 </p>
               ) : null}

@@ -5,9 +5,20 @@ import { Check, ChevronDown, Globe } from "lucide-react";
 import { locales, type Locale } from "@aml/shared";
 import { useLocale } from "@/shared/i18n/use-locale";
 import { setCookie } from "@/shared/lib/browser";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/shared/ui/dropdown-menu";
 
-export const localeNames: Record<Locale, string> = { en: "English", de: "Deutsch", tr: "Türkçe", ar: "العربية", fa: "فارسی" };
+export const localeNames: Record<Locale, string> = {
+  en: "English",
+  de: "Deutsch",
+  tr: "Türkçe",
+  ar: "العربية",
+  fa: "فارسی",
+};
 
 /** Short code in the app bar (EN, DE, ...); full names in the menu. Switching keeps the current page. */
 /** Switches the URL locale and remembers it in a cookie. */
@@ -28,7 +39,7 @@ export const LanguageSwitch = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex h-10 items-center gap-1.5 rounded-md border border-border bg-muted px-2.5 text-text-secondary outline-none hover:text-text focus-visible:ring-2 focus-visible:ring-ring">
-        <Globe className="size-[18px]" strokeWidth={1.75} />
+        <Globe className="size-4.5" strokeWidth={1.75} />
         <span className="text-text uppercase">{locale}</span>
         <ChevronDown className="size-4" />
       </DropdownMenuTrigger>

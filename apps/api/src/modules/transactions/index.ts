@@ -1,7 +1,12 @@
 import { Router, type RequestHandler } from "express";
 import { ResultAsync } from "neverthrow";
 import { z } from "zod";
-import { criteriaGroupSchema, gridQuerySchema, type CriteriaGroup, type GridQuery } from "@aml/shared";
+import {
+  criteriaGroupSchema,
+  gridQuerySchema,
+  type CriteriaGroup,
+  type GridQuery,
+} from "@aml/shared";
 import type { Db } from "../../db/prisma";
 import type { Prisma } from "../../generated/prisma/client";
 import { principalOf, scopeOf, type AccessScope, type Principal } from "../../shared/access";
@@ -15,7 +20,10 @@ import { criteriaToWhere } from "./criteria-to-where";
 
 const transactionQuerySchema = gridQuerySchema.extend({ criteria: criteriaGroupSchema.optional() });
 
-const sortable: Record<string, (d: Prisma.SortOrder) => Prisma.TransactionOrderByWithRelationInput> = {
+const sortable: Record<
+  string,
+  (d: Prisma.SortOrder) => Prisma.TransactionOrderByWithRelationInput
+> = {
   ref: (d) => ({ ref: d }),
   bookedAt: (d) => ({ bookedAt: d }),
   baseAmount: (d) => ({ baseAmount: d }),
@@ -34,17 +42,27 @@ export const createTransactionsRepository = (db: Db) => ({
         transactionScope(scope),
         criteria ? criteriaToWhere(criteria) : {},
         search
-          ? { OR: [{ ref: { contains: search, mode: "insensitive" } }, { counterpartyName: { contains: search, mode: "insensitive" } }, { account: { iban: { contains: search } } }] }
+          ? {
+              OR: [
+                { ref: { contains: search, mode: "insensitive" } },
+                { counterpartyName: { contains: search, mode: "insensitive" } },
+                { account: { iban: { contains: search } } },
+              ],
+            }
           : {},
       ],
     };
-    const orderBy = q.sortModel.filter((s) => sortable[s.colId]).map((s) => sortable[s.colId]!(s.sort));
+    const orderBy = q.sortModel
+      .filter((s) => sortable[s.colId])
+      .map((s) => sortable[s.colId]!(s.sort));
     return ResultAsync.fromPromise(
       db.$transaction([
         db.transaction.findMany({
           where,
           include: transactionRowInclude,
-          orderBy: orderBy.length ? [...orderBy, { id: "asc" }] : [{ bookedAt: "desc" }, { id: "asc" }],
+          orderBy: orderBy.length
+            ? [...orderBy, { id: "asc" }]
+            : [{ bookedAt: "desc" }, { id: "asc" }],
           skip: q.startRow,
           take: Math.min(q.endRow - q.startRow, 500),
         }),
@@ -56,14 +74,30 @@ export const createTransactionsRepository = (db: Db) => ({
 });
 
 // Service
-export const createTransactionsService = ({ repo }: { repo: ReturnType<typeof createTransactionsRepository> }) => ({
+export const createTransactionsService = ({
+  repo,
+}: {
+  repo: ReturnType<typeof createTransactionsRepository>;
+}) => ({
   list: (p: Principal, q: z.infer<typeof transactionQuerySchema>) =>
-    repo.query(scopeOf(p), q, q.criteria).map(([rows, rowCount]) => ({ rows: rows.map(toTransactionRow), rowCount })),
+    repo
+      .query(scopeOf(p), q, q.criteria)
+      .map(([rows, rowCount]) => ({ rows: rows.map(toTransactionRow), rowCount })),
 });
 
 // Handlers and routes
-export const createTransactionsModule = ({ db, requireAuth }: { db: Db; requireAuth: RequestHandler }) => {
+export const createTransactionsModule = ({
+  db,
+  requireAuth,
+}: {
+  db: Db;
+  requireAuth: RequestHandler;
+}) => {
   const service = createTransactionsService({ repo: createTransactionsRepository(db) });
-  const query = handle((req, res) => parseWith(transactionQuerySchema, req.body).asyncAndThen((q) => service.list(principalOf(res), q)));
+  const query = handle((req, res) =>
+    parseWith(transactionQuerySchema, req.body).asyncAndThen((q) =>
+      service.list(principalOf(res), q),
+    ),
+  );
   return Router().use(requireAuth, requirePermission("transactions.view")).post("/query", query);
 };

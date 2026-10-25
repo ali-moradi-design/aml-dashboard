@@ -5,7 +5,13 @@ type Where = Prisma.TransactionWhereInput;
 
 const num = (v: unknown) => Number(v);
 const pair = (v: unknown): [unknown, unknown] => (Array.isArray(v) ? [v[0], v[1]] : [v, v]);
-const list = (v: unknown) => (Array.isArray(v) ? v.map(String) : String(v).split(",").map((s) => s.trim()).filter(Boolean));
+const list = (v: unknown) =>
+  Array.isArray(v)
+    ? v.map(String)
+    : String(v)
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
 
 /** Pure: one condition of the AND/OR tree to a Prisma where clause. */
 export const conditionToWhere = (c: Condition): Where => {
@@ -39,16 +45,20 @@ export const conditionToWhere = (c: Condition): Where => {
   }
 
   // enum and text columns on the transaction itself
-  const column = field as "currency" | "channel" | "direction" | "counterpartyCountry" | "counterpartyName";
+  const column = field as
+    "currency" | "channel" | "direction" | "counterpartyCountry" | "counterpartyName";
   if (operator === "in") return { [column]: { in: list(value) } } as Where;
   if (operator === "neq") return { [column]: { not: String(value) } } as Where;
-  if (operator === "contains") return { [column]: { contains: String(value), mode: "insensitive" } } as Where;
+  if (operator === "contains")
+    return { [column]: { contains: String(value), mode: "insensitive" } } as Where;
   return { [column]: String(value) } as Where;
 };
 
 /** Pure: the whole AND/OR tree, recursively. Empty groups match everything. */
 export const criteriaToWhere = (group: CriteriaGroup): Where => {
-  const parts = group.children.map((child) => (child.kind === "group" ? criteriaToWhere(child) : conditionToWhere(child)));
+  const parts = group.children.map((child) =>
+    child.kind === "group" ? criteriaToWhere(child) : conditionToWhere(child),
+  );
   if (parts.length === 0) return {};
   return group.combinator === "and" ? { AND: parts } : { OR: parts };
 };

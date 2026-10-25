@@ -2,14 +2,26 @@
 
 import Graph from "graphology";
 import forceAtlas2 from "graphology-layout-forceatlas2";
-import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import Sigma from "sigma";
 import { extremityArrow, layerPlain, pathLine } from "sigma/rendering";
 import type { NetworkEdge, NetworkNode } from "@aml/shared";
 import { useChartColors, type ChartColors } from "@/shared/ui/chart";
 import { edgeSize, nodeLabel, nodeRisk, nodeSize, seeded } from "../model/graph";
 
-export type CanvasHandle = { zoomIn: () => void; zoomOut: () => void; fit: () => void; focus: (id: string) => void };
+export type CanvasHandle = {
+  zoomIn: () => void;
+  zoomOut: () => void;
+  fit: () => void;
+  focus: (id: string) => void;
+};
 
 type Props = {
   nodes: NetworkNode[];
@@ -29,32 +41,82 @@ type Props = {
   onExpand: (id: string) => void;
 };
 
-type NodeAttrs = { node: NetworkNode; x: number; y: number; size: number; label: string; fixed?: boolean };
+type NodeAttrs = {
+  node: NetworkNode;
+  x: number;
+  y: number;
+  size: number;
+  label: string;
+  fixed?: boolean;
+};
 type EdgeAttrs = { edge: NetworkEdge; size: number };
 
-const CLUSTER_TOKENS = ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5", "risk-medium", "risk-low"] as const;
+const CLUSTER_TOKENS = [
+  "chart-1",
+  "chart-2",
+  "chart-3",
+  "chart-4",
+  "chart-5",
+  "risk-medium",
+  "risk-low",
+] as const;
 
-const riskColor = (c: ChartColors, risk: number | null) => (risk == null ? c["text-secondary"] : risk >= 70 ? c["risk-high"] : risk >= 40 ? c["risk-medium"] : c["risk-low"]);
+const riskColor = (c: ChartColors, risk: number | null) =>
+  risk == null
+    ? c["text-secondary"]
+    : risk >= 70
+      ? c["risk-high"]
+      : risk >= 40
+        ? c["risk-medium"]
+        : c["risk-low"];
 
-const baseColor = (c: ChartColors, n: NetworkNode, mode: Props["colorBy"], community: number | undefined) => {
+const baseColor = (
+  c: ChartColors,
+  n: NetworkNode,
+  mode: Props["colorBy"],
+  community: number | undefined,
+) => {
   if (n.kind === "account" && n.restricted) return c.border;
-  if (mode === "cluster" && community !== undefined) return c[CLUSTER_TOKENS[community % CLUSTER_TOKENS.length]!];
+  if (mode === "cluster" && community !== undefined)
+    return c[CLUSTER_TOKENS[community % CLUSTER_TOKENS.length]!];
   if (n.kind === "shareholder") return c["chart-4"];
   return riskColor(c, nodeRisk(n));
 };
 
 type Live = { current: Props & { colors: ChartColors | null } };
 
-const createRenderer = (g: Graph<NodeAttrs, EdgeAttrs>, el: HTMLElement, live: Live, hovered: { current: string | null }) =>
+const createRenderer = (
+  g: Graph<NodeAttrs, EdgeAttrs>,
+  el: HTMLElement,
+  live: Live,
+  hovered: { current: string | null },
+) =>
   new Sigma(g, el, {
-    primitives: { edges: { paths: [pathLine()], extremities: [extremityArrow({ lengthRatio: 4, widthRatio: 3.2 })], layers: [layerPlain()], defaultHead: "arrow" } },
+    primitives: {
+      edges: {
+        paths: [pathLine()],
+        extremities: [extremityArrow({ lengthRatio: 4, widthRatio: 3.2 })],
+        layers: [layerPlain()],
+        defaultHead: "arrow",
+      },
+    },
     // The container may still be 0px tall on mount (hidden tab, layout in progress); a ResizeObserver fixes that.
-    settings: { enableNodeDrag: true, allowInvalidContainer: true, labelRenderedSizeThreshold: 7, labelDensity: 0.6, minCameraRatio: 0.05, maxCameraRatio: 4, stagePadding: 40 },
+    settings: {
+      enableNodeDrag: true,
+      allowInvalidContainer: true,
+      labelRenderedSizeThreshold: 7,
+      labelDensity: 0.6,
+      minCameraRatio: 0.05,
+      maxCameraRatio: 4,
+      stagePadding: 40,
+    },
     nodeReducer: (key, data, attrs) => {
       const { colors: c, colorBy, communities, selected, highlight, center } = live.current;
       if (!c) return data;
       const n = attrs.node;
-      const focus = hovered.current ? new Set([hovered.current, ...g.neighbors(hovered.current)]) : highlight;
+      const focus = hovered.current
+        ? new Set([hovered.current, ...g.neighbors(hovered.current)])
+        : highlight;
       const dim = focus && !focus.has(key);
       return {
         ...data,
@@ -71,7 +133,11 @@ const createRenderer = (g: Graph<NodeAttrs, EdgeAttrs>, el: HTMLElement, live: L
       if (!c) return data;
       const [source, target] = g.extremities(key);
       const focus = hovered.current ? new Set([hovered.current]) : null;
-      const onFocus = focus ? focus.has(source) || focus.has(target) : highlight ? highlight.has(source) && highlight.has(target) : true;
+      const onFocus = focus
+        ? focus.has(source) || focus.has(target)
+        : highlight
+          ? highlight.has(source) && highlight.has(target)
+          : true;
       const owns = attrs.edge.kind === "owns";
       return {
         ...data,
@@ -165,7 +231,11 @@ export const NetworkCanvas = forwardRef<CanvasHandle, Props>(function NetworkCan
 
     for (const id of g.nodes()) if (!wanted.has(id)) g.dropNode(id);
     for (const n of props.nodes) {
-      const attrs = { node: n, size: nodeSize(n, n.id === props.center), label: nodeLabel(n, props.restrictedLabel) };
+      const attrs = {
+        node: n,
+        size: nodeSize(n, n.id === props.center),
+        label: nodeLabel(n, props.restrictedLabel),
+      };
       if (g.hasNode(n.id)) g.mergeNodeAttributes(n.id, attrs);
       else g.addNode(n.id, { ...attrs, x: rng() * 100, y: rng() * 100 });
     }
@@ -192,7 +262,17 @@ export const NetworkCanvas = forwardRef<CanvasHandle, Props>(function NetworkCan
     }
     if (g.order > 1) {
       const settings = forceAtlas2.inferSettings(g);
-      forceAtlas2.assign(g, { iterations: fresh ? 400 : 150, getEdgeWeight: null, settings: { ...settings, gravity: 1.2, scalingRatio: 6, adjustSizes: false, barnesHutOptimize: g.order > 300 } });
+      forceAtlas2.assign(g, {
+        iterations: fresh ? 400 : 150,
+        getEdgeWeight: null,
+        settings: {
+          ...settings,
+          gravity: 1.2,
+          scalingRatio: 6,
+          adjustSizes: false,
+          barnesHutOptimize: g.order > 300,
+        },
+      });
     }
     g.forEachNode((id) => g.removeNodeAttribute(id, "fixed"));
     sigma.current?.refresh();

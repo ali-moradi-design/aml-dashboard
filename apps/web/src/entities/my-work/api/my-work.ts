@@ -9,7 +9,8 @@ import { getSocket } from "@/shared/api/socket";
 export const getMyWork = () => request("/my-work", myWorkSchema);
 
 export const myWorkKeys = { all: ["my-work"] as const };
-export const useMyWork = () => useQuery({ queryKey: myWorkKeys.all, queryFn: getMyWork, refetchInterval: 120_000 });
+export const useMyWork = () =>
+  useQuery({ queryKey: myWorkKeys.all, queryFn: getMyWork, refetchInterval: 120_000 });
 
 /** A notification (case moved to a step I work at, a mention, an assignment) refreshes the inbox. */
 export const useMyWorkLive = () => {

@@ -15,7 +15,10 @@ import { Textarea } from "@/shared/ui/textarea";
 export const DecideAlertForm = ({ alertId }: { alertId: string }) => {
   const { t } = useTranslation();
   const decide = useDecideAlert();
-  const form = useForm<AlertDecision>({ resolver: zodResolver(alertDecisionSchema), defaultValues: { decision: "CLOSE_FALSE_POSITIVE", note: "" } });
+  const form = useForm<AlertDecision>({
+    resolver: zodResolver(alertDecisionSchema),
+    defaultValues: { decision: "CLOSE_FALSE_POSITIVE", note: "" },
+  });
   const decision = useWatch({ control: form.control, name: "decision" });
   const noteError = form.formState.errors.note;
 
@@ -30,27 +33,54 @@ export const DecideAlertForm = ({ alertId }: { alertId: string }) => {
             key={d}
             className={cn(
               "flex cursor-pointer flex-col gap-0.5 rounded-md border px-3 py-2.5 transition-colors",
-              decision === d ? (d === "ESCALATE" ? "border-risk-high bg-risk-high-bg" : "border-brand bg-brand-soft") : "border-border hover:bg-muted",
+              decision === d
+                ? d === "ESCALATE"
+                  ? "border-risk-high bg-risk-high-bg"
+                  : "border-brand bg-brand-soft"
+                : "border-border hover:bg-muted",
             )}
           >
             <input type="radio" value={d} className="sr-only" {...form.register("decision")} />
             <span className="text-text">{t(`alertDetail.decision.${d}`)}</span>
-            <span className="text-xs text-text-secondary">{t(`alertDetail.decision.${d}_hint`)}</span>
+            <span className="text-xs text-text-secondary">
+              {t(`alertDetail.decision.${d}_hint`)}
+            </span>
           </label>
         ))}
       </fieldset>
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="note">{t("alertDetail.decision.note")}</Label>
-        <Textarea id="note" rows={4} aria-invalid={!!noteError} placeholder={t("alertDetail.decision.notePlaceholder")} {...form.register("note")} />
-        {noteError ? <p className="text-xs text-risk-high-text">{t("alertDetail.decision.noteTooShort")}</p> : null}
+        <Textarea
+          id="note"
+          rows={4}
+          aria-invalid={!!noteError}
+          placeholder={t("alertDetail.decision.notePlaceholder")}
+          {...form.register("note")}
+        />
+        {noteError ? (
+          <p className="text-xs text-risk-high-text">{t("alertDetail.decision.noteTooShort")}</p>
+        ) : null}
       </div>
       {decide.error ? (
-        <p role="alert" className="rounded-md bg-risk-high-bg px-3 py-2 text-sm text-risk-high-text">
-          {isHttpError(decide.error) && decide.error.status === 409 ? t("alertDetail.decision.alreadyDecided") : t("errors.generic")}
+        <p
+          role="alert"
+          className="rounded-md bg-risk-high-bg px-3 py-2 text-sm text-risk-high-text"
+        >
+          {isHttpError(decide.error) && decide.error.status === 409
+            ? t("alertDetail.decision.alreadyDecided")
+            : t("errors.generic")}
         </p>
       ) : null}
-      <Button type="submit" variant={decision === "ESCALATE" ? "destructive" : "default"} disabled={decide.isPending}>
-        {t(decide.isPending ? "alertDetail.decision.saving" : `alertDetail.decision.submit_${decision}`)}
+      <Button
+        type="submit"
+        variant={decision === "ESCALATE" ? "destructive" : "default"}
+        disabled={decide.isPending}
+      >
+        {t(
+          decide.isPending
+            ? "alertDetail.decision.saving"
+            : `alertDetail.decision.submit_${decision}`,
+        )}
       </Button>
     </form>
   );

@@ -6,6 +6,9 @@ export const transactionKeys = {
   list: (q: TransactionQuery) => [...transactionKeys.all, "list", q] as const,
 };
 
-export const transactionsQueryOptions = (q: TransactionQuery) => ({ queryKey: transactionKeys.list(q), queryFn: () => queryTransactions(q) });
+export const transactionsQueryOptions = (q: TransactionQuery) => ({
+  queryKey: transactionKeys.list(q),
+  queryFn: () => queryTransactions(q),
+});
 
 export const useTransactions = (q: TransactionQuery) => useQuery(transactionsQueryOptions(q));

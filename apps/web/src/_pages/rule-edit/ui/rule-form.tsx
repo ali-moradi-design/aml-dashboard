@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm, useWatch, type Resolver } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { emptyCriteria, riskLevels, ruleFormSchema, type RuleDetail, type RuleForm as RuleFormValues } from "@aml/shared";
+import {
+  emptyCriteria,
+  riskLevels,
+  ruleFormSchema,
+  type RuleDetail,
+  type RuleForm as RuleFormValues,
+} from "@aml/shared";
 import { CriteriaBuilder, countConditions } from "@/features/criteria-builder";
 import { CriteriaView, useSaveRule } from "@/entities/rule";
 import { useHref, useLocale } from "@/shared/i18n/use-locale";
@@ -47,7 +53,11 @@ export const RuleForm = ({ rule }: { rule?: RuleDetail }) => {
     defaultValues: toValues(rule),
     mode: "onTouched",
   });
-  const { register, control, formState: { errors, isDirty } } = form;
+  const {
+    register,
+    control,
+    formState: { errors, isDirty },
+  } = form;
   const criteria = useWatch({ control, name: "criteria" });
   useUnsavedGuard(isDirty && !saved, t("forms.unsavedConfirm"));
 
@@ -76,46 +86,112 @@ export const RuleForm = ({ rule }: { rule?: RuleDetail }) => {
           <Panel>
             <PanelHeader eyebrow={t("ruleForm.basics")} />
             <div className="grid gap-4 sm:grid-cols-[200px_1fr]">
-              <Field name="code" label={t("fields.ruleCode")} errors={errors} required hint={rule ? t("ruleForm.codeLocked") : t("ruleForm.codeHint")}>
-                <Input dir="ltr" className="font-mono uppercase" disabled={Boolean(rule)} {...a11y("code", errors)} {...register("code", { setValueAs: (v: string) => v.toUpperCase() })} />
+              <Field
+                name="code"
+                label={t("fields.ruleCode")}
+                errors={errors}
+                required
+                hint={rule ? t("ruleForm.codeLocked") : t("ruleForm.codeHint")}
+              >
+                <Input
+                  dir="ltr"
+                  className="font-mono uppercase"
+                  disabled={Boolean(rule)}
+                  {...a11y("code", errors)}
+                  {...register("code", { setValueAs: (v: string) => v.toUpperCase() })}
+                />
               </Field>
-              <Field name="name" label={t("fields.name")} errors={errors} required><Input {...a11y("name", errors)} {...register("name")} /></Field>
+              <Field name="name" label={t("fields.name")} errors={errors} required>
+                <Input {...a11y("name", errors)} {...register("name")} />
+              </Field>
             </div>
-            <Field name="description" label={t("fields.description")} errors={errors} required hint={t("ruleForm.descriptionHint")}>
+            <Field
+              name="description"
+              label={t("fields.description")}
+              errors={errors}
+              required
+              hint={t("ruleForm.descriptionHint")}
+            >
               <Textarea rows={3} {...a11y("description", errors)} {...register("description")} />
             </Field>
             <div className="flex flex-wrap items-end gap-6">
-              <Field name="riskLevel" label={t("fields.riskLevel")} errors={errors} className="w-48">
-                <Controller control={control} name="riskLevel" render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger {...a11y("riskLevel", errors)}><SelectValue /></SelectTrigger>
-                    <SelectContent>{riskLevels.map((r) => <SelectItem key={r} value={r}>{t(`risk.${r}`)}</SelectItem>)}</SelectContent>
-                  </Select>
-                )} />
+              <Field
+                name="riskLevel"
+                label={t("fields.riskLevel")}
+                errors={errors}
+                className="w-48"
+              >
+                <Controller
+                  control={control}
+                  name="riskLevel"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger {...a11y("riskLevel", errors)}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {riskLevels.map((r) => (
+                          <SelectItem key={r} value={r}>
+                            {t(`risk.${r}`)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </Field>
-              <Controller control={control} name="enabled" render={({ field }) => (
-                <label className="flex h-9 items-center gap-2 text-sm">
-                  <Checkbox checked={field.value} onCheckedChange={(v) => field.onChange(v === true)} />
-                  {t("ruleForm.enabled")}
-                </label>
-              )} />
+              <Controller
+                control={control}
+                name="enabled"
+                render={({ field }) => (
+                  <label className="flex h-9 items-center gap-2 text-sm">
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={(v) => field.onChange(v === true)}
+                    />
+                    {t("ruleForm.enabled")}
+                  </label>
+                )}
+              />
             </div>
           </Panel>
 
           <Panel>
-            <PanelHeader eyebrow={t("ruleForm.criteria")} title={t("ruleForm.criteriaTitle", { count: conditions, n: formatNumber(conditions, locale) })} />
-            <Controller control={control} name="criteria" render={({ field }) => <CriteriaBuilder value={field.value} onChange={field.onChange} />} />
-            {errors.criteria ? <p className="text-xs text-risk-high-text">{t("ruleForm.criteriaInvalid")}</p> : null}
+            <PanelHeader
+              eyebrow={t("ruleForm.criteria")}
+              title={t("ruleForm.criteriaTitle", {
+                count: conditions,
+                n: formatNumber(conditions, locale),
+              })}
+            />
+            <Controller
+              control={control}
+              name="criteria"
+              render={({ field }) => (
+                <CriteriaBuilder value={field.value} onChange={field.onChange} />
+              )}
+            />
+            {errors.criteria ? (
+              <p className="text-xs text-risk-high-text">{t("ruleForm.criteriaInvalid")}</p>
+            ) : null}
           </Panel>
         </div>
 
-        <div className="flex w-full flex-col gap-6 xl:w-[360px] xl:shrink-0">
+        <div className="flex w-full flex-col gap-6 xl:w-90 xl:shrink-0">
           <Panel className="xl:sticky xl:top-20">
             <PanelHeader eyebrow={t("ruleForm.preview")} title={t("ruleForm.previewTitle")} />
-            {conditions ? <CriteriaView group={criteria} /> : <p className="text-sm text-text-secondary">{t("ruleForm.noConditions")}</p>}
+            {conditions ? (
+              <CriteriaView group={criteria} />
+            ) : (
+              <p className="text-sm text-text-secondary">{t("ruleForm.noConditions")}</p>
+            )}
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => router.back()}>{t("forms.cancel")}</Button>
-              <Button type="submit" disabled={save.isPending || (Boolean(rule) && !isDirty)}>{save.isPending ? t("forms.saving") : rule ? t("forms.save") : t("ruleForm.create")}</Button>
+              <Button type="button" variant="outline" onClick={() => router.back()}>
+                {t("forms.cancel")}
+              </Button>
+              <Button type="submit" disabled={save.isPending || (Boolean(rule) && !isDirty)}>
+                {save.isPending ? t("forms.saving") : rule ? t("forms.save") : t("ruleForm.create")}
+              </Button>
             </div>
           </Panel>
         </div>

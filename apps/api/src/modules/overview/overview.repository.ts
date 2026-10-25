@@ -9,14 +9,33 @@ import { alertScope } from "../../shared/scope";
 const dbError = (cause: unknown) => appError.unexpected("Database error", cause);
 
 /** SQL fragment for layers 2 and 3 of the access model, on alias a (Alert) joined with b (Branch). */
-const scopeSql = (s: AccessScope) => Prisma.sql`b."regionId" = ANY(${s.regionIds}) AND a."clearanceRank" <= ${s.clearanceRank}`;
+const scopeSql = (s: AccessScope) =>
+  Prisma.sql`b."regionId" = ANY(${s.regionIds}) AND a."clearanceRank" <= ${s.clearanceRank}`;
 
-type DayRow = { day: Date; created: bigint; high: bigint; false_positive: bigint; decided: bigint; median_hours: number | null };
+type DayRow = {
+  day: Date;
+  created: bigint;
+  high: bigint;
+  false_positive: bigint;
+  decided: bigint;
+  median_hours: number | null;
+};
 
 export const createOverviewRepository = (db: Db) => ({
   kpis: (s: AccessScope, now: Date) =>
     ResultAsync.fromPromise(
-      db.$queryRaw<Array<{ open: bigint; high_open: bigint; high_today: bigint; in_review: bigint; overdue: bigint; last7: bigint; prev7: bigint; median_hours: number | null }>>`
+      db.$queryRaw<
+        Array<{
+          open: bigint;
+          high_open: bigint;
+          high_today: bigint;
+          in_review: bigint;
+          overdue: bigint;
+          last7: bigint;
+          prev7: bigint;
+          median_hours: number | null;
+        }>
+      >`
         SELECT
           count(*) FILTER (WHERE a.status IN ('NEW','IN_REVIEW')) AS open,
           count(*) FILTER (WHERE a.status IN ('NEW','IN_REVIEW') AND a."riskLevel" = 'HIGH') AS high_open,
@@ -50,7 +69,9 @@ export const createOverviewRepository = (db: Db) => ({
 
   byRule: (s: AccessScope, now: Date) =>
     ResultAsync.fromPromise(
-      db.$queryRaw<Array<{ code: string; name: string; count: bigint; escalated: bigint; decided: bigint }>>`
+      db.$queryRaw<
+        Array<{ code: string; name: string; count: bigint; escalated: bigint; decided: bigint }>
+      >`
         SELECT r.code, r.name,
           count(a.id) FILTER (WHERE a."createdAt" >= ${now}::timestamptz - interval '7 days') AS count,
           count(a.id) FILTER (WHERE a.status = 'ESCALATED') AS escalated,
@@ -75,7 +96,9 @@ export const createOverviewRepository = (db: Db) => ({
 
   funnel: (s: AccessScope, now: Date) =>
     ResultAsync.fromPromise(
-      db.$queryRaw<Array<{ raised: bigint; reviewed: bigint; escalated: bigint; reported: bigint }>>`
+      db.$queryRaw<
+        Array<{ raised: bigint; reviewed: bigint; escalated: bigint; reported: bigint }>
+      >`
         SELECT count(*) AS raised,
           count(*) FILTER (WHERE a.status <> 'NEW') AS reviewed,
           count(*) FILTER (WHERE a.status = 'ESCALATED') AS escalated,
@@ -87,7 +110,9 @@ export const createOverviewRepository = (db: Db) => ({
 
   riskByBranch: (s: AccessScope) =>
     ResultAsync.fromPromise(
-      db.$queryRaw<Array<{ code: string; city: string; high: bigint; medium: bigint; low: bigint }>>`
+      db.$queryRaw<
+        Array<{ code: string; city: string; high: bigint; medium: bigint; low: bigint }>
+      >`
         SELECT b.code, b.city,
           count(*) FILTER (WHERE a."riskLevel" = 'HIGH') AS high,
           count(*) FILTER (WHERE a."riskLevel" = 'MEDIUM') AS medium,
@@ -101,7 +126,9 @@ export const createOverviewRepository = (db: Db) => ({
   needsDecision: (s: AccessScope) =>
     ResultAsync.fromPromise(
       db.alert.findMany({
-        where: { AND: [alertScope(s), { status: { in: ["NEW", "IN_REVIEW"] }, riskLevel: "HIGH" }] },
+        where: {
+          AND: [alertScope(s), { status: { in: ["NEW", "IN_REVIEW"] }, riskLevel: "HIGH" }],
+        },
         include: alertRowInclude,
         orderBy: { createdAt: "asc" },
         take: 5,

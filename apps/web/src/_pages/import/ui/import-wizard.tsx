@@ -75,34 +75,68 @@ export const ImportWizard = () => {
   const check = () =>
     file &&
     validate.mutate(
-      { kind, fileName: file.name, mapping: Object.fromEntries(Object.entries(mapping).filter(([, h]) => h)), rows: file.parsed.rows },
-      { onSuccess: (b) => { setBatch(b); setStep(3); } },
+      {
+        kind,
+        fileName: file.name,
+        mapping: Object.fromEntries(Object.entries(mapping).filter(([, h]) => h)),
+        rows: file.parsed.rows,
+      },
+      {
+        onSuccess: (b) => {
+          setBatch(b);
+          setStep(3);
+        },
+      },
     );
 
   const preview = file?.parsed.rows.slice(0, 8) ?? [];
 
   return (
     <Panel>
-      <Stepper steps={STEPS.map((s) => ({ key: s, label: t(`import.steps.${s}`) }))} current={step} completed={completed} onSelect={(i) => i < step && step < 3 && setStep(i)} />
+      <Stepper
+        steps={STEPS.map((s) => ({ key: s, label: t(`import.steps.${s}`) }))}
+        current={step}
+        completed={completed}
+        onSelect={(i) => i < step && step < 3 && setStep(i)}
+      />
 
       {step === 0 ? (
         <div className="flex flex-col gap-5">
           <div className="flex flex-wrap items-end gap-4">
             <div className="flex flex-col gap-1.5">
               <span className="text-sm">{t("import.kind")}</span>
-              <Segmented label={t("import.kind")} value={kind} onChange={setKind} options={importKinds.map((k) => ({ value: k, label: t(`import.kinds.${k}`) }))} />
+              <Segmented
+                label={t("import.kind")}
+                value={kind}
+                onChange={setKind}
+                options={importKinds.map((k) => ({ value: k, label: t(`import.kinds.${k}`) }))}
+              />
             </div>
-            <Button variant="outline" onClick={() => saveText(templateCsv(kind), `${kind}-template.csv`)}><Download /> {t("import.template")}</Button>
+            <Button
+              variant="outline"
+              onClick={() => saveText(templateCsv(kind), `${kind}-template.csv`)}
+            >
+              <Download /> {t("import.template")}
+            </Button>
           </div>
           <label
             onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => { e.preventDefault(); void choose(e.dataTransfer.files[0]); }}
+            onDrop={(e) => {
+              e.preventDefault();
+              void choose(e.dataTransfer.files[0]);
+            }}
             className="flex cursor-pointer flex-col items-center gap-3 rounded-lg border-2 border-dashed border-border px-6 py-14 text-center hover:border-brand focus-within:border-brand"
           >
             <Upload className="size-8 text-text-secondary" strokeWidth={1.5} />
             <span className="text-base">{t("import.drop")}</span>
             <span className="text-sm text-text-secondary">{t("import.dropHint")}</span>
-            <input ref={input} type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" className="sr-only" onChange={(e) => void choose(e.target.files?.[0])} />
+            <input
+              ref={input}
+              type="file"
+              accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              className="sr-only"
+              onChange={(e) => void choose(e.target.files?.[0])}
+            />
           </label>
           {fileError ? <Note tone="danger">{fileError}</Note> : null}
           <Note>{t(`import.kindHint.${kind}`)}</Note>
@@ -111,57 +145,125 @@ export const ImportWizard = () => {
 
       {step === 1 && file ? (
         <div className="flex flex-col gap-5">
-          <PanelHeader eyebrow={t("import.mapEyebrow", { file: file.name })} title={t("import.mapTitle", { count: file.parsed.rows.length, n: n(file.parsed.rows.length) })} />
+          <PanelHeader
+            eyebrow={t("import.mapEyebrow", { file: file.name })}
+            title={t("import.mapTitle", {
+              count: file.parsed.rows.length,
+              n: n(file.parsed.rows.length),
+            })}
+          />
           <div className="grid gap-x-6 gap-y-3 md:grid-cols-2">
             {fields.map((f) => (
               <div key={f.key} className="grid grid-cols-[1fr_1.2fr] items-center gap-3">
                 <label htmlFor={`map-${f.key}`} className="text-sm">
                   {t(`import.fields.${f.key}`)}
-                  {f.required ? <span className="text-risk-high-text" aria-hidden> *</span> : null}
+                  {f.required ? (
+                    <span className="text-risk-high-text" aria-hidden>
+                      {" "}
+                      *
+                    </span>
+                  ) : null}
                 </label>
-                <Select value={mapping[f.key] || NONE} onValueChange={(v) => setMapping((m) => ({ ...m, [f.key]: v === NONE ? "" : v }))}>
-                  <SelectTrigger id={`map-${f.key}`} aria-invalid={f.required && !mapping[f.key]} className={cn(f.required && !mapping[f.key] && "border-risk-high")}><SelectValue /></SelectTrigger>
+                <Select
+                  value={mapping[f.key] || NONE}
+                  onValueChange={(v) => setMapping((m) => ({ ...m, [f.key]: v === NONE ? "" : v }))}
+                >
+                  <SelectTrigger
+                    id={`map-${f.key}`}
+                    aria-invalid={f.required && !mapping[f.key]}
+                    className={cn(f.required && !mapping[f.key] && "border-risk-high")}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={NONE}>{t("import.notMapped")}</SelectItem>
-                    {file.parsed.headers.map((h) => <SelectItem key={h} value={h}>{h}</SelectItem>)}
+                    {file.parsed.headers.map((h) => (
+                      <SelectItem key={h} value={h}>
+                        {h}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
             ))}
           </div>
-          {missing.length ? <Note tone="danger">{t("import.missing", { fields: missing.map((f) => t(`import.fields.${f.key}`)).join(", ") })}</Note> : null}
+          {missing.length ? (
+            <Note tone="danger">
+              {t("import.missing", {
+                fields: missing.map((f) => t(`import.fields.${f.key}`)).join(", "),
+              })}
+            </Note>
+          ) : null}
           <div className="flex justify-between gap-2">
-            <Button variant="outline" onClick={reset}>{t("import.otherFile")}</Button>
-            <Button disabled={missing.length > 0} onClick={() => setStep(2)}>{t("forms.next")}</Button>
+            <Button variant="outline" onClick={reset}>
+              {t("import.otherFile")}
+            </Button>
+            <Button disabled={missing.length > 0} onClick={() => setStep(2)}>
+              {t("forms.next")}
+            </Button>
           </div>
         </div>
       ) : null}
 
       {step === 2 && file ? (
         <div className="flex flex-col gap-5">
-          <PanelHeader eyebrow={t("import.previewEyebrow")} title={t("import.previewTitle", { shown: n(preview.length), count: file.parsed.rows.length, n: n(file.parsed.rows.length) })} />
+          <PanelHeader
+            eyebrow={t("import.previewEyebrow")}
+            title={t("import.previewTitle", {
+              shown: n(preview.length),
+              count: file.parsed.rows.length,
+              n: n(file.parsed.rows.length),
+            })}
+          />
           <div className="overflow-x-auto rounded-md border border-border">
             <table className="w-full text-[13px]">
               <thead className="bg-muted">
                 <tr>
-                  <th className="h-9 px-3 text-start text-xs font-normal text-text-secondary">{t("import.row")}</th>
-                  {fields.filter((f) => mapping[f.key]).map((f) => <th key={f.key} className="h-9 px-3 text-start text-xs font-normal whitespace-nowrap text-text-secondary">{t(`import.fields.${f.key}`)}</th>)}
+                  <th className="h-9 px-3 text-start text-xs font-normal text-text-secondary">
+                    {t("import.row")}
+                  </th>
+                  {fields
+                    .filter((f) => mapping[f.key])
+                    .map((f) => (
+                      <th
+                        key={f.key}
+                        className="h-9 px-3 text-start text-xs font-normal whitespace-nowrap text-text-secondary"
+                      >
+                        {t(`import.fields.${f.key}`)}
+                      </th>
+                    ))}
                 </tr>
               </thead>
               <tbody>
                 {preview.map((r, i) => (
                   <tr key={i} className="border-t border-border">
                     <td className="px-3 py-2 text-text-secondary">{n(i + 2)}</td>
-                    {fields.filter((f) => mapping[f.key]).map((f) => <td key={f.key} className="max-w-56 truncate px-3 py-2">{String(r[mapping[f.key]!] ?? "")}</td>)}
+                    {fields
+                      .filter((f) => mapping[f.key])
+                      .map((f) => (
+                        <td key={f.key} className="max-w-56 truncate px-3 py-2">
+                          {String(r[mapping[f.key]!] ?? "")}
+                        </td>
+                      ))}
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          {validate.error ? <Note tone="danger">{isHttpError(validate.error) && validate.error.status === 400 ? t("import.rejected") : t("errors.generic")}</Note> : null}
+          {validate.error ? (
+            <Note tone="danger">
+              {isHttpError(validate.error) && validate.error.status === 400
+                ? t("import.rejected")
+                : t("errors.generic")}
+            </Note>
+          ) : null}
           <div className="flex justify-between gap-2">
-            <Button variant="outline" onClick={() => setStep(1)}>{t("forms.back")}</Button>
-            <Button disabled={validate.isPending} onClick={check}>{validate.isPending ? t("import.checking") : t("import.check")}</Button>
+            <Button variant="outline" onClick={() => setStep(1)}>
+              {t("forms.back")}
+            </Button>
+            <Button disabled={validate.isPending} onClick={check}>
+              {validate.isPending ? t("import.checking") : t("import.check")}
+            </Button>
           </div>
         </div>
       ) : null}
@@ -170,7 +272,15 @@ export const ImportWizard = () => {
         <div className="flex flex-col gap-5">
           <PanelHeader
             eyebrow={t("import.checkEyebrow")}
-            title={batch.errorRows ? t("import.checkErrors", { count: batch.errorRows, n: n(batch.errorRows), valid: n(batch.validRows) }) : t("import.checkOk", { count: batch.validRows, n: n(batch.validRows) })}
+            title={
+              batch.errorRows
+                ? t("import.checkErrors", {
+                    count: batch.errorRows,
+                    n: n(batch.errorRows),
+                    valid: n(batch.validRows),
+                  })
+                : t("import.checkOk", { count: batch.validRows, n: n(batch.validRows) })
+            }
           />
           <div className="grid grid-cols-3 gap-3">
             {[
@@ -188,14 +298,27 @@ export const ImportWizard = () => {
             <div className="max-h-80 overflow-y-auto rounded-md border border-border">
               <table className="w-full text-[13px]">
                 <thead className="sticky top-0 bg-muted">
-                  <tr>{["row", "field", "problem"].map((c) => <th key={c} className="h-9 px-3 text-start text-xs font-normal text-text-secondary">{t(`import.${c}`)}</th>)}</tr>
+                  <tr>
+                    {["row", "field", "problem"].map((c) => (
+                      <th
+                        key={c}
+                        className="h-9 px-3 text-start text-xs font-normal text-text-secondary"
+                      >
+                        {t(`import.${c}`)}
+                      </th>
+                    ))}
+                  </tr>
                 </thead>
                 <tbody>
                   {batch.errors.slice(0, 200).map((e, i) => (
                     <tr key={i} className="border-t border-border">
                       <td className="px-3 py-2">{n(e.row)}</td>
-                      <td className="px-3 py-2">{t(`import.fields.${e.field}`, { defaultValue: e.field })}</td>
-                      <td className="px-3 py-2 text-risk-high-text">{t(e.message, { defaultValue: e.message })}</td>
+                      <td className="px-3 py-2">
+                        {t(`import.fields.${e.field}`, { defaultValue: e.field })}
+                      </td>
+                      <td className="px-3 py-2 text-risk-high-text">
+                        {t(e.message, { defaultValue: e.message })}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -204,9 +327,27 @@ export const ImportWizard = () => {
           ) : null}
           {batch.errorRows && batch.validRows ? <Note>{t("import.partialHint")}</Note> : null}
           <div className="flex justify-between gap-2">
-            <Button variant="outline" disabled={discard.isPending} onClick={() => discard.mutate(batch.id, { onSuccess: reset })}>{t("import.discard")}</Button>
-            <Button disabled={!batch.validRows || commit.isPending} onClick={() => commit.mutate(batch.id, { onSuccess: (r) => { setImported(r.imported); setStep(4); } })}>
-              {commit.isPending ? t("import.importing") : t("import.commit", { count: batch.validRows, n: n(batch.validRows) })}
+            <Button
+              variant="outline"
+              disabled={discard.isPending}
+              onClick={() => discard.mutate(batch.id, { onSuccess: reset })}
+            >
+              {t("import.discard")}
+            </Button>
+            <Button
+              disabled={!batch.validRows || commit.isPending}
+              onClick={() =>
+                commit.mutate(batch.id, {
+                  onSuccess: (r) => {
+                    setImported(r.imported);
+                    setStep(4);
+                  },
+                })
+              }
+            >
+              {commit.isPending
+                ? t("import.importing")
+                : t("import.commit", { count: batch.validRows, n: n(batch.validRows) })}
             </Button>
           </div>
         </div>
@@ -217,7 +358,9 @@ export const ImportWizard = () => {
           <CheckCircle2 className="size-10 text-risk-low" strokeWidth={1.5} />
           <p className="text-lg">{t("import.doneTitle", { count: imported, n: n(imported) })}</p>
           <p className="text-sm text-text-secondary">{t(`import.doneHint.${kind}`)}</p>
-          <Button variant="outline" className="mt-2" onClick={reset}><FileSpreadsheet /> {t("import.another")}</Button>
+          <Button variant="outline" className="mt-2" onClick={reset}>
+            <FileSpreadsheet /> {t("import.another")}
+          </Button>
         </div>
       ) : null}
     </Panel>

@@ -6,7 +6,19 @@ import { cn } from "@/shared/lib/utils";
 type Option<T extends string> = { value: T; label: ReactNode };
 
 /** Small radio group styled as a segmented control (arrow keys move between options). */
-export const Segmented = <T extends string>({ value, options, onChange, label, className }: { value: T; options: Array<Option<T>>; onChange: (v: T) => void; label: string; className?: string }) => (
+export const Segmented = <T extends string>({
+  value,
+  options,
+  onChange,
+  label,
+  className,
+}: {
+  value: T;
+  options: Array<Option<T>>;
+  onChange: (v: T) => void;
+  label: string;
+  className?: string;
+}) => (
   <div
     role="radiogroup"
     aria-label={label}
@@ -18,7 +30,9 @@ export const Segmented = <T extends string>({ value, options, onChange, label, c
       const step = (e.key === "ArrowRight") !== rtl ? 1 : -1;
       const next = options[(i + step + options.length) % options.length]!;
       onChange(next.value);
-      (e.currentTarget.querySelector(`[data-value="${next.value}"]`) as HTMLElement | null)?.focus();
+      (
+        e.currentTarget.querySelector(`[data-value="${next.value}"]`) as HTMLElement | null
+      )?.focus();
     }}
   >
     {options.map((o) => (

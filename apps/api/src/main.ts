@@ -40,7 +40,10 @@ const deps = { db, requireAuth: auth.requireAuth };
 const silent: Notifier = { toCase: () => {}, toUser: () => {}, toRole: () => {} };
 let live: Notifier = silent;
 const notifications = createNotifications(db, () => live);
-type Payload = { type: Parameters<typeof notifications.push>[1] } & Record<string, string | number | null>;
+type Payload = { type: Parameters<typeof notifications.push>[1] } & Record<
+  string,
+  string | number | null
+>;
 // "notification" events become stored notifications (center, preferences, then live push);
 // other events (case room updates) go straight to the socket.
 const notify: Notifier = {
@@ -59,7 +62,11 @@ const notify: Notifier = {
 const news = createNewsModule({ ...deps, storageDir: env.STORAGE_DIR, notifications });
 const runner = createJobRunner({ db, notifications, announceNews: news.announce });
 const demoReset = env.DEMO_RESET_CRON
-  ? { cron: env.DEMO_RESET_CRON, timezone: env.DEMO_RESET_TZ, reset: createDemoReset({ storageDir: env.STORAGE_DIR }) }
+  ? {
+      cron: env.DEMO_RESET_CRON,
+      timezone: env.DEMO_RESET_TZ,
+      reset: createDemoReset({ storageDir: env.STORAGE_DIR }),
+    }
   : undefined;
 const scheduler = createScheduler(env.DATABASE_URL, db, runner, demoReset);
 
@@ -95,7 +102,8 @@ const cases = createCasesService({ repo: createCasesRepository(db), notify });
 const realtime = createRealtime(server, {
   webOrigin: env.WEB_ORIGIN,
   authenticate: async (token) => (await auth.service.authenticate(token)).unwrapOr(null),
-  canJoinCase: async (p, code) => (await cases.caseId(p, code)).map((c) => (c.isMember ? c.id : null)).unwrapOr(null),
+  canJoinCase: async (p, code) =>
+    (await cases.caseId(p, code)).map((c) => (c.isMember ? c.id : null)).unwrapOr(null),
 });
 live = realtime.notifier;
 

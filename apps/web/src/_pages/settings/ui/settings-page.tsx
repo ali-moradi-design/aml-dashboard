@@ -13,7 +13,12 @@ import { ProfileSection } from "./profile-section";
 import { SecuritySection } from "./security-section";
 import { SystemSection } from "./system-section";
 
-const SECTIONS: Array<{ key: string; icon: LucideIcon; admin?: boolean; render: () => React.ReactNode }> = [
+const SECTIONS: Array<{
+  key: string;
+  icon: LucideIcon;
+  admin?: boolean;
+  render: () => React.ReactNode;
+}> = [
   { key: "profile", icon: UserRound, render: () => <ProfileSection /> },
   { key: "appearance", icon: Palette, render: () => <AppearanceSection /> },
   { key: "notifications", icon: Bell, render: () => <NotificationsSection /> },
@@ -37,7 +42,10 @@ export const SettingsPage = () => {
     <>
       <PageHeader title={t("settings.title")} subtitle={t("settings.subtitle")} />
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-        <nav aria-label={t("settings.title")} className="flex gap-1 overflow-x-auto rounded-lg border border-border bg-card p-2 lg:sticky lg:top-24 lg:w-56 lg:shrink-0 lg:flex-col">
+        <nav
+          aria-label={t("settings.title")}
+          className="flex gap-1 overflow-x-auto rounded-lg border border-border bg-card p-2 lg:sticky lg:top-24 lg:w-56 lg:shrink-0 lg:flex-col"
+        >
           {sections.map((s) => (
             <button
               key={s.key}
@@ -46,7 +54,9 @@ export const SettingsPage = () => {
               onClick={() => router.replace(`${pathname}?section=${s.key}`, { scroll: false })}
               className={cn(
                 "flex h-10 shrink-0 items-center gap-3 rounded-md px-3 text-start text-sm whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-                s.key === current.key ? "bg-sidebar-active text-sidebar-active-text" : "text-text-secondary hover:bg-muted hover:text-text",
+                s.key === current.key
+                  ? "bg-sidebar-active text-sidebar-active-text"
+                  : "text-text-secondary hover:bg-muted hover:text-text",
               )}
             >
               <s.icon className="size-4 shrink-0" strokeWidth={1.75} />
@@ -54,7 +64,9 @@ export const SettingsPage = () => {
             </button>
           ))}
         </nav>
-        <div className="min-w-0 flex-1">{isPending ? <Skeleton className="h-96" /> : current.render()}</div>
+        <div className="min-w-0 flex-1">
+          {isPending ? <Skeleton className="h-96" /> : current.render()}
+        </div>
       </div>
     </>
   );

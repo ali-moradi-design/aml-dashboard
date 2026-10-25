@@ -9,7 +9,8 @@ export const sessionKeys = {
 };
 
 /** The signed-in user. Not retried: a 401 means "go to the login page". */
-export const useMe = () => useQuery({ queryKey: sessionKeys.me(), queryFn: getMe, retry: false, staleTime: 5 * 60_000 });
+export const useMe = () =>
+  useQuery({ queryKey: sessionKeys.me(), queryFn: getMe, retry: false, staleTime: 5 * 60_000 });
 
 export const useLogin = () => {
   const qc = useQueryClient();
@@ -31,12 +32,18 @@ export const useSessions = () => useQuery({ queryKey: sessionKeys.list(), queryF
 
 export const useRevokeSession = () => {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: revokeSession, onSuccess: () => qc.invalidateQueries({ queryKey: sessionKeys.list() }) });
+  return useMutation({
+    mutationFn: revokeSession,
+    onSuccess: () => qc.invalidateQueries({ queryKey: sessionKeys.list() }),
+  });
 };
 
 export const useRevokeOtherSessions = () => {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: revokeOtherSessions, onSuccess: () => qc.invalidateQueries({ queryKey: sessionKeys.list() }) });
+  return useMutation({
+    mutationFn: revokeOtherSessions,
+    onSuccess: () => qc.invalidateQueries({ queryKey: sessionKeys.list() }),
+  });
 };
 
 /** Permission check for showing or hiding UI. The API checks again on every request. */

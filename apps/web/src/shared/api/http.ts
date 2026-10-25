@@ -13,12 +13,24 @@ export const isHttpError = (value: unknown): value is HttpError =>
   typeof value === "object" && value !== null && (value as HttpError).kind === "http";
 
 const toHttpError = async (res: Response): Promise<HttpError> => {
-  const body = (await res.json().catch(() => ({}))) as { code?: string; message?: string; issues?: unknown };
-  return { kind: "http", status: res.status, code: body.code ?? "UNKNOWN", message: body.message ?? res.statusText, issues: body.issues };
+  const body = (await res.json().catch(() => ({}))) as {
+    code?: string;
+    message?: string;
+    issues?: unknown;
+  };
+  return {
+    kind: "http",
+    status: res.status,
+    code: body.code ?? "UNKNOWN",
+    message: body.message ?? res.statusText,
+    issues: body.issues,
+  };
 };
 
 /** Translation key for an upload refused by the demo limits, or null for any other error. */
-export const uploadLimitKey = (error: unknown): "errors.uploadDaily" | "errors.storageFull" | null => {
+export const uploadLimitKey = (
+  error: unknown,
+): "errors.uploadDaily" | "errors.storageFull" | null => {
   if (!isHttpError(error)) return null;
   if (error.status === 429) return "errors.uploadDaily";
   if (error.status === 507) return "errors.storageFull";
@@ -29,7 +41,11 @@ export const uploadLimitKey = (error: unknown): "errors.uploadDaily" | "errors.s
  * Calls the API and validates the response with the shared Zod schema.
  * Rejects with an HttpError, which React Query exposes as `error`.
  */
-export const request = async <T>(path: string, schema: ZodType<T>, init: RequestInit = {}): Promise<T> => {
+export const request = async <T>(
+  path: string,
+  schema: ZodType<T>,
+  init: RequestInit = {},
+): Promise<T> => {
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
     credentials: "include",
@@ -39,11 +55,18 @@ export const request = async <T>(path: string, schema: ZodType<T>, init: Request
   return schema.parse(await res.json());
 };
 
-export const post = <T>(path: string, schema: ZodType<T>, body: unknown) => request(path, schema, { method: "POST", body: JSON.stringify(body) });
-export const del = <T>(path: string, schema: ZodType<T>) => request(path, schema, { method: "DELETE" });
+export const post = <T>(path: string, schema: ZodType<T>, body: unknown) =>
+  request(path, schema, { method: "POST", body: JSON.stringify(body) });
+export const del = <T>(path: string, schema: ZodType<T>) =>
+  request(path, schema, { method: "DELETE" });
 
 /** Multipart upload (one file); the API answers with JSON validated by the schema. */
-export const upload = async <T>(path: string, schema: ZodType<T>, file: Blob, fileName?: string): Promise<T> => {
+export const upload = async <T>(
+  path: string,
+  schema: ZodType<T>,
+  file: Blob,
+  fileName?: string,
+): Promise<T> => {
   const body = new FormData();
   body.append("file", file, fileName ?? (file instanceof File ? file.name : "upload"));
   const res = await fetch(`${API_URL}${path}`, { method: "POST", body, credentials: "include" });

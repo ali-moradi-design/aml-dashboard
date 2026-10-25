@@ -1,5 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createWorkflowDraft, discardWorkflowDraft, getWorkflow, getWorkflowVersion, publishWorkflow, saveWorkflowDraft } from "./requests";
+import {
+  createWorkflowDraft,
+  discardWorkflowDraft,
+  getWorkflow,
+  getWorkflowVersion,
+  publishWorkflow,
+  saveWorkflowDraft,
+} from "./requests";
 
 export const workflowKeys = {
   all: ["workflows"] as const,
@@ -7,8 +14,14 @@ export const workflowKeys = {
   version: (id: string) => [...workflowKeys.all, "version", id] as const,
 };
 
-export const useWorkflow = (key: string) => useQuery({ queryKey: workflowKeys.overview(key), queryFn: () => getWorkflow(key) });
-export const useWorkflowVersion = (id: string | null) => useQuery({ queryKey: workflowKeys.version(id ?? ""), queryFn: () => getWorkflowVersion(id!), enabled: Boolean(id) });
+export const useWorkflow = (key: string) =>
+  useQuery({ queryKey: workflowKeys.overview(key), queryFn: () => getWorkflow(key) });
+export const useWorkflowVersion = (id: string | null) =>
+  useQuery({
+    queryKey: workflowKeys.version(id ?? ""),
+    queryFn: () => getWorkflowVersion(id!),
+    enabled: Boolean(id),
+  });
 
 const useInvalidate = () => {
   const qc = useQueryClient();
@@ -32,6 +45,10 @@ export const usePublishWorkflow = () => {
   return useMutation({
     mutationFn: publishWorkflow,
     // New cases start on the new version; case pages show "newer version available" from now on.
-    onSuccess: () => Promise.all([qc.invalidateQueries({ queryKey: workflowKeys.all }), qc.invalidateQueries({ queryKey: ["cases"] })]),
+    onSuccess: () =>
+      Promise.all([
+        qc.invalidateQueries({ queryKey: workflowKeys.all }),
+        qc.invalidateQueries({ queryKey: ["cases"] }),
+      ]),
   });
 };

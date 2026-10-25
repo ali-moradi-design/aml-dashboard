@@ -31,7 +31,10 @@ export const shareholderSchema = z.object({
   name: z.string().trim().min(2, "errors.required"),
   type: z.enum(["PERSON", "COMPANY"]),
   country: z.enum(countryCodes, { error: "errors.required" }),
-  sharePercent: z.coerce.number<number>({ error: "errors.number" }).gt(0, "errors.positive").max(100, "errors.max100"),
+  sharePercent: z.coerce
+    .number<number>({ error: "errors.number" })
+    .gt(0, "errors.positive")
+    .max(100, "errors.max100"),
   documents: z.array(shareholderDocumentSchema).min(1, "errors.oneDocument"),
 });
 
@@ -43,7 +46,9 @@ export const onboardingAccountSchema = z.object({
 // Each step has its own schema (with its own cross-field rules), so a step can be validated on
 // its own. The full form is the intersection of all steps.
 
-const sourceOfFunds = z.enum(["salary", "business", "investments", "inheritance", "other"], { error: "errors.required" });
+const sourceOfFunds = z.enum(["salary", "business", "investments", "inheritance", "other"], {
+  error: "errors.required",
+});
 
 export const onboardingIdentitySchema = z
   .object({
@@ -73,20 +78,25 @@ export const onboardingIdentitySchema = z
       if (v.dateOfBirth) {
         const adult = new Date(today());
         adult.setFullYear(adult.getFullYear() - 18);
-        if (new Date(v.dateOfBirth) > adult) ctx.addIssue({ code: "custom", path: ["dateOfBirth"], message: "errors.adult" });
+        if (new Date(v.dateOfBirth) > adult)
+          ctx.addIssue({ code: "custom", path: ["dateOfBirth"], message: "errors.adult" });
       }
     } else {
       need("companyName", v.companyName && v.companyName.length >= 2);
       need("registrationNumber", v.registrationNumber);
       need("incorporationDate", v.incorporationDate);
       need("industry", v.industry);
-      if (v.incorporationDate && new Date(v.incorporationDate) > today()) ctx.addIssue({ code: "custom", path: ["incorporationDate"], message: "errors.past" });
+      if (v.incorporationDate && new Date(v.incorporationDate) > today())
+        ctx.addIssue({ code: "custom", path: ["incorporationDate"], message: "errors.past" });
     }
   });
 
 export const onboardingContactSchema = z.object({
   email: z.email("errors.email"),
-  phone: z.string().trim().regex(/^\+?[0-9 ()-]{7,20}$/, "errors.phone"),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^\+?[0-9 ()-]{7,20}$/, "errors.phone"),
   country: z.enum(countryCodes, { error: "errors.required" }),
   city: z.string().min(1, "errors.required"),
   branchCode: z.string().min(1, "errors.required"),
@@ -103,7 +113,8 @@ export const onboardingProfileSchema = z
   })
   .superRefine((v, ctx) => {
     // Cross-field: min below max.
-    if (v.minTransaction >= v.maxTransaction) ctx.addIssue({ code: "custom", path: ["maxTransaction"], message: "errors.minBelowMax" });
+    if (v.minTransaction >= v.maxTransaction)
+      ctx.addIssue({ code: "custom", path: ["maxTransaction"], message: "errors.minBelowMax" });
   });
 
 export const onboardingShareholdersSchema = z
@@ -111,12 +122,19 @@ export const onboardingShareholdersSchema = z
   .superRefine((v, ctx) => {
     if (v.type !== "COMPANY") return;
     // Cross-field: a company's shareholders must add up to exactly 100%.
-    if (v.shareholders.length === 0) ctx.addIssue({ code: "custom", path: ["shareholders"], message: "errors.oneShareholder" });
+    if (v.shareholders.length === 0)
+      ctx.addIssue({ code: "custom", path: ["shareholders"], message: "errors.oneShareholder" });
     const total = v.shareholders.reduce((sum, h) => sum + (Number(h.sharePercent) || 0), 0);
-    if (v.shareholders.length && Math.abs(total - 100) > 0.001) ctx.addIssue({ code: "custom", path: ["shareholders"], message: "errors.shares100" });
+    if (v.shareholders.length && Math.abs(total - 100) > 0.001)
+      ctx.addIssue({ code: "custom", path: ["shareholders"], message: "errors.shares100" });
     v.shareholders.forEach((h, i) =>
       h.documents.forEach((d, j) => {
-        if (d.expiresAt && new Date(d.expiresAt) <= today()) ctx.addIssue({ code: "custom", path: ["shareholders", i, "documents", j, "expiresAt"], message: "errors.future" });
+        if (d.expiresAt && new Date(d.expiresAt) <= today())
+          ctx.addIssue({
+            code: "custom",
+            path: ["shareholders", i, "documents", j, "expiresAt"],
+            message: "errors.future",
+          });
       }),
     );
   });
@@ -158,7 +176,15 @@ export type KycUpdate = z.infer<typeof kycUpdateSchema>;
 
 // ---------- Case creation (multi-step) ----------
 
-export const typologies = ["structuring", "layering", "trade_based", "high_risk_jurisdiction", "dormant_account", "mule_account", "other"] as const;
+export const typologies = [
+  "structuring",
+  "layering",
+  "trade_based",
+  "high_risk_jurisdiction",
+  "dormant_account",
+  "mule_account",
+  "other",
+] as const;
 
 export const partyAccountSchema = z.object({
   iban: ibanSchema,
@@ -187,7 +213,8 @@ export const caseBasicsSchema = z
     alertCodes: z.array(z.string()),
   })
   .superRefine((v, ctx) => {
-    if (v.dueAt && new Date(v.dueAt) < today()) ctx.addIssue({ code: "custom", path: ["dueAt"], message: "errors.future" });
+    if (v.dueAt && new Date(v.dueAt) < today())
+      ctx.addIssue({ code: "custom", path: ["dueAt"], message: "errors.future" });
   });
 
 export const caseScopeSchema = z
@@ -207,7 +234,8 @@ export const caseScopeSchema = z
 export const casePartiesSchema = z
   .object({ parties: z.array(casePartySchema).min(1, "errors.oneParty") })
   .superRefine((v, ctx) => {
-    if (v.parties.length && !v.parties.some((p) => p.role === "SUBJECT")) ctx.addIssue({ code: "custom", path: ["parties"], message: "errors.oneSubject" });
+    if (v.parties.length && !v.parties.some((p) => p.role === "SUBJECT"))
+      ctx.addIssue({ code: "custom", path: ["parties"], message: "errors.oneSubject" });
   });
 
 export const caseCreateSchema = caseBasicsSchema.and(caseScopeSchema).and(casePartiesSchema);
@@ -245,7 +273,10 @@ export type CommentInput = z.infer<typeof commentInputSchema>;
 // ---------- Rules ----------
 
 export const ruleFormSchema = z.object({
-  code: z.string().trim().regex(/^R-[A-Z0-9-]{2,20}$/, "errors.ruleCode"),
+  code: z
+    .string()
+    .trim()
+    .regex(/^R-[A-Z0-9-]{2,20}$/, "errors.ruleCode"),
   name: z.string().trim().min(3, "errors.required"),
   description: z.string().trim().min(10, "errors.min10"),
   riskLevel: z.enum(riskLevels),
@@ -254,5 +285,9 @@ export const ruleFormSchema = z.object({
 });
 export type RuleForm = z.infer<typeof ruleFormSchema>;
 
-export const draftSchema = z.object({ data: z.unknown(), step: z.number().int().min(0), updatedAt: z.string() });
+export const draftSchema = z.object({
+  data: z.unknown(),
+  step: z.number().int().min(0),
+  updatedAt: z.string(),
+});
 export type Draft = z.infer<typeof draftSchema>;

@@ -43,7 +43,11 @@ export const CustomersPage = () => {
     <>
       <PageHeader
         title={t("customers.title")}
-        subtitle={count === null ? t("alerts.subtitleLoading") : t("customers.subtitle", { count: formatNumber(count, locale) as never })}
+        subtitle={
+          count === null
+            ? t("alerts.subtitleLoading")
+            : t("customers.subtitle", { count: formatNumber(count, locale) as never })
+        }
         actions={
           can("customers.manage") ? (
             <Button size="lg" asChild>
@@ -55,17 +59,34 @@ export const CustomersPage = () => {
         }
       />
       <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-4">
-        <label className="flex h-9 min-w-[260px] flex-1 items-center gap-2 rounded-md border border-border bg-muted px-3 text-text-secondary focus-within:ring-2 focus-within:ring-ring">
+        <label className="flex h-9 min-w-65 flex-1 items-center gap-2 rounded-md border border-border bg-muted px-3 text-text-secondary focus-within:ring-2 focus-within:ring-ring">
           <Search className="size-4" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("customers.search")} className="min-w-0 flex-1 bg-transparent text-text outline-none placeholder:text-text-secondary" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t("customers.search")}
+            className="min-w-0 flex-1 bg-transparent text-text outline-none placeholder:text-text-secondary"
+          />
         </label>
         {quick.map((k) => (
           <button
             key={k}
             type="button"
             aria-pressed={active.has(k)}
-            onClick={() => setActive((s) => { const n = new Set(s); if (n.has(k)) n.delete(k); else n.add(k); return n; })}
-            className={cn("h-8 rounded-full border px-3 text-sm transition-colors", active.has(k) ? "border-brand bg-brand text-on-brand" : "border-border text-text-secondary hover:text-text")}
+            onClick={() =>
+              setActive((s) => {
+                const n = new Set(s);
+                if (n.has(k)) n.delete(k);
+                else n.add(k);
+                return n;
+              })
+            }
+            className={cn(
+              "h-8 rounded-full border px-3 text-sm transition-colors",
+              active.has(k)
+                ? "border-brand bg-brand text-on-brand"
+                : "border-border text-text-secondary hover:text-text",
+            )}
           >
             {t(`customers.quick.${k}`)}
           </button>

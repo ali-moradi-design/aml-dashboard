@@ -132,7 +132,12 @@ export const alertDetailSchema = z.object({
     /** Set once the alert was escalated into an investigation case. */
     caseCode: z.string().nullable(),
   }),
-  rule: z.object({ code: z.string(), name: z.string(), description: z.string(), criteria: z.unknown() }),
+  rule: z.object({
+    code: z.string(),
+    name: z.string(),
+    description: z.string(),
+    criteria: z.unknown(),
+  }),
   customer: z.object({
     id: z.string(),
     code: z.string(),
@@ -143,10 +148,22 @@ export const alertDetailSchema = z.object({
     riskScore: z.number(),
     pep: z.boolean(),
   }),
-  account: z.object({ iban: z.string(), currency: z.string(), status: z.string(), openedAt: z.string() }),
+  account: z.object({
+    iban: z.string(),
+    currency: z.string(),
+    status: z.string(),
+    openedAt: z.string(),
+  }),
   transaction: transactionRowSchema.nullable(),
   history: z.array(transactionRowSchema),
-  previousAlerts: z.array(z.object({ code: z.string(), status: z.enum(alertStatuses), ruleName: z.string(), createdAt: z.string() })),
+  previousAlerts: z.array(
+    z.object({
+      code: z.string(),
+      status: z.enum(alertStatuses),
+      ruleName: z.string(),
+      createdAt: z.string(),
+    }),
+  ),
 });
 export type AlertDetail = z.infer<typeof alertDetailSchema>;
 
@@ -168,18 +185,40 @@ export const overviewSchema = z.object({
     overdue: z.number(),
     medianReviewHours: z.number(),
   }),
-  sparklines: z.object({ open: z.array(z.number()), high: z.array(z.number()), awaiting: z.array(z.number()), review: z.array(z.number()) }),
+  sparklines: z.object({
+    open: z.array(z.number()),
+    high: z.array(z.number()),
+    awaiting: z.array(z.number()),
+    review: z.array(z.number()),
+  }),
   trend: z.array(z.object({ day: z.string(), created: z.number(), falsePositive: z.number() })),
-  byRule: z.array(z.object({ code: z.string(), name: z.string(), count: z.number(), hitRate: z.number() })),
+  byRule: z.array(
+    z.object({ code: z.string(), name: z.string(), count: z.number(), hitRate: z.number() }),
+  ),
   heatmap: z.array(z.object({ weekday: z.number(), hourBucket: z.number(), count: z.number() })),
-  funnel: z.object({ raised: z.number(), reviewed: z.number(), escalated: z.number(), reported: z.number() }),
-  riskByBranch: z.array(z.object({ code: z.string(), city: z.string(), high: z.number(), medium: z.number(), low: z.number() })),
+  funnel: z.object({
+    raised: z.number(),
+    reviewed: z.number(),
+    escalated: z.number(),
+    reported: z.number(),
+  }),
+  riskByBranch: z.array(
+    z.object({
+      code: z.string(),
+      city: z.string(),
+      high: z.number(),
+      medium: z.number(),
+      low: z.number(),
+    }),
+  ),
   needsDecision: z.array(alertRowSchema),
 });
 export type Overview = z.infer<typeof overviewSchema>;
 
 export const referenceSchema = z.object({
-  branches: z.array(z.object({ code: z.string(), city: z.string(), country: z.string(), regionCode: z.string() })),
+  branches: z.array(
+    z.object({ code: z.string(), city: z.string(), country: z.string(), regionCode: z.string() }),
+  ),
   rules: z.array(z.object({ code: z.string(), name: z.string(), riskLevel: z.enum(riskLevels) })),
   /** All regions (for audience pickers); branches above are only the user's own. */
   regions: z.array(z.object({ id: z.string(), code: z.string(), name: z.string() })),

@@ -22,7 +22,9 @@ const toParams = (v: AlertFilterValues) => {
   const p = new URLSearchParams();
   v.status.forEach((s) => p.append("status", s));
   v.riskLevel.forEach((r) => p.append("riskLevel", r));
-  (["ruleCode", "branchCode", "search", "assignee"] as const).forEach((k) => v[k] && p.set(k, v[k]!));
+  (["ruleCode", "branchCode", "search", "assignee"] as const).forEach(
+    (k) => v[k] && p.set(k, v[k]!),
+  );
   return p;
 };
 
@@ -33,9 +35,16 @@ export const AlertsPage = () => {
   const router = useRouter();
   const pathname = usePathname();
   const [count, setCount] = useState<number | null>(null);
-  const filters = useMemo(() => fromParams(new URLSearchParams(params?.toString() ?? "")), [params]);
+  const filters = useMemo(
+    () => fromParams(new URLSearchParams(params?.toString() ?? "")),
+    [params],
+  );
 
-  const onChange = useCallback((v: AlertFilterValues) => router.replace(`${pathname}?${toParams(v).toString()}`, { scroll: false }), [router, pathname]);
+  const onChange = useCallback(
+    (v: AlertFilterValues) =>
+      router.replace(`${pathname}?${toParams(v).toString()}`, { scroll: false }),
+    [router, pathname],
+  );
 
   const gridFilters = useMemo(() => {
     const f: Record<string, string | string[]> = {};
@@ -50,7 +59,14 @@ export const AlertsPage = () => {
 
   return (
     <>
-      <PageHeader title={t("alerts.title")} subtitle={count === null ? t("alerts.subtitleLoading") : t("alerts.subtitle", { count: formatNumber(count, locale) as never })} />
+      <PageHeader
+        title={t("alerts.title")}
+        subtitle={
+          count === null
+            ? t("alerts.subtitleLoading")
+            : t("alerts.subtitle", { count: formatNumber(count, locale) as never })
+        }
+      />
       <AlertFilters value={filters} onChange={onChange} />
       <AlertsGrid filters={gridFilters} onCount={setCount} />
     </>

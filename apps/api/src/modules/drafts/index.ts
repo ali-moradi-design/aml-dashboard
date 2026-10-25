@@ -9,7 +9,10 @@ import { handle } from "../../shared/http";
 import { parseWith } from "../../shared/validate";
 
 const kindSchema = z.enum(["case", "customer"]);
-const saveSchema = z.object({ data: z.record(z.string(), z.unknown()), step: z.number().int().min(0).max(10) });
+const saveSchema = z.object({
+  data: z.record(z.string(), z.unknown()),
+  step: z.number().int().min(0).max(10),
+});
 const dbError = (cause: unknown) => appError.unexpected("Database error", cause);
 
 /** Autosaved drafts for multi-step forms: one per user and form kind. */
@@ -20,7 +23,12 @@ export const createDraftsModule = ({ db, requireAuth }: { db: Db; requireAuth: R
       "/:kind",
       handle((req, res) =>
         parseWith(kindSchema, req.params.kind).asyncAndThen((kind) =>
-          ResultAsync.fromPromise(db.formDraft.findUnique({ where: { userId_kind: { userId: principalOf(res).userId, kind } } }), dbError).map((d) =>
+          ResultAsync.fromPromise(
+            db.formDraft.findUnique({
+              where: { userId_kind: { userId: principalOf(res).userId, kind } },
+            }),
+            dbError,
+          ).map((d) =>
             d ? { data: d.data, step: d.step, updatedAt: d.updatedAt.toISOString() } : null,
           ),
         ),
@@ -34,7 +42,11 @@ export const createDraftsModule = ({ db, requireAuth }: { db: Db; requireAuth: R
             const userId = principalOf(res).userId;
             const json = data as Prisma.InputJsonValue;
             return ResultAsync.fromPromise(
-              db.formDraft.upsert({ where: { userId_kind: { userId, kind } }, create: { userId, kind, data: json, step }, update: { data: json, step } }),
+              db.formDraft.upsert({
+                where: { userId_kind: { userId, kind } },
+                create: { userId, kind, data: json, step },
+                update: { data: json, step },
+              }),
               dbError,
             ).map((d) => ({ updatedAt: d.updatedAt.toISOString() }));
           }),
@@ -45,7 +57,10 @@ export const createDraftsModule = ({ db, requireAuth }: { db: Db; requireAuth: R
       "/:kind",
       handle((req, res) =>
         parseWith(kindSchema, req.params.kind).asyncAndThen((kind) =>
-          ResultAsync.fromPromise(db.formDraft.deleteMany({ where: { userId: principalOf(res).userId, kind } }), dbError).map(() => ({ ok: true })),
+          ResultAsync.fromPromise(
+            db.formDraft.deleteMany({ where: { userId: principalOf(res).userId, kind } }),
+            dbError,
+          ).map(() => ({ ok: true })),
         ),
       ),
     );

@@ -7,7 +7,14 @@ import { useTranslation } from "react-i18next";
 import { validateWorkflow, type WorkflowGraph, type WorkflowVersionRow } from "@aml/shared";
 import { WorkflowDesigner } from "./workflow-designer";
 import { useCan } from "@/entities/session";
-import { useCreateWorkflowDraft, useDiscardWorkflowDraft, usePublishWorkflow, useSaveWorkflowDraft, useWorkflow, useWorkflowVersion } from "@/entities/workflow";
+import {
+  useCreateWorkflowDraft,
+  useDiscardWorkflowDraft,
+  usePublishWorkflow,
+  useSaveWorkflowDraft,
+  useWorkflow,
+  useWorkflowVersion,
+} from "@/entities/workflow";
 import { isHttpError } from "@/shared/api";
 import { useLocale } from "@/shared/i18n/use-locale";
 import { formatDate, formatNumber, formatRelative } from "@/shared/lib/format";
@@ -44,11 +51,20 @@ export const WorkflowPage = () => {
 
   // Local edits of the open version; reset whenever another version (or a fresh save) loads.
   const loadedKey = version.data ? `${version.data.id}:${version.data.updatedAt}` : "";
-  const [edit, setEdit] = useState<{ key: string; graph: WorkflowGraph; note: string } | null>(null);
-  if (version.data && edit?.key !== loadedKey) setEdit({ key: loadedKey, graph: version.data.graph, note: version.data.note ?? "" });
+  const [edit, setEdit] = useState<{ key: string; graph: WorkflowGraph; note: string } | null>(
+    null,
+  );
+  if (version.data && edit?.key !== loadedKey)
+    setEdit({ key: loadedKey, graph: version.data.graph, note: version.data.note ?? "" });
   const graph = edit?.graph ?? version.data?.graph;
   const isDraft = version.data?.status === "DRAFT";
-  const dirty = Boolean(isDraft && version.data && edit && (JSON.stringify(edit.graph) !== JSON.stringify(version.data.graph) || edit.note !== (version.data.note ?? "")));
+  const dirty = Boolean(
+    isDraft &&
+    version.data &&
+    edit &&
+    (JSON.stringify(edit.graph) !== JSON.stringify(version.data.graph) ||
+      edit.note !== (version.data.note ?? "")),
+  );
   const issues = graph ? validateWorkflow(graph) : [];
   const [error, setError] = useState<string | null>(null);
   useUnsavedGuard(dirty, t("forms.unsavedConfirm"));
@@ -61,7 +77,11 @@ export const WorkflowPage = () => {
   const saveDraft = async () => {
     if (!version.data || !edit) return;
     setError(null);
-    await save.mutateAsync({ id: version.data.id, graph: edit.graph, note: edit.note || undefined });
+    await save.mutateAsync({
+      id: version.data.id,
+      graph: edit.graph,
+      note: edit.note || undefined,
+    });
   };
 
   const doPublish = async () => {
@@ -76,17 +96,37 @@ export const WorkflowPage = () => {
     }
   };
 
-  if (!can("workflow.manage")) return <Panel><p>{t("workflow.noPermission")}</p></Panel>;
-  if (overview.isPending || (selectedId && version.isPending)) return <Skeleton className="h-[640px]" />;
-  if (overview.isError || !version.data || !graph) return <Panel><p>{t("errors.generic")}</p></Panel>;
+  if (!can("workflow.manage"))
+    return (
+      <Panel>
+        <p>{t("workflow.noPermission")}</p>
+      </Panel>
+    );
+  if (overview.isPending || (selectedId && version.isPending))
+    return <Skeleton className="h-160" />;
+  if (overview.isError || !version.data || !graph)
+    return (
+      <Panel>
+        <p>{t("errors.generic")}</p>
+      </Panel>
+    );
 
   const v = version.data;
-  const olderOpen = versions.filter((x) => x.status === "ARCHIVED").reduce((s, x) => s + x.openCases, 0);
+  const olderOpen = versions
+    .filter((x) => x.status === "ARCHIVED")
+    .reduce((s, x) => s + x.openCases, 0);
 
   const header = (
     <>
       <Panel className="gap-3 p-5">
-        <PanelHeader eyebrow={t("workflow.versions")} title={published ? t("workflow.publishedVersion", { version: formatNumber(published.version, locale) }) : undefined} />
+        <PanelHeader
+          eyebrow={t("workflow.versions")}
+          title={
+            published
+              ? t("workflow.publishedVersion", { version: formatNumber(published.version, locale) })
+              : undefined
+          }
+        />
         <ul className="flex flex-col gap-1.5">
           {versions.map((x) => (
             <li key={x.id}>
@@ -94,55 +134,113 @@ export const WorkflowPage = () => {
                 type="button"
                 aria-current={x.id === v.id ? "true" : undefined}
                 onClick={() => open(x.id)}
-                className={cn("flex w-full items-center gap-2 rounded-md border px-3 py-2 text-start text-sm", x.id === v.id ? "border-brand bg-brand-soft" : "border-border hover:bg-muted")}
+                className={cn(
+                  "flex w-full items-center gap-2 rounded-md border px-3 py-2 text-start text-sm",
+                  x.id === v.id ? "border-brand bg-brand-soft" : "border-border hover:bg-muted",
+                )}
               >
                 <GitBranch className="size-3.5 text-text-secondary" />
-                <span className="flex-1">{t("workflow.versionN", { n: formatNumber(x.version, locale) })}</span>
-                {x.openCases ? <span className="text-xs text-text-secondary">{t("workflow.openCases", { count: x.openCases, n: formatNumber(x.openCases, locale) })}</span> : null}
-                <span className={cn("rounded-full px-2 py-0.5 text-xs", statusClass[x.status])}>{t(`workflow.status.${x.status}`)}</span>
+                <span className="flex-1">
+                  {t("workflow.versionN", { n: formatNumber(x.version, locale) })}
+                </span>
+                {x.openCases ? (
+                  <span className="text-xs text-text-secondary">
+                    {t("workflow.openCases", {
+                      count: x.openCases,
+                      n: formatNumber(x.openCases, locale),
+                    })}
+                  </span>
+                ) : null}
+                <span className={cn("rounded-full px-2 py-0.5 text-xs", statusClass[x.status])}>
+                  {t(`workflow.status.${x.status}`)}
+                </span>
               </button>
             </li>
           ))}
         </ul>
         {!draft ? (
-          <Button variant="outline" disabled={createDraft.isPending} onClick={() => createDraft.mutate("case", { onSuccess: ({ id }) => open(id) })}>
+          <Button
+            variant="outline"
+            disabled={createDraft.isPending}
+            onClick={() => createDraft.mutate("case", { onSuccess: ({ id }) => open(id) })}
+          >
             <Pencil /> {t("workflow.newVersion")}
           </Button>
         ) : !isDraft ? (
-          <Button variant="outline" onClick={() => open(draft.id)}><Pencil /> {t("workflow.openDraft")}</Button>
+          <Button variant="outline" onClick={() => open(draft.id)}>
+            <Pencil /> {t("workflow.openDraft")}
+          </Button>
         ) : null}
       </Panel>
 
       <Panel className="gap-3 p-5">
         <PanelHeader
           eyebrow={t("workflow.versionN", { n: formatNumber(v.version, locale) })}
-          title={t(`workflow.statusLong.${v.status}`, { date: v.publishedAt ? formatDate(v.publishedAt, locale) : "", by: v.publishedByName ?? v.createdByName })}
+          title={t(`workflow.statusLong.${v.status}`, {
+            date: v.publishedAt ? formatDate(v.publishedAt, locale) : "",
+            by: v.publishedByName ?? v.createdByName,
+          })}
         />
         {isDraft ? (
           <>
-            <Input value={edit?.note ?? ""} onChange={(e) => setEdit((x) => (x ? { ...x, note: e.target.value } : x))} placeholder={t("workflow.notePlaceholder")} aria-label={t("workflow.note")} maxLength={200} />
+            <Input
+              value={edit?.note ?? ""}
+              onChange={(e) => setEdit((x) => (x ? { ...x, note: e.target.value } : x))}
+              placeholder={t("workflow.notePlaceholder")}
+              aria-label={t("workflow.note")}
+              maxLength={200}
+            />
             <p className="text-xs text-text-secondary" aria-live="polite">
-              {save.isPending ? t("forms.saving") : dirty ? t("workflow.unsaved") : t("workflow.savedAt", { when: formatRelative(v.updatedAt, locale) })}
+              {save.isPending
+                ? t("forms.saving")
+                : dirty
+                  ? t("workflow.unsaved")
+                  : t("workflow.savedAt", { when: formatRelative(v.updatedAt, locale) })}
             </p>
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" disabled={!dirty || save.isPending} onClick={() => void saveDraft()}><Save /> {t("forms.save")}</Button>
-              <Button disabled={issues.length > 0 || publish.isPending} onClick={() => void doPublish()}><Rocket /> {t("workflow.publish")}</Button>
+              <Button
+                variant="outline"
+                disabled={!dirty || save.isPending}
+                onClick={() => void saveDraft()}
+              >
+                <Save /> {t("forms.save")}
+              </Button>
+              <Button
+                disabled={issues.length > 0 || publish.isPending}
+                onClick={() => void doPublish()}
+              >
+                <Rocket /> {t("workflow.publish")}
+              </Button>
               <Button
                 variant="ghost"
                 className="text-risk-high-text"
                 disabled={discard.isPending}
-                onClick={() => window.confirm(t("workflow.discardConfirm")) && discard.mutate(v.id, { onSuccess: () => router.replace(pathname, { scroll: false }) })}
+                onClick={() =>
+                  window.confirm(t("workflow.discardConfirm")) &&
+                  discard.mutate(v.id, {
+                    onSuccess: () => router.replace(pathname, { scroll: false }),
+                  })
+                }
               >
                 <Trash2 /> {t("workflow.discard")}
               </Button>
             </div>
-            {issues.length ? <p className="text-xs text-text-secondary">{t("workflow.fixBeforePublish")}</p> : <Note>{t("workflow.publishHint", { next: formatNumber(v.version, locale) })}</Note>}
+            {issues.length ? (
+              <p className="text-xs text-text-secondary">{t("workflow.fixBeforePublish")}</p>
+            ) : (
+              <Note>{t("workflow.publishHint", { next: formatNumber(v.version, locale) })}</Note>
+            )}
             {error ? <Note tone="danger">{error}</Note> : null}
           </>
         ) : (
           <>
             {v.note ? <p className="text-sm">{v.note}</p> : null}
-            <p className="text-sm text-text-secondary">{t("workflow.casesOnVersion", { open: v.openCases, total: formatNumber(v.totalCases, locale) })}</p>
+            <p className="text-sm text-text-secondary">
+              {t("workflow.casesOnVersion", {
+                open: v.openCases,
+                total: formatNumber(v.totalCases, locale),
+              })}
+            </p>
           </>
         )}
       </Panel>
@@ -153,7 +251,15 @@ export const WorkflowPage = () => {
     <>
       <PageHeader
         title={t("workflow.title")}
-        subtitle={published ? t("workflow.subtitle", { version: formatNumber(published.version, locale), since: formatDate(published.publishedAt ?? published.updatedAt, locale), older: olderOpen }) : undefined}
+        subtitle={
+          published
+            ? t("workflow.subtitle", {
+                version: formatNumber(published.version, locale),
+                since: formatDate(published.publishedAt ?? published.updatedAt, locale),
+                older: olderOpen,
+              })
+            : undefined
+        }
       />
       <WorkflowDesigner
         key={v.id}

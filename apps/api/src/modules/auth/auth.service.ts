@@ -44,30 +44,53 @@ export const toMe = (p: Principal): Me => ({
 
 const wrongCredentials = appError.unauthorized("Email or password is wrong");
 
-export const createAuthService = ({ repo, verifyPassword, newToken, hashToken, now = () => new Date() }: Deps) => ({
-  login: (input: LoginInput, meta: RequestMeta): RA<{ token: string; expiresAt: Date; me: Me }, AppError> =>
+export const createAuthService = ({
+  repo,
+  verifyPassword,
+  newToken,
+  hashToken,
+  now = () => new Date(),
+}: Deps) => ({
+  login: (
+    input: LoginInput,
+    meta: RequestMeta,
+  ): RA<{ token: string; expiresAt: Date; me: Me }, AppError> =>
     repo.findUserByEmail(input.email).andThen((user) => {
       if (!user) return errAsync(wrongCredentials);
-      return ResultAsync.fromPromise(verifyPassword(user.passwordHash, input.password), (cause) => appError.unexpected("Password check failed", cause))
-        .andThen((valid) => (valid ? okAsync(user) : errAsync(wrongCredentials)))
-        // A disabled account gets the same answer as a wrong password (no account probing).
-        .andThen((u) => (u.active ? okAsync(u) : errAsync(wrongCredentials)))
-        .andThen((u) => {
-          const token = newToken();
-          const expiresAt = new Date(now().getTime() + SESSION_DAYS * 86_400_000);
-          return repo
-            .createSession({ tokenHash: hashToken(token), userId: u.id, expiresAt, ...meta })
-            .andThen((session) => repo.audit({ userId: u.id, action: "auth.login", entity: "session", entityId: session.id }).map(() => session))
-            .andThen((session) => repo.touchLogin(u.id, now()).map(() => session))
-            .map((session) => ({ token, expiresAt, me: toMe(toPrincipal(u, session.id)) }));
-        });
+      return (
+        ResultAsync.fromPromise(verifyPassword(user.passwordHash, input.password), (cause) =>
+          appError.unexpected("Password check failed", cause),
+        )
+          .andThen((valid) => (valid ? okAsync(user) : errAsync(wrongCredentials)))
+          // A disabled account gets the same answer as a wrong password (no account probing).
+          .andThen((u) => (u.active ? okAsync(u) : errAsync(wrongCredentials)))
+          .andThen((u) => {
+            const token = newToken();
+            const expiresAt = new Date(now().getTime() + SESSION_DAYS * 86_400_000);
+            return repo
+              .createSession({ tokenHash: hashToken(token), userId: u.id, expiresAt, ...meta })
+              .andThen((session) =>
+                repo
+                  .audit({
+                    userId: u.id,
+                    action: "auth.login",
+                    entity: "session",
+                    entityId: session.id,
+                  })
+                  .map(() => session),
+              )
+              .andThen((session) => repo.touchLogin(u.id, now()).map(() => session))
+              .map((session) => ({ token, expiresAt, me: toMe(toPrincipal(u, session.id)) }));
+          })
+      );
     }),
 
   authenticate: (token: string | undefined): RA<Principal, AppError> => {
     if (!token) return errAsync(appError.unauthorized());
     return repo.findSession(hashToken(token)).andThen((session) => {
       const at = now();
-      if (!session || session.expiresAt <= at) return errAsync(appError.unauthorized("Session expired"));
+      if (!session || session.expiresAt <= at)
+        return errAsync(appError.unauthorized("Session expired"));
       if (!session.user.active) return errAsync(appError.unauthorized("Account disabled"));
       const principal = toPrincipal(session.user, session.id);
       // Avoid a write on every request: refresh "last seen" at most every 5 minutes.
@@ -91,9 +114,14 @@ export const createAuthService = ({ repo, verifyPassword, newToken, hashToken, n
     ),
 
   revokeSession: (p: Principal, id: string) =>
-    repo.deleteSession(id, p.userId).andThen((count) => (count ? okAsync({ ok: true }) : errAsync(appError.notFound("Session not found")))),
+    repo
+      .deleteSession(id, p.userId)
+      .andThen((count) =>
+        count ? okAsync({ ok: true }) : errAsync(appError.notFound("Session not found")),
+      ),
 
-  revokeOtherSessions: (p: Principal) => repo.deleteOtherSessions(p.userId, p.sessionId).map((count) => ({ revoked: count })),
+  revokeOtherSessions: (p: Principal) =>
+    repo.deleteOtherSessions(p.userId, p.sessionId).map((count) => ({ revoked: count })),
 });
 
 export type AuthService = ReturnType<typeof createAuthService>;

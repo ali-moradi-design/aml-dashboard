@@ -7,7 +7,11 @@ import { useLocale } from "@/shared/i18n/use-locale";
 import { formatCompact } from "@/shared/lib/format";
 
 const SYMBOL = { gt: ">", gte: "≥", lt: "<", lte: "≤", eq: "=", neq: "≠" } as const;
-const VALUE_NAMESPACE = { riskLevel: "risk", priority: "priority", recommendation: "recommendation" } as const;
+const VALUE_NAMESPACE = {
+  riskLevel: "risk",
+  priority: "priority",
+  recommendation: "recommendation",
+} as const;
 
 /** "Amount > 1M", "Recommendation = File a SAR": a condition in a few words. */
 export const useConditionText = () => {
@@ -16,7 +20,10 @@ export const useConditionText = () => {
   return useCallback(
     (c: WorkflowCondition) => {
       const def = conditionFields[c.field];
-      const value = def.type === "number" ? formatCompact(Number(c.value), locale) : t(`${VALUE_NAMESPACE[c.field as keyof typeof VALUE_NAMESPACE]}.${c.value}`);
+      const value =
+        def.type === "number"
+          ? formatCompact(Number(c.value), locale)
+          : t(`${VALUE_NAMESPACE[c.field as keyof typeof VALUE_NAMESPACE]}.${c.value}`);
       return `${t(`workflow.field.${c.field}`)} ${SYMBOL[c.operator]} ${value}`;
     },
     [t, locale],

@@ -18,7 +18,10 @@ export const ThemeToggle = () => {
   const mounted = useMounted();
 
   return (
-    <div role="radiogroup" className="flex h-10 items-center gap-0.5 rounded-md border border-border bg-muted p-[3px]">
+    <div
+      role="radiogroup"
+      className="flex h-10 items-center gap-0.5 rounded-md border border-border bg-muted p-0.75"
+    >
       {options.map(({ value, Icon, label }) => {
         const active = mounted && theme === value;
         return (
@@ -30,10 +33,12 @@ export const ThemeToggle = () => {
             aria-label={t(label)}
             onClick={() => setTheme(value)}
             className={`grid h-8 w-[34px] place-items-center rounded-sm transition-colors duration-200 ${
-              active ? "bg-card text-heading shadow-sm dark:bg-brand dark:text-on-brand" : "text-text-secondary hover:text-text"
+              active
+                ? "bg-card text-heading shadow-sm dark:bg-brand dark:text-on-brand"
+                : "text-text-secondary hover:text-text"
             }`}
           >
-            <Icon className="size-[18px]" strokeWidth={1.75} />
+            <Icon className="size-4.5" strokeWidth={1.75} />
           </button>
         );
       })}

@@ -15,7 +15,17 @@ import { LogoMark } from "@/shared/ui/logo-mark";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import { useSidebarStore } from "./sidebar-store";
 
-const NavLink = ({ item, active, collapsed, count }: { item: NavItem; active: boolean; collapsed: boolean; count?: number }) => {
+const NavLink = ({
+  item,
+  active,
+  collapsed,
+  count,
+}: {
+  item: NavItem;
+  active: boolean;
+  collapsed: boolean;
+  count?: number;
+}) => {
   const { t } = useTranslation();
   const href = useHref();
   const locale = useLocale();
@@ -26,18 +36,35 @@ const NavLink = ({ item, active, collapsed, count }: { item: NavItem; active: bo
       aria-current={active ? "page" : undefined}
       className={cn(
         "group relative flex h-10 items-center gap-3 overflow-hidden rounded-md px-2.5 whitespace-nowrap transition-[background-color,color,padding] duration-200 ease-out",
-        active ? "bg-sidebar-active text-sidebar-active-text" : "text-text-secondary hover:bg-sidebar-hover hover:text-text",
+        active
+          ? "bg-sidebar-active text-sidebar-active-text"
+          : "text-text-secondary hover:bg-sidebar-hover hover:text-text",
         !collapsed && !active && "hover:ps-3.5",
       )}
     >
-      {active ? <span className="absolute start-0 top-2.5 h-5 w-[3px] rounded-full bg-sidebar-indicator" aria-hidden /> : null}
-      <Icon className={cn("size-5 shrink-0", active && "text-sidebar-indicator dark:text-sidebar-active-text")} strokeWidth={1.75} />
-      <span className={cn("flex-1 transition-opacity duration-150", collapsed && "opacity-0")}>{t(`nav.${item.key}`)}</span>
+      {active ? (
+        <span
+          className="absolute inset-s-0 top-2.5 h-5 w-0.75 rounded-full bg-sidebar-indicator"
+          aria-hidden
+        />
+      ) : null}
+      <Icon
+        className={cn(
+          "size-5 shrink-0",
+          active && "text-sidebar-indicator dark:text-sidebar-active-text",
+        )}
+        strokeWidth={1.75}
+      />
+      <span className={cn("flex-1 transition-opacity duration-150", collapsed && "opacity-0")}>
+        {t(`nav.${item.key}`)}
+      </span>
       {count ? (
         <span
           className={cn(
             "rounded-full px-2 py-px text-xs transition-opacity duration-150",
-            active ? "bg-sidebar-indicator text-card dark:bg-card dark:text-sidebar-active" : "bg-muted text-text",
+            active
+              ? "bg-sidebar-indicator text-card dark:bg-card dark:text-sidebar-active"
+              : "bg-muted text-text",
             collapsed && "opacity-0",
           )}
         >
@@ -65,7 +92,9 @@ export const Sidebar = () => {
   const { data: overview } = useOverview();
   const { quickAccess } = usePreferences();
   const allItems = [...navGroups.flatMap((g) => g.items), ...footerNav];
-  const pinned = quickAccess.flatMap((path) => allItems.filter((i) => i.path === path && can(i.permission)));
+  const pinned = quickAccess.flatMap((path) =>
+    allItems.filter((i) => i.path === path && can(i.permission)),
+  );
   const counts: Record<string, number | undefined> = { alerts: overview?.kpis.openAlerts };
   const isActive = (path: string) => {
     const rest = (pathname ?? "").replace(`/${locale}`, "") || "/";
@@ -76,16 +105,21 @@ export const Sidebar = () => {
     <aside
       className={cn(
         "sticky top-0 z-20 flex h-dvh print:hidden shrink-0 flex-col gap-1 border-e border-sidebar-border bg-sidebar px-4 py-5 transition-[width] duration-250 ease-in-out",
-        collapsed ? "w-[72px]" : "w-[248px]",
+        collapsed ? "w-18" : "w-62",
       )}
     >
       <button
         type="button"
         onClick={toggle}
         aria-label={t(collapsed ? "sidebar.expand" : "sidebar.collapse")}
-        className="absolute -end-3 top-7 grid size-6 place-items-center rounded-full border border-sidebar-border bg-sidebar text-text-secondary transition-colors hover:text-text"
+        className="absolute -inset-e-3 top-7 grid size-6 place-items-center rounded-full border border-sidebar-border bg-sidebar text-text-secondary transition-colors hover:text-text"
       >
-        <ChevronLeft className={cn("size-3.5 transition-transform duration-250 rtl:rotate-180", collapsed && "rotate-180 rtl:rotate-0")} />
+        <ChevronLeft
+          className={cn(
+            "size-3.5 transition-transform duration-250 rtl:rotate-180",
+            collapsed && "rotate-180 rtl:rotate-0",
+          )}
+        />
       </button>
 
       <div className="flex h-10 items-center gap-2.5 overflow-hidden whitespace-nowrap">
@@ -104,11 +138,27 @@ export const Sidebar = () => {
           return (
             <div key={group.key} className="flex flex-col gap-1 pb-3">
               <div className="relative flex h-7 items-center ps-3 text-xs whitespace-nowrap text-text-secondary">
-                <span className={cn("transition-opacity duration-150", collapsed && "opacity-0")}>{t(`navGroup.${group.key}`)}</span>
-                <span className={cn("absolute start-3 h-px w-4 bg-sidebar-border opacity-0 transition-opacity", collapsed && "opacity-100")} />
+                <span className={cn("transition-opacity duration-150", collapsed && "opacity-0")}>
+                  {t(`navGroup.${group.key}`)}
+                </span>
+                <span
+                  className={cn(
+                    "absolute inset-s-3 h-px w-4 bg-sidebar-border opacity-0 transition-opacity",
+                    collapsed && "opacity-100",
+                  )}
+                />
               </div>
               {items.map((item) => (
-                <NavLink key={item.key} item={item} active={isActive(item.path) && (group.key === "quickAccess" || !quickAccess.includes(item.path))} collapsed={collapsed} count={counts[item.key]} />
+                <NavLink
+                  key={item.key}
+                  item={item}
+                  active={
+                    isActive(item.path) &&
+                    (group.key === "quickAccess" || !quickAccess.includes(item.path))
+                  }
+                  collapsed={collapsed}
+                  count={counts[item.key]}
+                />
               ))}
             </div>
           );

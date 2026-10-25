@@ -11,7 +11,11 @@ describe("health service", () => {
     const healthRepository: HealthRepository = { pingDatabase: () => okAsync(undefined) };
     const result = await createHealthService({ healthRepository, now: fixedNow }).check();
 
-    expect(result._unsafeUnwrap()).toEqual({ status: "ok", database: "up", time: "2026-10-17T08:00:00.000Z" });
+    expect(result._unsafeUnwrap()).toEqual({
+      status: "ok",
+      database: "up",
+      time: "2026-10-17T08:00:00.000Z",
+    });
   });
 
   it("reports the database as down instead of failing", async () => {

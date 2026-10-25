@@ -9,7 +9,8 @@ export const useRuleText = () => {
   return useMemo(
     () => ({
       name: (code: string, fallback: string) => t(`ruleName.${code}`, { defaultValue: fallback }),
-      description: (code: string, fallback: string) => t(`ruleDescription.${code}`, { defaultValue: fallback }),
+      description: (code: string, fallback: string) =>
+        t(`ruleDescription.${code}`, { defaultValue: fallback }),
     }),
     [t],
   );

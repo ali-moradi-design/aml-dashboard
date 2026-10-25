@@ -22,22 +22,75 @@ export const AlertsGrid = ({ filters, onCount }: Props) => {
 
   const columns = useMemo<Array<DataColumn<AlertRow>>>(
     () => [
-      { accessorKey: "code", header: t("alerts.col.code"), size: 120, meta: { className: "font-mono text-link" } },
-      { accessorKey: "createdAt", header: t("alerts.col.created"), size: 170, cell: ({ row }) => formatDateTime(row.original.createdAt, locale) },
-      { accessorKey: "riskLevel", header: t("alerts.col.risk"), size: 110, cell: ({ row }) => <RiskBadge level={row.original.riskLevel} /> },
-      { accessorKey: "score", header: t("alerts.col.score"), size: 90, meta: { numeric: true }, cell: ({ row }) => formatNumber(row.original.score, locale) },
-      { accessorKey: "status", header: t("alerts.col.status"), size: 160, cell: ({ row }) => <StatusBadge status={row.original.status} /> },
-      { accessorKey: "ruleName", header: t("alerts.col.rule"), size: 200, meta: { grow: true }, cell: ({ row }) => ruleText.name(row.original.ruleCode, row.original.ruleName) },
-      { accessorKey: "customerName", header: t("alerts.col.customer"), size: 180, meta: { grow: true } },
-      { id: "branchCode", accessorFn: (r) => r.branchCity, header: t("alerts.col.branch"), size: 120, cell: ({ row }) => t(`city.${row.original.branchCity}`, { defaultValue: row.original.branchCity }) },
+      {
+        accessorKey: "code",
+        header: t("alerts.col.code"),
+        size: 120,
+        meta: { className: "font-mono text-link" },
+      },
+      {
+        accessorKey: "createdAt",
+        header: t("alerts.col.created"),
+        size: 170,
+        cell: ({ row }) => formatDateTime(row.original.createdAt, locale),
+      },
+      {
+        accessorKey: "riskLevel",
+        header: t("alerts.col.risk"),
+        size: 110,
+        cell: ({ row }) => <RiskBadge level={row.original.riskLevel} />,
+      },
+      {
+        accessorKey: "score",
+        header: t("alerts.col.score"),
+        size: 90,
+        meta: { numeric: true },
+        cell: ({ row }) => formatNumber(row.original.score, locale),
+      },
+      {
+        accessorKey: "status",
+        header: t("alerts.col.status"),
+        size: 160,
+        cell: ({ row }) => <StatusBadge status={row.original.status} />,
+      },
+      {
+        accessorKey: "ruleName",
+        header: t("alerts.col.rule"),
+        size: 200,
+        meta: { grow: true },
+        cell: ({ row }) => ruleText.name(row.original.ruleCode, row.original.ruleName),
+      },
+      {
+        accessorKey: "customerName",
+        header: t("alerts.col.customer"),
+        size: 180,
+        meta: { grow: true },
+      },
+      {
+        id: "branchCode",
+        accessorFn: (r) => r.branchCity,
+        header: t("alerts.col.branch"),
+        size: 120,
+        cell: ({ row }) =>
+          t(`city.${row.original.branchCity}`, { defaultValue: row.original.branchCity }),
+      },
       {
         id: "baseAmount",
         header: t("alerts.col.amount"),
         size: 150,
         meta: { numeric: true },
-        cell: ({ row }) => (row.original.amount && row.original.currency ? formatMoney(row.original.amount, row.original.currency, locale) : "—"),
+        cell: ({ row }) =>
+          row.original.amount && row.original.currency
+            ? formatMoney(row.original.amount, row.original.currency, locale)
+            : "—",
       },
-      { accessorKey: "assigneeName", header: t("alerts.col.assignee"), size: 150, enableSorting: false, cell: ({ row }) => row.original.assigneeName ?? t("alerts.unassigned") },
+      {
+        accessorKey: "assigneeName",
+        header: t("alerts.col.assignee"),
+        size: 150,
+        enableSorting: false,
+        cell: ({ row }) => row.original.assigneeName ?? t("alerts.unassigned"),
+      },
     ],
     [t, locale, ruleText],
   );
@@ -45,7 +98,7 @@ export const AlertsGrid = ({ filters, onCount }: Props) => {
   return (
     <DataTable<AlertRow>
       label={t("alerts.title")}
-      className="h-[calc(100dvh-330px)] min-h-[480px]"
+      className="h-[calc(100dvh-330px)] min-h-120"
       columns={columns}
       query={(req) => alertsQueryOptions({ ...req, filters })}
       resetKey={filters}

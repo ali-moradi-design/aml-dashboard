@@ -9,7 +9,10 @@ import { toMe, type AuthService } from "./auth.service";
 
 const meta = (req: Request) => ({ userAgent: req.get("user-agent") ?? null, ip: req.ip ?? null });
 
-export const createAuthHandlers = (service: AuthService, { secureCookies }: { secureCookies: boolean }) => {
+export const createAuthHandlers = (
+  service: AuthService,
+  { secureCookies }: { secureCookies: boolean },
+) => {
   const cookieOptions = (expires?: Date): CookieOptions => ({
     httpOnly: true,
     secure: secureCookies,
@@ -19,7 +22,9 @@ export const createAuthHandlers = (service: AuthService, { secureCookies }: { se
   });
 
   const login: RequestHandler = async (req, res) => {
-    const result = await parseWith(loginSchema, req.body).asyncAndThen((input) => service.login(input, meta(req)));
+    const result = await parseWith(loginSchema, req.body).asyncAndThen((input) =>
+      service.login(input, meta(req)),
+    );
     sendResult(
       res,
       result.map(({ token, expiresAt, me }) => {
@@ -39,7 +44,9 @@ export const createAuthHandlers = (service: AuthService, { secureCookies }: { se
     ),
     me: handle((_req, res) => okAsync(toMe(principalOf(res)))),
     listSessions: handle((_req, res) => service.listSessions(principalOf(res))),
-    revokeSession: handle((req, res) => service.revokeSession(principalOf(res), String(req.params.id))),
+    revokeSession: handle((req, res) =>
+      service.revokeSession(principalOf(res), String(req.params.id)),
+    ),
     revokeOtherSessions: handle((_req, res) => service.revokeOtherSessions(principalOf(res))),
   };
 };

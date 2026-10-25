@@ -15,7 +15,16 @@ const stateClass: Record<NewsRow["state"], string> = {
 
 export const NewsStateBadge = ({ state }: { state: NewsRow["state"] }) => {
   const { t } = useTranslation();
-  return <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-xs whitespace-nowrap", stateClass[state])}>{t(`news.state.${state}`)}</span>;
+  return (
+    <span
+      className={cn(
+        "inline-flex rounded-full px-2.5 py-0.5 text-xs whitespace-nowrap",
+        stateClass[state],
+      )}
+    >
+      {t(`news.state.${state}`)}
+    </span>
+  );
 };
 
 export const PinnedBadge = () => {

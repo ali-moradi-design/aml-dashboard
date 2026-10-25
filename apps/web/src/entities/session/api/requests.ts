@@ -9,4 +9,5 @@ export const logout = () => post("/auth/logout", okSchema, {});
 export const getMe = () => request("/auth/me", meSchema);
 export const getSessions = () => request("/auth/sessions", z.array(sessionInfoSchema));
 export const revokeSession = (id: string) => del(`/auth/sessions/${id}`, okSchema);
-export const revokeOtherSessions = () => del("/auth/sessions/others", z.object({ revoked: z.number() }));
+export const revokeOtherSessions = () =>
+  del("/auth/sessions/others", z.object({ revoked: z.number() }));

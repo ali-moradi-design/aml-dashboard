@@ -13,7 +13,10 @@ type Deps = {
   now?: () => Date;
 };
 
-export const createHealthService = ({ healthRepository, now = () => new Date() }: Deps): HealthService => ({
+export const createHealthService = ({
+  healthRepository,
+  now = () => new Date(),
+}: Deps): HealthService => ({
   check: () =>
     healthRepository
       .pingDatabase()

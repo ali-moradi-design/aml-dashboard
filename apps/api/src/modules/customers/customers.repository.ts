@@ -20,27 +20,44 @@ const sortable: Record<string, (d: Prisma.SortOrder) => Prisma.CustomerOrderByWi
 
 export const customerFilterWhere = (filters: GridQuery["filters"]): Prisma.CustomerWhereInput => {
   const type = listFilter(filters.type) as Array<"PERSON" | "COMPANY"> | undefined;
-  const kyc = listFilter(filters.kycStatus) as Array<"PENDING" | "VERIFIED" | "EXPIRED" | "REJECTED"> | undefined;
+  const kyc = listFilter(filters.kycStatus) as
+    Array<"PENDING" | "VERIFIED" | "EXPIRED" | "REJECTED"> | undefined;
   const search = typeof filters.search === "string" ? filters.search.trim() : "";
   return {
     ...(type ? { type: { in: type } } : {}),
     ...(kyc ? { kycStatus: { in: kyc } } : {}),
     ...(filters.pep === "true" ? { pep: true } : {}),
     ...(filters.highRisk === "true" ? { riskScore: { gte: 70 } } : {}),
-    ...(search ? { OR: [{ name: { contains: search, mode: "insensitive" } }, { code: { contains: search, mode: "insensitive" } }] } : {}),
+    ...(search
+      ? {
+          OR: [
+            { name: { contains: search, mode: "insensitive" } },
+            { code: { contains: search, mode: "insensitive" } },
+          ],
+        }
+      : {}),
   };
 };
 
 export const createCustomersRepository = (db: Db) => ({
   query: (s: AccessScope, q: GridQuery) => {
-    const where: Prisma.CustomerWhereInput = { AND: [customerScope(s), customerFilterWhere(q.filters)] };
-    const orderBy = q.sortModel.filter((x) => sortable[x.colId]).map((x) => sortable[x.colId]!(x.sort));
+    const where: Prisma.CustomerWhereInput = {
+      AND: [customerScope(s), customerFilterWhere(q.filters)],
+    };
+    const orderBy = q.sortModel
+      .filter((x) => sortable[x.colId])
+      .map((x) => sortable[x.colId]!(x.sort));
     return ResultAsync.fromPromise(
       db.$transaction([
         db.customer.findMany({
           where,
-          include: { branch: { select: { city: true } }, _count: { select: { alerts: { where: { status: { in: ["NEW", "IN_REVIEW"] } } } } } },
-          orderBy: orderBy.length ? [...orderBy, { id: "asc" }] : [{ riskScore: "desc" }, { id: "asc" }],
+          include: {
+            branch: { select: { city: true } },
+            _count: { select: { alerts: { where: { status: { in: ["NEW", "IN_REVIEW"] } } } } },
+          },
+          orderBy: orderBy.length
+            ? [...orderBy, { id: "asc" }]
+            : [{ riskScore: "desc" }, { id: "asc" }],
           skip: q.startRow,
           take: Math.min(q.endRow - q.startRow, 500),
         }),
@@ -67,7 +84,12 @@ export const createCustomersRepository = (db: Db) => ({
 
   recentTransactions: (customerId: string) =>
     ResultAsync.fromPromise(
-      db.transaction.findMany({ where: { account: { customerId } }, include: transactionRowInclude, orderBy: { bookedAt: "desc" }, take: 25 }),
+      db.transaction.findMany({
+        where: { account: { customerId } },
+        include: transactionRowInclude,
+        orderBy: { bookedAt: "desc" },
+        take: 25,
+      }),
       dbError,
     ),
 
@@ -85,22 +107,37 @@ export const createCustomersRepository = (db: Db) => ({
 
   alerts: (s: AccessScope, customerId: string) =>
     ResultAsync.fromPromise(
-      db.alert.findMany({ where: { AND: [alertScope(s), { customerId }] }, include: alertRowInclude, orderBy: { createdAt: "desc" }, take: 15 }),
+      db.alert.findMany({
+        where: { AND: [alertScope(s), { customerId }] },
+        include: alertRowInclude,
+        orderBy: { createdAt: "desc" },
+        take: 15,
+      }),
       dbError,
     ),
 
   emailTaken: (email: string) =>
-    ResultAsync.fromPromise(db.customer.count({ where: { email: email.toLowerCase() } }), dbError).map((n) => n > 0),
+    ResultAsync.fromPromise(
+      db.customer.count({ where: { email: email.toLowerCase() } }),
+      dbError,
+    ).map((n) => n > 0),
 
   ibanTaken: (iban: string) =>
-    ResultAsync.fromPromise(db.account.count({ where: { iban: iban.replace(/\s+/g, "").toUpperCase() } }), dbError).map((n) => n > 0),
+    ResultAsync.fromPromise(
+      db.account.count({ where: { iban: iban.replace(/\s+/g, "").toUpperCase() } }),
+      dbError,
+    ).map((n) => n > 0),
 
-  branchByCode: (code: string) => ResultAsync.fromPromise(db.branch.findUnique({ where: { code } }), dbError),
+  branchByCode: (code: string) =>
+    ResultAsync.fromPromise(db.branch.findUnique({ where: { code } }), dbError),
 
   create: (input: CustomerOnboarding, branchId: string, userId: string) =>
     ResultAsync.fromPromise(
       db.$transaction(async (tx) => {
-        const last = await tx.customer.findFirst({ orderBy: { code: "desc" }, select: { code: true } });
+        const last = await tx.customer.findFirst({
+          orderBy: { code: "desc" },
+          select: { code: true },
+        });
         const next = Number(last?.code.replace("CU-", "") ?? 10000) + 1;
         const person = input.type === "PERSON";
         const customer = await tx.customer.create({
@@ -118,7 +155,8 @@ export const createCustomersRepository = (db: Db) => ({
             dateOfBirth: person && input.dateOfBirth ? new Date(input.dateOfBirth) : null,
             nationality: person ? input.nationality : null,
             registrationNumber: person ? null : input.registrationNumber,
-            incorporationDate: !person && input.incorporationDate ? new Date(input.incorporationDate) : null,
+            incorporationDate:
+              !person && input.incorporationDate ? new Date(input.incorporationDate) : null,
             industry: person ? null : input.industry,
             sourceOfFunds: input.sourceOfFunds,
             expectedMonthlyVolume: new Prisma.Decimal(input.expectedMonthlyVolume),
@@ -144,12 +182,20 @@ export const createCustomersRepository = (db: Db) => ({
                     type: h.type,
                     country: h.country,
                     sharePercent: new Prisma.Decimal(h.sharePercent),
-                    documents: { create: h.documents.map((d) => ({ kind: d.kind, number: d.number, expiresAt: d.expiresAt ? new Date(d.expiresAt) : null })) },
+                    documents: {
+                      create: h.documents.map((d) => ({
+                        kind: d.kind,
+                        number: d.number,
+                        expiresAt: d.expiresAt ? new Date(d.expiresAt) : null,
+                      })),
+                    },
                   })),
                 },
           },
         });
-        await tx.auditLog.create({ data: { userId, action: "customer.create", entity: "customer", entityId: customer.id } });
+        await tx.auditLog.create({
+          data: { userId, action: "customer.create", entity: "customer", entityId: customer.id },
+        });
         return customer;
       }),
       dbError,
@@ -172,7 +218,15 @@ export const createCustomersRepository = (db: Db) => ({
             ...(input.pep ? { clearanceRank: 4 } : {}),
           },
         });
-        await tx.auditLog.create({ data: { userId, action: "customer.kyc", entity: "customer", entityId: id, data: { kycStatus: input.kycStatus } } });
+        await tx.auditLog.create({
+          data: {
+            userId,
+            action: "customer.kyc",
+            entity: "customer",
+            entityId: id,
+            data: { kycStatus: input.kycStatus },
+          },
+        });
         return c;
       }),
       dbError,

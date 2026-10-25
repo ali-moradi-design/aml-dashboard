@@ -41,7 +41,16 @@ export const createReportsRepository = (db: Db) => ({
           WHERE ${branchScope} AND a."clearanceRank" <= ${s.clearanceRank} AND a."createdAt" >= ${from} AND a."createdAt" < ${to}
           GROUP BY 1, 2`,
         // Workload per person in the user's regions
-        db.$queryRaw<Array<{ name: string; role: string; open_alerts: bigint; decided: bigint; median_hours: number | null; open_cases: bigint }>>`
+        db.$queryRaw<
+          Array<{
+            name: string;
+            role: string;
+            open_alerts: bigint;
+            decided: bigint;
+            median_hours: number | null;
+            open_cases: bigint;
+          }>
+        >`
           SELECT u.name, r.key::text AS role,
             (SELECT count(*) FROM "Alert" a WHERE a."assigneeId" = u.id AND a.status IN ('NEW', 'IN_REVIEW')) AS open_alerts,
             (SELECT count(*) FROM "Alert" a WHERE a."decidedById" = u.id AND a."decidedAt" >= ${from} AND a."decidedAt" < ${to}) AS decided,
@@ -53,7 +62,15 @@ export const createReportsRepository = (db: Db) => ({
             AND EXISTS (SELECT 1 FROM "UserRegion" ur WHERE ur."userId" = u.id AND ur."regionId" = ANY(${s.regionIds}))
           ORDER BY open_alerts DESC`,
         // Review funnel
-        db.$queryRaw<Array<{ alerts: bigint; reviewed: bigint; escalated: bigint; cases: bigint; reported: bigint }>>`
+        db.$queryRaw<
+          Array<{
+            alerts: bigint;
+            reviewed: bigint;
+            escalated: bigint;
+            cases: bigint;
+            reported: bigint;
+          }>
+        >`
           SELECT
             (SELECT count(*) FROM "Alert" a JOIN "Branch" b ON b.id = a."branchId" WHERE ${branchScope} AND a."clearanceRank" <= ${s.clearanceRank} AND a."createdAt" >= ${from} AND a."createdAt" < ${to}) AS alerts,
             (SELECT count(*) FROM "Alert" a JOIN "Branch" b ON b.id = a."branchId" WHERE ${branchScope} AND a."clearanceRank" <= ${s.clearanceRank} AND a."createdAt" >= ${from} AND a."createdAt" < ${to} AND a.status <> 'NEW') AS reviewed,
@@ -72,11 +89,34 @@ export const createReportsRepository = (db: Db) => ({
       ]),
       dbError,
     ).map(([flows, heat, workload, [funnel], countries, settings]): Reports => ({
-      flows: flows.map((f) => ({ from: f.from, to: f.to, amount: Math.round(f.amount), count: n(f.count) })),
+      flows: flows.map((f) => ({
+        from: f.from,
+        to: f.to,
+        amount: Math.round(f.amount),
+        count: n(f.count),
+      })),
       heatmap: heat.map((h) => ({ weekday: h.weekday, hour: h.hour, count: n(h.count) })),
-      workload: workload.map((w) => ({ name: w.name, role: w.role, openAlerts: n(w.open_alerts), decided: n(w.decided), medianHours: w.median_hours === null ? null : Math.round(w.median_hours * 10) / 10, openCases: n(w.open_cases) })),
-      funnel: { alerts: n(funnel?.alerts), reviewed: n(funnel?.reviewed), escalated: n(funnel?.escalated), cases: n(funnel?.cases), reported: n(funnel?.reported) },
-      countries: countries.map((c) => ({ country: c.country, inAmount: Math.round(c.in_amount), outAmount: Math.round(c.out_amount), highRisk: settings.highRiskCountries.includes(c.country as never) })),
+      workload: workload.map((w) => ({
+        name: w.name,
+        role: w.role,
+        openAlerts: n(w.open_alerts),
+        decided: n(w.decided),
+        medianHours: w.median_hours === null ? null : Math.round(w.median_hours * 10) / 10,
+        openCases: n(w.open_cases),
+      })),
+      funnel: {
+        alerts: n(funnel?.alerts),
+        reviewed: n(funnel?.reviewed),
+        escalated: n(funnel?.escalated),
+        cases: n(funnel?.cases),
+        reported: n(funnel?.reported),
+      },
+      countries: countries.map((c) => ({
+        country: c.country,
+        inAmount: Math.round(c.in_amount),
+        outAmount: Math.round(c.out_amount),
+        highRisk: settings.highRiskCountries.includes(c.country as never),
+      })),
     }));
   },
 });
@@ -88,25 +128,86 @@ export const toWorkbook = async (r: Reports, range: ReportRange) => {
   const wb = new ExcelJS.Workbook();
   wb.creator = "AML Monitor";
   wb.created = new Date();
-  const sheet = (name: string, columns: Array<{ header: string; key: string; width: number; money?: boolean }>, rows: Array<Record<string, unknown>>) => {
+  const sheet = (
+    name: string,
+    columns: Array<{ header: string; key: string; width: number; money?: boolean }>,
+    rows: Array<Record<string, unknown>>,
+  ) => {
     const ws = wb.addWorksheet(name, { views: [{ state: "frozen", ySplit: 1 }] });
-    ws.columns = columns.map((c) => ({ header: c.header, key: c.key, width: c.width, style: c.money ? { numFmt: '#,##0 "€"' } : {} }));
+    ws.columns = columns.map((c) => ({
+      header: c.header,
+      key: c.key,
+      width: c.width,
+      style: c.money ? { numFmt: '#,##0 "€"' } : {},
+    }));
     ws.getRow(1).font = { bold: true };
     ws.addRows(rows);
     return ws;
   };
   const summary = wb.addWorksheet("Summary");
-  summary.addRows([["AML Monitor report"], ["Period", `${range.from} to ${range.to}`], [], ["Alerts", r.funnel.alerts], ["Reviewed", r.funnel.reviewed], ["Escalated", r.funnel.escalated], ["Cases opened", r.funnel.cases], ["Reported to the FIU", r.funnel.reported]]);
+  summary.addRows([
+    ["AML Monitor report"],
+    ["Period", `${range.from} to ${range.to}`],
+    [],
+    ["Alerts", r.funnel.alerts],
+    ["Reviewed", r.funnel.reviewed],
+    ["Escalated", r.funnel.escalated],
+    ["Cases opened", r.funnel.cases],
+    ["Reported to the FIU", r.funnel.reported],
+  ]);
   summary.getCell("A1").font = { bold: true, size: 14 };
   summary.getColumn(1).width = 24;
-  sheet("Money flows", [{ header: "From (branch country)", key: "from", width: 22 }, { header: "To (counterparty country)", key: "to", width: 26 }, { header: "Amount", key: "amount", width: 16, money: true }, { header: "Transfers", key: "count", width: 12 }], r.flows);
-  sheet("Countries", [{ header: "Country", key: "country", width: 12 }, { header: "In", key: "inAmount", width: 16, money: true }, { header: "Out", key: "outAmount", width: 16, money: true }, { header: "High risk", key: "highRisk", width: 12 }], r.countries.map((c) => ({ ...c, highRisk: c.highRisk ? "Yes" : "" })));
-  sheet("Workload", [{ header: "Name", key: "name", width: 22 }, { header: "Role", key: "role", width: 14 }, { header: "Open alerts", key: "openAlerts", width: 12 }, { header: "Decided", key: "decided", width: 10 }, { header: "Median hours to decide", key: "medianHours", width: 22 }, { header: "Open cases", key: "openCases", width: 12 }], r.workload);
-  sheet("Alerts by hour", [{ header: "Weekday", key: "weekday", width: 10 }, { header: "Hour", key: "hour", width: 8 }, { header: "Alerts", key: "count", width: 10 }], r.heatmap.map((h) => ({ ...h, weekday: WEEKDAYS[h.weekday - 1] })));
+  sheet(
+    "Money flows",
+    [
+      { header: "From (branch country)", key: "from", width: 22 },
+      { header: "To (counterparty country)", key: "to", width: 26 },
+      { header: "Amount", key: "amount", width: 16, money: true },
+      { header: "Transfers", key: "count", width: 12 },
+    ],
+    r.flows,
+  );
+  sheet(
+    "Countries",
+    [
+      { header: "Country", key: "country", width: 12 },
+      { header: "In", key: "inAmount", width: 16, money: true },
+      { header: "Out", key: "outAmount", width: 16, money: true },
+      { header: "High risk", key: "highRisk", width: 12 },
+    ],
+    r.countries.map((c) => ({ ...c, highRisk: c.highRisk ? "Yes" : "" })),
+  );
+  sheet(
+    "Workload",
+    [
+      { header: "Name", key: "name", width: 22 },
+      { header: "Role", key: "role", width: 14 },
+      { header: "Open alerts", key: "openAlerts", width: 12 },
+      { header: "Decided", key: "decided", width: 10 },
+      { header: "Median hours to decide", key: "medianHours", width: 22 },
+      { header: "Open cases", key: "openCases", width: 12 },
+    ],
+    r.workload,
+  );
+  sheet(
+    "Alerts by hour",
+    [
+      { header: "Weekday", key: "weekday", width: 10 },
+      { header: "Hour", key: "hour", width: 8 },
+      { header: "Alerts", key: "count", width: 10 },
+    ],
+    r.heatmap.map((h) => ({ ...h, weekday: WEEKDAYS[h.weekday - 1] })),
+  );
   return wb;
 };
 
-export const createReportsModule = ({ db, requireAuth }: { db: Db; requireAuth: RequestHandler }) => {
+export const createReportsModule = ({
+  db,
+  requireAuth,
+}: {
+  db: Db;
+  requireAuth: RequestHandler;
+}) => {
   const repo = createReportsRepository(db);
   const exportXlsx: RequestHandler = async (req, res) => {
     const range = parseWith(reportRangeSchema, req.query);
@@ -114,13 +215,26 @@ export const createReportsModule = ({ db, requireAuth }: { db: Db; requireAuth: 
     const data = await repo.load(scopeOf(principalOf(res)), range.value);
     if (data.isErr()) return void sendResult(res, err(data.error));
     const wb = await toWorkbook(data.value, range.value);
-    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-    res.setHeader("Content-Disposition", `attachment; filename="aml-report-${range.value.from}-${range.value.to}.xlsx"`);
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="aml-report-${range.value.from}-${range.value.to}.xlsx"`,
+    );
     await wb.xlsx.write(res);
     res.end();
   };
   return Router()
     .use(requireAuth, requirePermission("reports.view"))
-    .get("/", handle((req, res) => parseWith(reportRangeSchema, req.query).asyncAndThen((r) => repo.load(scopeOf(principalOf(res)), r))))
+    .get(
+      "/",
+      handle((req, res) =>
+        parseWith(reportRangeSchema, req.query).asyncAndThen((r) =>
+          repo.load(scopeOf(principalOf(res)), r),
+        ),
+      ),
+    )
     .get("/export.xlsx", exportXlsx);
 };

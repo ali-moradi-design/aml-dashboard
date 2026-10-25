@@ -65,7 +65,8 @@
   --color-input: var(--border);
   --color-ring: var(--accent);
 
-  --font-sans: var(--font-huninn), var(--font-huninn-ext), var(--font-vazirmatn), system-ui, sans-serif;
+  --font-sans:
+    var(--font-huninn), var(--font-huninn-ext), var(--font-vazirmatn), system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
   --radius-sm: 6px;

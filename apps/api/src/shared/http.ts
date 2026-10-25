@@ -20,13 +20,18 @@ export const sendResult = <T>(res: Response, result: Result<T, AppError>, succes
     (error) => {
       if (error.type === "Unexpected") console.error(error.message, error.cause);
       const body = error.type === "Validation" ? { issues: error.issues } : {};
-      return res.status(statusOf[error.type]).json({ code: error.type, message: error.message, ...body });
+      return res
+        .status(statusOf[error.type])
+        .json({ code: error.type, message: error.message, ...body });
     },
   );
 
 /** Turns a function that returns ResultAsync into an Express handler. */
 export const handle =
-  <T>(run: (req: Request, res: Response) => ResultAsync<T, AppError>, successStatus = 200): RequestHandler =>
+  <T>(
+    run: (req: Request, res: Response) => ResultAsync<T, AppError>,
+    successStatus = 200,
+  ): RequestHandler =>
   async (req, res) => {
     sendResult(res, await run(req, res), successStatus);
   };

@@ -14,7 +14,9 @@ export const LatestNews = () => {
   const locale = useLocale();
   const href = useHref();
   const { data, isPending } = useNews();
-  const live = (data ?? []).filter((p) => p.state === "live").sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.publishAt.localeCompare(a.publishAt));
+  const live = (data ?? [])
+    .filter((p) => p.state === "live")
+    .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.publishAt.localeCompare(a.publishAt));
   const unread = live.filter((p) => !p.read).length;
   if (!isPending && !live.length) return null;
 
@@ -22,13 +24,25 @@ export const LatestNews = () => {
     <Panel>
       <PanelHeader
         eyebrow={t("overview.news.eyebrow")}
-        title={unread ? t("overview.news.unread", { count: unread, n: formatNumber(unread, locale) }) : t("overview.news.allRead")}
-        actions={<Link href={href("/news")} className="text-sm text-link hover:underline">{t("overview.news.all")}</Link>}
+        title={
+          unread
+            ? t("overview.news.unread", { count: unread, n: formatNumber(unread, locale) })
+            : t("overview.news.allRead")
+        }
+        actions={
+          <Link href={href("/news")} className="text-sm text-link hover:underline">
+            {t("overview.news.all")}
+          </Link>
+        }
       />
       {isPending ? (
         <Skeleton className="h-32" />
       ) : (
-        <div className="grid gap-4 md:grid-cols-3">{live.slice(0, 3).map((p) => <NewsCard key={p.id} post={p} compact />)}</div>
+        <div className="grid gap-4 md:grid-cols-3">
+          {live.slice(0, 3).map((p) => (
+            <NewsCard key={p.id} post={p} compact />
+          ))}
+        </div>
       )}
     </Panel>
   );

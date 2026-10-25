@@ -10,7 +10,8 @@ import { resetUploadUsage } from "../shared/storage";
 const here = dirname(fileURLToPath(import.meta.url));
 
 /** The seed script: built next to main.js in production, TypeScript source in development. */
-const seedScript = () => [resolve(here, "seed.js"), resolve(here, "../../prisma/seed.ts")].find((p) => existsSync(p));
+const seedScript = () =>
+  [resolve(here, "seed.js"), resolve(here, "../../prisma/seed.ts")].find((p) => existsSync(p));
 
 /**
  * Runs the seed script in its own process. The seed empties every table and rebuilds the demo
@@ -21,9 +22,15 @@ const runSeed = () =>
   new Promise<void>((done, fail) => {
     const script = seedScript();
     if (!script) return fail(new Error("Seed script not found"));
-    const child = spawn(process.execPath, [...process.execArgv, script], { cwd: resolve(here, script.endsWith(".ts") ? "../.." : ".."), env: process.env, stdio: "inherit" });
+    const child = spawn(process.execPath, [...process.execArgv, script], {
+      cwd: resolve(here, script.endsWith(".ts") ? "../.." : ".."),
+      env: process.env,
+      stdio: "inherit",
+    });
     child.on("error", fail);
-    child.on("exit", (code) => (code === 0 ? done() : fail(new Error(`Seed exited with code ${code}`))));
+    child.on("exit", (code) =>
+      code === 0 ? done() : fail(new Error(`Seed exited with code ${code}`)),
+    );
   });
 
 /** Deletes every uploaded file (case documents, news files, avatars) but keeps the folders. */
@@ -35,7 +42,9 @@ const emptyStorage = async (storageDir: string) => {
       const path = join(root, e.name);
       if (!e.isDirectory()) return rm(path, { force: true });
       const inner = await readdir(path);
-      await Promise.all(inner.map((name) => rm(join(path, name), { recursive: true, force: true })));
+      await Promise.all(
+        inner.map((name) => rm(join(path, name), { recursive: true, force: true })),
+      );
     }),
   );
   resetUploadUsage();

@@ -14,14 +14,28 @@ export const RuleEditPage = ({ code }: { code?: string }) => {
   const ruleText = useRuleText();
   const rule = useRule(code ?? "", Boolean(code));
 
-  if (!can("rules.manage")) return <Panel><p>{t("ruleForm.noPermission")}</p></Panel>;
-  if (code && rule.isPending) return <Skeleton className="h-[560px]" />;
-  if (code && !rule.data) return <Panel><p>{t("ruleDetail.notFound")}</p></Panel>;
+  if (!can("rules.manage"))
+    return (
+      <Panel>
+        <p>{t("ruleForm.noPermission")}</p>
+      </Panel>
+    );
+  if (code && rule.isPending) return <Skeleton className="h-140" />;
+  if (code && !rule.data)
+    return (
+      <Panel>
+        <p>{t("ruleDetail.notFound")}</p>
+      </Panel>
+    );
 
   return (
     <>
       <PageHeader
-        title={rule.data ? t("ruleForm.editTitle", { name: ruleText.name(rule.data.code, rule.data.name) }) : t("ruleForm.newTitle")}
+        title={
+          rule.data
+            ? t("ruleForm.editTitle", { name: ruleText.name(rule.data.code, rule.data.name) })
+            : t("ruleForm.newTitle")
+        }
         subtitle={t("ruleForm.subtitle")}
       />
       <RuleForm rule={rule.data} />

@@ -36,12 +36,12 @@ Other commands: `pnpm build`, `pnpm typecheck`, `pnpm test`, `pnpm format`.
 All demo accounts use the password `demo1234` (fictional people, generated data). The login
 page also has one-click buttons for them.
 
-| Role | Email | Regions | Clearance |
-| --- | --- | --- | --- |
-| Analyst | lena.weber@northbank.example | Europe | 2 |
-| Supervisor | omar.haddad@northbank.example | Gulf, Türkiye | 3 |
-| Compliance manager | elif.kaya@northbank.example | all | 4 |
-| System admin | james.carter@northbank.example | all | 4 |
+| Role               | Email                          | Regions       | Clearance |
+| ------------------ | ------------------------------ | ------------- | --------- |
+| Analyst            | lena.weber@northbank.example   | Europe        | 2         |
+| Supervisor         | omar.haddad@northbank.example  | Gulf, Türkiye | 3         |
+| Compliance manager | elif.kaya@northbank.example    | all           | 4         |
+| System admin       | james.carter@northbank.example | all           | 4         |
 
 Each account sees only the alerts and transactions of its regions and clearance level; the
 API enforces this on every request.
@@ -49,25 +49,25 @@ API enforces this on every request.
 ## Release status
 
 - [x] Release 1: login and sessions, layered access model, overview with insight charts,
-  alerts grid and alert decision, transactions grid with AND/OR advanced search,
-  light/dark theme, English and Persian (RTL)
+      alerts grid and alert decision, transactions grid with AND/OR advanced search,
+      light/dark theme, English and Persian (RTL)
 - [x] Release 2: customers with KYC profile and a multi-step onboarding form, cases
-  (table and board views, a creation wizard prefilled from an alert, four-eyes approval chain,
-  threaded comments with @mentions and edit history, documents, private notes, live updates
-  over Socket.IO), detection rules with performance stats and an AND/OR rule builder
+      (table and board views, a creation wizard prefilled from an alert, four-eyes approval chain,
+      threaded comments with @mentions and edit history, documents, private notes, live updates
+      over Socket.IO), detection rules with performance stats and an AND/OR rule builder
 - [x] Release 3: account network graph (Sigma.js, ForceAtlas2 layout, Louvain clusters,
-  recursive SQL for neighbors and shortest paths, masked accounts outside the user's access),
-  case workflow designer (React Flow, live validation, versioning: open cases keep their
-  version) with a server-side engine that drives the case page and the new My work inbox
+      recursive SQL for neighbors and shortest paths, masked accounts outside the user's access),
+      case workflow designer (React Flow, live validation, versioning: open cases keep their
+      version) with a server-side engine that drives the case page and the new My work inbox
 - [x] Release 4: reports (Sankey money flows, alert heatmap, workload, review funnel,
-  country table; Excel export and print-to-PDF), scheduled jobs (pg-boss, cron presets with a
-  next-runs preview, run history), data import wizard (CSV/Excel, column mapping, server
-  validation with row errors), news with a rich-text editor and read receipts, live
-  notification center, settings (profile photo, digits, table density, start page, quick
-  access, notification types, password and sessions), admin (users, role permission matrix,
-  branches, clearance names, audit log), help page and a Ctrl K command palette
+      country table; Excel export and print-to-PDF), scheduled jobs (pg-boss, cron presets with a
+      next-runs preview, run history), data import wizard (CSV/Excel, column mapping, server
+      validation with row errors), news with a rich-text editor and read receipts, live
+      notification center, settings (profile photo, digits, table density, start page, quick
+      access, notification types, password and sessions), admin (users, role permission matrix,
+      branches, clearance names, audit log), help page and a Ctrl K command palette
 - [x] Release 5: German, Turkish and Arabic (RTL) for every screen, so all five languages
-  (English, German, Turkish, Arabic, Persian) are complete; German text checked against the layout
+      (English, German, Turkish, Arabic, Persian) are complete; German text checked against the layout
 
 ## Licenses of third-party parts
 

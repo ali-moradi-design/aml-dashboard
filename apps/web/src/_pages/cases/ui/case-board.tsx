@@ -23,11 +23,24 @@ export const CaseBoard = ({ filters }: { filters: GridQuery["filters"] }) => {
 
   return (
     <div className="grid auto-cols-[minmax(260px,1fr)] grid-flow-col gap-4 overflow-x-auto pb-2">
-      {(isPending ? (["OPEN", "PENDING_APPROVAL", "APPROVED", "REPORTED", "CLOSED"] as const).map((status) => ({ status, count: 0, cases: [] })) : data.columns).map((col) => (
-        <section key={col.status} aria-labelledby={`col-${col.status}`} className="flex min-h-[420px] flex-col gap-3 rounded-lg bg-muted p-3">
+      {(isPending
+        ? (["OPEN", "PENDING_APPROVAL", "APPROVED", "REPORTED", "CLOSED"] as const).map(
+            (status) => ({ status, count: 0, cases: [] }),
+          )
+        : data.columns
+      ).map((col) => (
+        <section
+          key={col.status}
+          aria-labelledby={`col-${col.status}`}
+          className="flex min-h-105 flex-col gap-3 rounded-lg bg-muted p-3"
+        >
           <header className="flex items-center justify-between px-1">
-            <h2 id={`col-${col.status}`}><CaseStatusBadge status={col.status} /></h2>
-            <span className="text-xs text-text-secondary">{isPending ? "" : formatNumber(col.count, locale)}</span>
+            <h2 id={`col-${col.status}`}>
+              <CaseStatusBadge status={col.status} />
+            </h2>
+            <span className="text-xs text-text-secondary">
+              {isPending ? "" : formatNumber(col.count, locale)}
+            </span>
           </header>
           {isPending ? (
             Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-28" />)
@@ -35,7 +48,10 @@ export const CaseBoard = ({ filters }: { filters: GridQuery["filters"] }) => {
             <ul className="flex flex-col gap-2.5">
               {col.cases.map((c) => (
                 <li key={c.id}>
-                  <Link href={href(`/cases/${c.code}`)} className="flex flex-col gap-2 rounded-md border border-border bg-card p-3 transition-shadow hover:shadow-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
+                  <Link
+                    href={href(`/cases/${c.code}`)}
+                    className="flex flex-col gap-2 rounded-md border border-border bg-card p-3 transition-shadow hover:shadow-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  >
                     <span className="flex items-center justify-between gap-2">
                       <span className="font-mono text-xs text-link">{c.code}</span>
                       <RiskBadge level={c.riskLevel} />
@@ -45,14 +61,22 @@ export const CaseBoard = ({ filters }: { filters: GridQuery["filters"] }) => {
                       <PriorityLabel priority={c.priority} />
                       <DueLabel dueAt={c.dueAt} status={c.status} />
                     </span>
-                    {c.totalAmount ? <span className="ltr-nums text-xs text-text-secondary">{formatMoney(c.totalAmount, "EUR", locale)}</span> : null}
+                    {c.totalAmount ? (
+                      <span className="ltr-nums text-xs text-text-secondary">
+                        {formatMoney(c.totalAmount, "EUR", locale)}
+                      </span>
+                    ) : null}
                   </Link>
                 </li>
               ))}
               {col.count > col.cases.length ? (
-                <li className="px-1 text-xs text-text-secondary">{t("cases.boardMore", { count: col.count - col.cases.length })}</li>
+                <li className="px-1 text-xs text-text-secondary">
+                  {t("cases.boardMore", { count: col.count - col.cases.length })}
+                </li>
               ) : null}
-              {!col.count ? <li className="px-1 text-xs text-text-secondary">{t("cases.boardEmpty")}</li> : null}
+              {!col.count ? (
+                <li className="px-1 text-xs text-text-secondary">{t("cases.boardEmpty")}</li>
+              ) : null}
             </ul>
           )}
         </section>

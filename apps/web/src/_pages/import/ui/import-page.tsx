@@ -24,24 +24,51 @@ const History = () => {
   const rows = imported.reduce((s, b) => s + b.validRows, 0);
 
   return (
-    <Panel className="w-full xl:w-[360px] xl:shrink-0">
-      <PanelHeader eyebrow={t("import.history")} title={data ? t("import.historyInsight", { count: imported.length, n: formatNumber(imported.length, locale), rows: formatNumber(rows, locale) }) : undefined} />
+    <Panel className="w-full xl:w-90 xl:shrink-0">
+      <PanelHeader
+        eyebrow={t("import.history")}
+        title={
+          data
+            ? t("import.historyInsight", {
+                count: imported.length,
+                n: formatNumber(imported.length, locale),
+                rows: formatNumber(rows, locale),
+              })
+            : undefined
+        }
+      />
       {isPending ? <Skeleton className="h-60" /> : null}
       <ul className="flex flex-col divide-y divide-border">
         {(data ?? []).map((b) => (
           <li key={b.id} className="flex flex-col gap-1 py-3">
             <div className="flex items-center gap-2">
               <span className="min-w-0 flex-1 truncate text-sm">{b.fileName}</span>
-              <span className={cn("rounded-full px-2.5 py-0.5 text-xs whitespace-nowrap", statusClass[b.status])}>{t(`import.status.${b.status}`)}</span>
+              <span
+                className={cn(
+                  "rounded-full px-2.5 py-0.5 text-xs whitespace-nowrap",
+                  statusClass[b.status],
+                )}
+              >
+                {t(`import.status.${b.status}`)}
+              </span>
             </div>
             <p className="text-xs text-text-secondary">
-              {t(`import.kinds.${b.kind}`)} · {t("import.rowsSummary", { valid: formatNumber(b.validRows, locale), total: formatNumber(b.totalRows, locale) })} · {b.createdByName} ·{" "}
-              <time dateTime={b.createdAt} title={formatDateTime(b.createdAt, locale)}>{formatRelative(b.createdAt, locale)}</time>
+              {t(`import.kinds.${b.kind}`)} ·{" "}
+              {t("import.rowsSummary", {
+                valid: formatNumber(b.validRows, locale),
+                total: formatNumber(b.totalRows, locale),
+              })}{" "}
+              · {b.createdByName} ·{" "}
+              <time dateTime={b.createdAt} title={formatDateTime(b.createdAt, locale)}>
+                {formatRelative(b.createdAt, locale)}
+              </time>
             </p>
           </li>
         ))}
       </ul>
-      {data && !data.length ? <p className="text-sm text-text-secondary">{t("import.noHistory")}</p> : null}
+      {data && !data.length ? (
+        <p className="text-sm text-text-secondary">{t("import.noHistory")}</p>
+      ) : null}
     </Panel>
   );
 };
@@ -52,7 +79,9 @@ export const ImportPage = () => {
     <>
       <PageHeader title={t("import.title")} subtitle={t("import.subtitle")} />
       <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
-        <div className="min-w-0 flex-1"><ImportWizard /></div>
+        <div className="min-w-0 flex-1">
+          <ImportWizard />
+        </div>
         <History />
       </div>
     </>

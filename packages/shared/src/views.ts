@@ -4,7 +4,14 @@ import { localizedTextSchema, workflowCategories, workflowGraphSchema } from "./
 
 // Response shapes for release 2 screens (customers, cases, rules).
 
-export const caseStatuses = ["DRAFT", "OPEN", "PENDING_APPROVAL", "APPROVED", "REPORTED", "CLOSED"] as const;
+export const caseStatuses = [
+  "DRAFT",
+  "OPEN",
+  "PENDING_APPROVAL",
+  "APPROVED",
+  "REPORTED",
+  "CLOSED",
+] as const;
 export type CaseStatus = (typeof caseStatuses)[number];
 export const casePriorities = ["LOW", "MEDIUM", "HIGH", "CRITICAL"] as const;
 
@@ -24,7 +31,10 @@ export const customerRowSchema = z.object({
   createdAt: z.string(),
 });
 export type CustomerRow = z.infer<typeof customerRowSchema>;
-export const customerPageSchema = z.object({ rows: z.array(customerRowSchema), rowCount: z.number() });
+export const customerPageSchema = z.object({
+  rows: z.array(customerRowSchema),
+  rowCount: z.number(),
+});
 
 export const customerProfileSchema = z.object({
   customer: customerRowSchema.extend({
@@ -45,14 +55,25 @@ export const customerProfileSchema = z.object({
     branchCode: z.string(),
   }),
   riskFactors: z.array(z.object({ key: z.string(), weight: z.number() })),
-  accounts: z.array(z.object({ id: z.string(), iban: z.string(), currency: z.string(), status: z.string(), balance: z.string(), openedAt: z.string() })),
+  accounts: z.array(
+    z.object({
+      id: z.string(),
+      iban: z.string(),
+      currency: z.string(),
+      status: z.string(),
+      balance: z.string(),
+      openedAt: z.string(),
+    }),
+  ),
   shareholders: z.array(
     z.object({
       name: z.string(),
       type: z.enum(["PERSON", "COMPANY"]),
       country: z.string(),
       sharePercent: z.string(),
-      documents: z.array(z.object({ kind: z.string(), number: z.string(), expiresAt: z.string().nullable() })),
+      documents: z.array(
+        z.object({ kind: z.string(), number: z.string(), expiresAt: z.string().nullable() }),
+      ),
     }),
   ),
   monthly: z.array(z.object({ month: z.string(), incoming: z.number(), outgoing: z.number() })),
@@ -88,7 +109,9 @@ export type CaseRow = z.infer<typeof caseRowSchema>;
 export const casePageSchema = z.object({ rows: z.array(caseRowSchema), rowCount: z.number() });
 
 export const caseBoardSchema = z.object({
-  columns: z.array(z.object({ status: z.enum(caseStatuses), count: z.number(), cases: z.array(caseRowSchema) })),
+  columns: z.array(
+    z.object({ status: z.enum(caseStatuses), count: z.number(), cases: z.array(caseRowSchema) }),
+  ),
 });
 export type CaseBoard = z.infer<typeof caseBoardSchema>;
 
@@ -135,9 +158,26 @@ export const caseDetailSchema = z.object({
       accounts: z.array(z.object({ iban: z.string(), bankName: z.string(), currency: z.string() })),
     }),
   ),
-  documents: z.array(z.object({ id: z.string(), name: z.string(), mimeType: z.string(), size: z.number(), uploadedByName: z.string(), createdAt: z.string() })),
+  documents: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      mimeType: z.string(),
+      size: z.number(),
+      uploadedByName: z.string(),
+      createdAt: z.string(),
+    }),
+  ),
   members: z.array(userRefSchema),
-  events: z.array(z.object({ id: z.string(), type: z.string(), actorName: z.string().nullable(), data: z.unknown(), createdAt: z.string() })),
+  events: z.array(
+    z.object({
+      id: z.string(),
+      type: z.string(),
+      actorName: z.string().nullable(),
+      data: z.unknown(),
+      createdAt: z.string(),
+    }),
+  ),
   /** Where the case is in its own workflow version (open cases keep the version they started with). */
   workflow: z.object({
     versionId: z.string(),

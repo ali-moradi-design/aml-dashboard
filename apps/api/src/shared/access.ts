@@ -24,7 +24,10 @@ export type AccessScope = {
   clearanceRank: number;
 };
 
-export const scopeOf = (p: Principal): AccessScope => ({ regionIds: p.regionIds, clearanceRank: p.clearanceRank });
+export const scopeOf = (p: Principal): AccessScope => ({
+  regionIds: p.regionIds,
+  clearanceRank: p.clearanceRank,
+});
 
 export const can = (p: Principal, permission: Permission) => p.permissions.has(permission);
 

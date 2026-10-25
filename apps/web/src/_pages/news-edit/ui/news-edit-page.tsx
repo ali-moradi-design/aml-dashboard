@@ -20,9 +20,21 @@ export const NewsEditPage = ({ id }: { id?: string }) => {
       </>
     );
   }
-  if (isPending) return <Skeleton className="h-[600px]" />;
-  if (error || !post) return <Panel><p>{isHttpError(error) && error.status === 404 ? t("news.notFound") : t("errors.generic")}</p></Panel>;
-  if (!post.canEdit) return <Panel><p>{t("news.cannotEdit")}</p></Panel>;
+  if (isPending) return <Skeleton className="h-150" />;
+  if (error || !post)
+    return (
+      <Panel>
+        <p>
+          {isHttpError(error) && error.status === 404 ? t("news.notFound") : t("errors.generic")}
+        </p>
+      </Panel>
+    );
+  if (!post.canEdit)
+    return (
+      <Panel>
+        <p>{t("news.cannotEdit")}</p>
+      </Panel>
+    );
   return (
     <>
       <PageHeader title={t("news.editTitle")} subtitle={post.title} />

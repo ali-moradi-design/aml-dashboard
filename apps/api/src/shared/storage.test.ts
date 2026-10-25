@@ -17,7 +17,10 @@ const app = createApp({
   webOrigin: "http://localhost:3000",
   routes: { "/up": Router().post("/", upload.single("file"), echo) },
 });
-const send = (bytes: number) => request(app).post("/up").attach("file", Buffer.alloc(bytes, "a"), { filename: "rows.csv", contentType: "text/csv" });
+const send = (bytes: number) =>
+  request(app)
+    .post("/up")
+    .attach("file", Buffer.alloc(bytes, "a"), { filename: "rows.csv", contentType: "text/csv" });
 
 describe("uploads", () => {
   it("accepts a file within the size limit", async () => {
@@ -33,7 +36,8 @@ describe("uploads", () => {
   });
 
   it("stops a visitor after the daily upload count", async () => {
-    for (let i = 0; i < UPLOAD_LIMITS.perVisitorPerDay; i++) expect((await send(10)).status).toBe(201);
+    for (let i = 0; i < UPLOAD_LIMITS.perVisitorPerDay; i++)
+      expect((await send(10)).status).toBe(201);
     const res = await send(10);
     expect(res.status).toBe(429);
     expect(res.body.code).toBe("TooMany");

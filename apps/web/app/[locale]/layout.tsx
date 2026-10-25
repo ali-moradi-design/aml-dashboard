@@ -7,7 +7,8 @@ import "@/_app/styles/globals.css";
 
 export const metadata: Metadata = {
   title: "AML Monitor",
-  description: "Transaction monitoring and anti-money laundering dashboard (portfolio demo, fictional data).",
+  description:
+    "Transaction monitoring and anti-money laundering dashboard (portfolio demo, fictional data).",
 };
 
 export const generateStaticParams = () => locales.map((locale) => ({ locale }));
@@ -22,7 +23,12 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
   if (!isLocale(locale)) notFound();
 
   return (
-    <html lang={locale} dir={directionOf(locale)} className={fontVariables} suppressHydrationWarning>
+    <html
+      lang={locale}
+      dir={directionOf(locale)}
+      className={fontVariables}
+      suppressHydrationWarning
+    >
       <body className="min-h-dvh bg-page text-text">
         <Providers locale={locale}>{children}</Providers>
       </body>

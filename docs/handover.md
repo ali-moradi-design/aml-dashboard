@@ -8,13 +8,13 @@ Last update: 2026-10-17, after release 5 (the planned scope is complete).
 
 ## Status
 
-| Release | State | Commit |
-| --- | --- | --- |
-| 1 Core (login, access model, overview, alerts, transactions) | done | `1f27dce` |
-| 2 Forms (customers and KYC, cases, rules; TanStack Table) | done | `6247288` |
-| 3 Graph and workflow (network, workflow designer, My work) | done | `f16200d` |
-| 4 Completion (news, jobs, import, reports, settings, admin, help, palette) | done | `ce90c2c` (API) + `47770a4` (screens) |
-| 5 Remaining languages (de, tr, ar) | done | `009dfdb` |
+| Release                                                                    | State | Commit                                |
+| -------------------------------------------------------------------------- | ----- | ------------------------------------- |
+| 1 Core (login, access model, overview, alerts, transactions)               | done  | `1f27dce`                             |
+| 2 Forms (customers and KYC, cases, rules; TanStack Table)                  | done  | `6247288`                             |
+| 3 Graph and workflow (network, workflow designer, My work)                 | done  | `f16200d`                             |
+| 4 Completion (news, jobs, import, reports, settings, admin, help, palette) | done  | `ce90c2c` (API) + `47770a4` (screens) |
+| 5 Remaining languages (de, tr, ar)                                         | done  | `009dfdb`                             |
 
 ## How to run
 
@@ -27,12 +27,12 @@ pnpm dev                         # web on :3000, API on :4000
 
 Demo password for every account: `demo1234`.
 
-| Account | Role | Regions | Clearance |
-| --- | --- | --- | --- |
-| lena.weber@northbank.example | Analyst | EU | 2 |
-| omar.haddad@northbank.example | Supervisor | Gulf, TR | 3 |
-| elif.kaya@northbank.example | Compliance manager | all | 4 |
-| james.carter@northbank.example | System admin | all | 4 |
+| Account                        | Role               | Regions  | Clearance |
+| ------------------------------ | ------------------ | -------- | --------- |
+| lena.weber@northbank.example   | Analyst            | EU       | 2         |
+| omar.haddad@northbank.example  | Supervisor         | Gulf, TR | 3         |
+| elif.kaya@northbank.example    | Compliance manager | all      | 4         |
+| james.carter@northbank.example | System admin       | all      | 4         |
 
 Checks: `pnpm -r typecheck`, `pnpm --filter @aml/web lint`, `cd apps/api && npx vitest run`
 (33 tests), `pnpm --filter @aml/web build`, and `python scripts/i18n-missing-keys.py . <locale>`
@@ -74,7 +74,7 @@ for translations.
   "notification" event is stored first (Notification table, user preferences respected),
   then pushed (`apps/api/src/modules/notifications`, wiring in `apps/api/src/main.ts`).
 - Prisma migrations are written with `prisma migrate diff --from-config-datasource
-  --to-schema prisma/schema.prisma --script` into a new folder, then
+--to-schema prisma/schema.prisma --script` into a new folder, then
   `prisma migrate deploy` and `prisma generate` (migrate dev does not run
   non-interactively here).
 - The seed is deterministic (faker seed 42) and builds: branches with time zones,
@@ -97,6 +97,7 @@ private notes, live updates), rules (list, detail, rule builder). Tables:
 `apps/web/src/shared/ui/data-table.tsx` (TanStack Table v9, server sorting and paging).
 
 Release 3:
+
 - Account network (`/network`): `apps/api/src/modules/network` (WITH RECURSIVE walk,
   shortest path, masking of accounts outside the user's scope),
   `apps/web/src/_pages/network` (Sigma.js 4 + graphology, ForceAtlas2, Louvain).
@@ -108,6 +109,7 @@ Release 3:
 - My work (`/my-work`): `apps/api/src/modules/my-work`, same engine as the case page.
 
 Release 4:
+
 - API (unit tests in `apps/api/src/modules/completion/completion.test.ts`): notifications
   (`/notifications`), news (`/news`, sanitize-html, uploads, audience filter, read receipts),
   jobs (`/jobs`, pg-boss schedules from the Job table, runners in `apps/api/src/jobs/runners.ts`:
@@ -138,6 +140,7 @@ Release 4:
   `CURRENT_RELEASE = 4` in `shared/config/navigation.ts`.
 
 Release 5:
+
 - `apps/web/src/shared/i18n/locales/{de,tr,ar}.json` with every key of `en.json`, loaded in
   `shared/i18n/create-i18n.ts`. Arabic has all six plural categories (forms not written by hand
   repeat `_other`, so i18next never falls back to English); many Arabic counts use the
@@ -197,6 +200,9 @@ English text comes from the API). Plural keys (`_one`/`_other`) count as present
 
 ## Known environment quirks
 
+- `next build` and `next dev` share `apps/web/.next`. After a build, a running or restarted
+  dev server can serve broken pages (500s or an endless Fast Refresh reload). Stop dev, delete
+  `apps/web/.next`, start dev again.
 - The browser preview pane in Claude desktop sometimes stops painting (no
   requestAnimationFrame), so WebGL graphs, React Flow and chart animations cannot be
   seen there; check them through the DOM or in a normal browser.

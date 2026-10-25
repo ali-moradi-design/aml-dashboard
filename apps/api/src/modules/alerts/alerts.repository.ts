@@ -22,7 +22,10 @@ const sortable: Record<string, (dir: Prisma.SortOrder) => Prisma.AlertOrderByWit
 };
 
 /** Pure: grid filters to a Prisma where clause (always combined with the access scope). */
-export const alertFilterWhere = (filters: GridQuery["filters"], userId: string): Prisma.AlertWhereInput => {
+export const alertFilterWhere = (
+  filters: GridQuery["filters"],
+  userId: string,
+): Prisma.AlertWhereInput => {
   const status = listFilter(filters.status) as AlertStatus[] | undefined;
   const risk = listFilter(filters.riskLevel) as Array<"HIGH" | "MEDIUM" | "LOW"> | undefined;
   const rule = listFilter(filters.ruleCode);
@@ -35,21 +38,32 @@ export const alertFilterWhere = (filters: GridQuery["filters"], userId: string):
     ...(branch ? { branch: { code: { in: branch } } } : {}),
     ...(filters.assignee === "me" ? { assigneeId: userId } : {}),
     ...(search
-      ? { OR: [{ code: { contains: search, mode: "insensitive" } }, { customer: { name: { contains: search, mode: "insensitive" } } }] }
+      ? {
+          OR: [
+            { code: { contains: search, mode: "insensitive" } },
+            { customer: { name: { contains: search, mode: "insensitive" } } },
+          ],
+        }
       : {}),
   };
 };
 
 export const createAlertsRepository = (db: Db) => ({
   query: (scope: AccessScope, q: GridQuery, userId: string) => {
-    const where: Prisma.AlertWhereInput = { AND: [alertScope(scope), alertFilterWhere(q.filters, userId)] };
-    const orderBy = q.sortModel.filter((s) => sortable[s.colId]).map((s) => sortable[s.colId]!(s.sort));
+    const where: Prisma.AlertWhereInput = {
+      AND: [alertScope(scope), alertFilterWhere(q.filters, userId)],
+    };
+    const orderBy = q.sortModel
+      .filter((s) => sortable[s.colId])
+      .map((s) => sortable[s.colId]!(s.sort));
     return ResultAsync.fromPromise(
       db.$transaction([
         db.alert.findMany({
           where,
           include: alertRowInclude,
-          orderBy: orderBy.length ? [...orderBy, { id: "asc" }] : [{ createdAt: "desc" }, { id: "asc" }],
+          orderBy: orderBy.length
+            ? [...orderBy, { id: "asc" }]
+            : [{ createdAt: "desc" }, { id: "asc" }],
           skip: q.startRow,
           take: Math.min(q.endRow - q.startRow, 500),
         }),
@@ -78,7 +92,12 @@ export const createAlertsRepository = (db: Db) => ({
 
   accountHistory: (accountId: string, take = 20) =>
     ResultAsync.fromPromise(
-      db.transaction.findMany({ where: { accountId }, include: transactionRowInclude, orderBy: { bookedAt: "desc" }, take }),
+      db.transaction.findMany({
+        where: { accountId },
+        include: transactionRowInclude,
+        orderBy: { bookedAt: "desc" },
+        take,
+      }),
       dbError,
     ),
 
@@ -93,12 +112,24 @@ export const createAlertsRepository = (db: Db) => ({
       dbError,
     ),
 
-  decide: (id: string, data: { status: AlertStatus; decidedById: string; decisionNote: string; decidedAt: Date }) =>
+  decide: (
+    id: string,
+    data: { status: AlertStatus; decidedById: string; decisionNote: string; decidedAt: Date },
+  ) =>
     ResultAsync.fromPromise(
       db.$transaction(async (tx) => {
-        const alert = await tx.alert.update({ where: { id }, data: { ...data, assigneeId: data.decidedById } });
+        const alert = await tx.alert.update({
+          where: { id },
+          data: { ...data, assigneeId: data.decidedById },
+        });
         await tx.auditLog.create({
-          data: { userId: data.decidedById, action: "alert.decide", entity: "alert", entityId: id, data: { status: data.status } },
+          data: {
+            userId: data.decidedById,
+            action: "alert.decide",
+            entity: "alert",
+            entityId: id,
+            data: { status: data.status },
+          },
         });
         return alert;
       }),

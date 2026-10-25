@@ -13,10 +13,13 @@ export const useUnsavedGuard = (dirty: boolean, message: string) => {
       e.preventDefault();
     };
     const onClick = (e: MouseEvent) => {
-      const anchor = (e.target as HTMLElement | null)?.closest("a[href]") as HTMLAnchorElement | null;
+      const anchor = (e.target as HTMLElement | null)?.closest(
+        "a[href]",
+      ) as HTMLAnchorElement | null;
       if (!anchor || anchor.target === "_blank" || e.defaultPrevented) return;
       const url = new URL(anchor.href, window.location.href);
-      if (url.origin !== window.location.origin || url.pathname === window.location.pathname) return;
+      if (url.origin !== window.location.origin || url.pathname === window.location.pathname)
+        return;
       if (!window.confirm(message)) {
         e.preventDefault();
         e.stopPropagation();

@@ -19,9 +19,18 @@ const huninnExt = localFont({
 
 const vazirmatn = localFont({
   src: [
-    { path: "../../shared/assets/fonts/vazirmatn/vazirmatn-arabic-400-normal.woff2", weight: "400" },
-    { path: "../../shared/assets/fonts/vazirmatn/vazirmatn-arabic-500-normal.woff2", weight: "500" },
-    { path: "../../shared/assets/fonts/vazirmatn/vazirmatn-arabic-700-normal.woff2", weight: "700" },
+    {
+      path: "../../shared/assets/fonts/vazirmatn/vazirmatn-arabic-400-normal.woff2",
+      weight: "400",
+    },
+    {
+      path: "../../shared/assets/fonts/vazirmatn/vazirmatn-arabic-500-normal.woff2",
+      weight: "500",
+    },
+    {
+      path: "../../shared/assets/fonts/vazirmatn/vazirmatn-arabic-700-normal.woff2",
+      weight: "700",
+    },
   ],
   variable: "--font-vazirmatn",
   display: "swap",
@@ -34,4 +43,6 @@ const geistMono = localFont({
   display: "swap",
 });
 
-export const fontVariables = [huninn, huninnExt, vazirmatn, geistMono].map((f) => f.variable).join(" ");
+export const fontVariables = [huninn, huninnExt, vazirmatn, geistMono]
+  .map((f) => f.variable)
+  .join(" ");

@@ -18,7 +18,9 @@ export const criteriaFields = {
 } as const;
 
 export type CriteriaField = keyof typeof criteriaFields;
-export const criteriaFieldSchema = z.enum(Object.keys(criteriaFields) as [CriteriaField, ...CriteriaField[]]);
+export const criteriaFieldSchema = z.enum(
+  Object.keys(criteriaFields) as [CriteriaField, ...CriteriaField[]],
+);
 
 export const operatorsByType = {
   number: ["eq", "neq", "gt", "gte", "lt", "lte", "between", "in"],
@@ -27,10 +29,26 @@ export const operatorsByType = {
   date: ["gte", "lte", "between"],
 } as const;
 
-export const operatorSchema = z.enum(["eq", "neq", "gt", "gte", "lt", "lte", "between", "in", "contains"]);
+export const operatorSchema = z.enum([
+  "eq",
+  "neq",
+  "gt",
+  "gte",
+  "lt",
+  "lte",
+  "between",
+  "in",
+  "contains",
+]);
 export type Operator = z.infer<typeof operatorSchema>;
 
-const valueSchema = z.union([z.string(), z.number(), z.array(z.string()), z.tuple([z.number(), z.number()]), z.tuple([z.string(), z.string()])]);
+const valueSchema = z.union([
+  z.string(),
+  z.number(),
+  z.array(z.string()),
+  z.tuple([z.number(), z.number()]),
+  z.tuple([z.string(), z.string()]),
+]);
 
 export const conditionSchema = z.object({
   kind: z.literal("condition"),
@@ -54,4 +72,8 @@ export const criteriaGroupSchema: z.ZodType<CriteriaGroup> = z.lazy(() =>
   }),
 );
 
-export const emptyCriteria = (): CriteriaGroup => ({ kind: "group", combinator: "and", children: [] });
+export const emptyCriteria = (): CriteriaGroup => ({
+  kind: "group",
+  combinator: "and",
+  children: [],
+});

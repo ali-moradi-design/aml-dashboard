@@ -25,16 +25,34 @@ export const NewsPage = () => {
   const [show, setShow] = useState<Show>("all");
 
   // Pinned posts first, then the newest.
-  const sorted = [...(data ?? [])].sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.publishAt.localeCompare(a.publishAt));
-  const visible = sorted.filter((p) => (show === "unread" ? !p.read && p.state === "live" : show === "scheduled" ? p.state === "scheduled" : true));
+  const sorted = [...(data ?? [])].sort(
+    (a, b) => Number(b.pinned) - Number(a.pinned) || b.publishAt.localeCompare(a.publishAt),
+  );
+  const visible = sorted.filter((p) =>
+    show === "unread"
+      ? !p.read && p.state === "live"
+      : show === "scheduled"
+        ? p.state === "scheduled"
+        : true,
+  );
   const unread = sorted.filter((p) => !p.read && p.state === "live").length;
 
   return (
     <>
       <PageHeader
         title={t("news.title")}
-        subtitle={data ? t("news.subtitle", { count: unread, n: formatNumber(unread, locale) }) : undefined}
-        actions={manager ? <Button size="lg" asChild><Link href={href("/news/new")}><Plus /> {t("news.new")}</Link></Button> : null}
+        subtitle={
+          data ? t("news.subtitle", { count: unread, n: formatNumber(unread, locale) }) : undefined
+        }
+        actions={
+          manager ? (
+            <Button size="lg" asChild>
+              <Link href={href("/news/new")}>
+                <Plus /> {t("news.new")}
+              </Link>
+            </Button>
+          ) : null
+        }
       />
       <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-4">
         <Segmented
@@ -51,14 +69,26 @@ export const NewsPage = () => {
       {isError ? (
         <div className="rounded-lg border border-border bg-card p-6">
           <p>{t("errors.generic")}</p>
-          <Button variant="outline" className="mt-3" onClick={() => refetch()}>{t("errors.retry")}</Button>
+          <Button variant="outline" className="mt-3" onClick={() => refetch()}>
+            {t("errors.retry")}
+          </Button>
         </div>
       ) : isPending ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-72" />)}</div>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 6 }, (_, i) => (
+            <Skeleton key={i} className="h-72" />
+          ))}
+        </div>
       ) : visible.length ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{visible.map((p) => <NewsCard key={p.id} post={p} />)}</div>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {visible.map((p) => (
+            <NewsCard key={p.id} post={p} />
+          ))}
+        </div>
       ) : (
-        <p className="rounded-lg border border-border bg-card p-10 text-center text-text-secondary">{t("news.empty")}</p>
+        <p className="rounded-lg border border-border bg-card p-10 text-center text-text-secondary">
+          {t("news.empty")}
+        </p>
       )}
     </>
   );

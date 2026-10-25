@@ -30,17 +30,20 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   }, [prefs?.density]);
 
   useEffect(() => {
-    if (unauthorized) router.replace(`${href("/login")}?next=${encodeURIComponent(pathname ?? "")}`);
+    if (unauthorized)
+      router.replace(`${href("/login")}?next=${encodeURIComponent(pathname ?? "")}`);
   }, [unauthorized, router, href, pathname]);
 
   if (isPending || unauthorized || (settings.isPending && !settings.isError)) {
     return (
       <div className="flex min-h-dvh">
-        <div className="w-[248px] border-e border-border bg-card" />
+        <div className="w-62 border-e border-border bg-card" />
         <div className="flex-1 space-y-6 p-8">
           <Skeleton className="h-10 w-80" />
           <div className="grid grid-cols-4 gap-4">
-            {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-32" />)}
+            {Array.from({ length: 4 }, (_, i) => (
+              <Skeleton key={i} className="h-32" />
+            ))}
           </div>
           <Skeleton className="h-80" />
         </div>
@@ -55,7 +58,12 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
         <div className="min-w-0 flex-1">
           <AppBar />
           {/* Remounted when the digit preference changes, so every number is formatted again. */}
-          <main key={prefs?.digits} className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 px-8 pt-7 pb-10">{children}</main>
+          <main
+            key={prefs?.digits}
+            className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 px-8 pt-7 pb-10"
+          >
+            {children}
+          </main>
         </div>
       </div>
       <CommandPalette />

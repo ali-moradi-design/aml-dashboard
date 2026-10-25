@@ -4,7 +4,7 @@ packages:
 
 # Packages allowed to run install scripts (pnpm blocks them by default).
 allowBuilds:
-  '@prisma/engines': true
+  "@prisma/engines": true
   argon2: true
   esbuild: true
   prisma: true

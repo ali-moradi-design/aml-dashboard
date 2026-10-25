@@ -1,0 +1,10 @@
+# Prettier also skips everything in .gitignore.
+
+# Lockfile and generated output
+pnpm-lock.yaml
+graphify-out/
+apps/api/src/generated/
+apps/api/prisma/migrations/
+
+# Written by next dev
+apps/web/AGENTS.md

@@ -15,16 +15,44 @@ export type NetworkQuery = z.infer<typeof networkQuerySchema>;
 
 export const networkNodeSchema = z.discriminatedUnion("kind", [
   z.object({
-    kind: z.literal("customer"), id: z.string(), code: z.string(), name: z.string(), type: z.enum(["PERSON", "COMPANY"]),
-    country: z.string(), riskScore: z.number(), pep: z.boolean(), openAlerts: z.number(),
+    kind: z.literal("customer"),
+    id: z.string(),
+    code: z.string(),
+    name: z.string(),
+    type: z.enum(["PERSON", "COMPANY"]),
+    country: z.string(),
+    riskScore: z.number(),
+    pep: z.boolean(),
+    openAlerts: z.number(),
   }),
   z.object({
-    kind: z.literal("account"), id: z.string(), iban: z.string(), currency: z.string(), status: z.string(), depth: z.number(),
+    kind: z.literal("account"),
+    id: z.string(),
+    iban: z.string(),
+    currency: z.string(),
+    status: z.string(),
+    depth: z.number(),
     /** Outside the user's regions or clearance: shown masked and never expanded. */
-    restricted: z.boolean(), ownerCode: z.string().nullable(), riskScore: z.number().nullable(), openAlerts: z.number(),
+    restricted: z.boolean(),
+    ownerCode: z.string().nullable(),
+    riskScore: z.number().nullable(),
+    openAlerts: z.number(),
   }),
-  z.object({ kind: z.literal("external"), id: z.string(), iban: z.string(), name: z.string(), country: z.string(), highRisk: z.boolean() }),
-  z.object({ kind: z.literal("shareholder"), id: z.string(), name: z.string(), type: z.enum(["PERSON", "COMPANY"]), country: z.string() }),
+  z.object({
+    kind: z.literal("external"),
+    id: z.string(),
+    iban: z.string(),
+    name: z.string(),
+    country: z.string(),
+    highRisk: z.boolean(),
+  }),
+  z.object({
+    kind: z.literal("shareholder"),
+    id: z.string(),
+    name: z.string(),
+    type: z.enum(["PERSON", "COMPANY"]),
+    country: z.string(),
+  }),
 ]);
 export type NetworkNode = z.infer<typeof networkNodeSchema>;
 

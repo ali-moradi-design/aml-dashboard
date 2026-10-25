@@ -10,12 +10,18 @@ const codeSchema = z.object({ code: z.string() });
 export const getRules = () => request("/rules", z.array(ruleRowSchema));
 export const getRule = (code: string) => request(`/rules/${code}`, ruleDetailSchema);
 export const createRule = (input: RuleForm) => post("/rules", codeSchema, input);
-export const updateRule = (input: RuleForm) => request(`/rules/${input.code}`, codeSchema, { method: "PUT", body: JSON.stringify(input) });
+export const updateRule = (input: RuleForm) =>
+  request(`/rules/${input.code}`, codeSchema, { method: "PUT", body: JSON.stringify(input) });
 
-export const ruleKeys = { all: ["rules"] as const, list: () => ["rules", "list"] as const, detail: (code: string) => ["rules", "detail", code] as const };
+export const ruleKeys = {
+  all: ["rules"] as const,
+  list: () => ["rules", "list"] as const,
+  detail: (code: string) => ["rules", "detail", code] as const,
+};
 
 export const useRules = () => useQuery({ queryKey: ruleKeys.list(), queryFn: getRules });
-export const useRule = (code: string, enabled = true) => useQuery({ queryKey: ruleKeys.detail(code), queryFn: () => getRule(code), enabled });
+export const useRule = (code: string, enabled = true) =>
+  useQuery({ queryKey: ruleKeys.detail(code), queryFn: () => getRule(code), enabled });
 
 export const useSaveRule = (mode: "create" | "update") => {
   const qc = useQueryClient();

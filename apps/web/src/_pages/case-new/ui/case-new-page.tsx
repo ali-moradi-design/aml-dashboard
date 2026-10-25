@@ -8,7 +8,10 @@ export const CaseNewPage = ({ fromAlert }: { fromAlert?: string }) => {
   const { t } = useTranslation();
   return (
     <>
-      <PageHeader title={t("caseNew.title")} subtitle={fromAlert ? t("caseNew.fromAlert", { code: fromAlert }) : t("caseNew.subtitle")} />
+      <PageHeader
+        title={t("caseNew.title")}
+        subtitle={fromAlert ? t("caseNew.fromAlert", { code: fromAlert }) : t("caseNew.subtitle")}
+      />
       <CaseWizard fromAlert={fromAlert} />
     </>
   );

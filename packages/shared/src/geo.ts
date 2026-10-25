@@ -20,7 +20,8 @@ export type CountryCode = (typeof countries)[number]["code"];
 export const countryCodes = countries.map((c) => c.code) as [CountryCode, ...CountryCode[]];
 export const highRiskCountries: readonly string[] = ["XA", "XB", "XC"];
 
-export const citiesOf = (country: string): readonly string[] => countries.find((c) => c.code === country)?.cities ?? [];
+export const citiesOf = (country: string): readonly string[] =>
+  countries.find((c) => c.code === country)?.cities ?? [];
 
 /** IBAN check digits (ISO 13616, mod 97). Used in the form and again in the API. */
 export const isValidIban = (raw: string) => {
@@ -42,4 +43,9 @@ export const ibanFrom = (country: string, bban: string) => {
   return `${country}${String(check).padStart(2, "0")}${bban}`.toUpperCase();
 };
 
-export const formatIban = (raw: string) => raw.replace(/\s+/g, "").toUpperCase().replace(/(.{4})/g, "$1 ").trim();
+export const formatIban = (raw: string) =>
+  raw
+    .replace(/\s+/g, "")
+    .toUpperCase()
+    .replace(/(.{4})/g, "$1 ")
+    .trim();

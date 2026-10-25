@@ -5,9 +5,15 @@ export const Gauge = ({ value, label }: { value: number; label: string }) => {
   const c = Math.PI * r;
   const color = v >= 70 ? "var(--risk-high)" : v >= 40 ? "var(--risk-medium)" : "var(--risk-low)";
   return (
-    <figure className="relative mx-auto w-[180px]" aria-label={label}>
+    <figure className="relative mx-auto w-45" aria-label={label}>
       <svg viewBox="0 0 180 100" className="w-full" aria-hidden>
-        <path d="M 20 90 A 70 70 0 0 1 160 90" fill="none" stroke="var(--muted)" strokeWidth={14} strokeLinecap="round" />
+        <path
+          d="M 20 90 A 70 70 0 0 1 160 90"
+          fill="none"
+          stroke="var(--muted)"
+          strokeWidth={14}
+          strokeLinecap="round"
+        />
         <path
           d="M 20 90 A 70 70 0 0 1 160 90"
           fill="none"

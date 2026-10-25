@@ -18,10 +18,24 @@ const statusClass: Record<CaseStatus, string> = {
 
 export const CaseStatusBadge = ({ status }: { status: CaseStatus }) => {
   const { t } = useTranslation();
-  return <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-xs whitespace-nowrap", statusClass[status])}>{t(`caseStatus.${status}`)}</span>;
+  return (
+    <span
+      className={cn(
+        "inline-flex rounded-full px-2.5 py-0.5 text-xs whitespace-nowrap",
+        statusClass[status],
+      )}
+    >
+      {t(`caseStatus.${status}`)}
+    </span>
+  );
 };
 
-const priorityClass = { LOW: "text-text-secondary", MEDIUM: "text-text", HIGH: "text-risk-medium-text", CRITICAL: "text-risk-high-text" } as const;
+const priorityClass = {
+  LOW: "text-text-secondary",
+  MEDIUM: "text-text",
+  HIGH: "text-risk-medium-text",
+  CRITICAL: "text-risk-high-text",
+} as const;
 
 export const PriorityLabel = ({ priority }: { priority: keyof typeof priorityClass }) => {
   const { t } = useTranslation();
@@ -41,10 +55,24 @@ export const DueLabel = ({ dueAt, status }: { dueAt: string; status: CaseStatus 
   const locale = useLocale();
   const now = useNow();
   const days = Math.ceil((new Date(dueAt).getTime() - now) / 86_400_000);
-  if (!OPEN_STATES.includes(status)) return <span className="text-xs text-text-secondary">{formatDate(dueAt, locale)}</span>;
+  if (!OPEN_STATES.includes(status))
+    return <span className="text-xs text-text-secondary">{formatDate(dueAt, locale)}</span>;
   return (
-    <span className={cn("text-xs", days < 0 ? "text-risk-high-text" : days <= 3 ? "text-risk-medium-text" : "text-text-secondary")}>
-      {days < 0 ? t("cases.overdue", { count: -days }) : days === 0 ? t("cases.dueToday") : t("cases.dueIn", { count: days })}
+    <span
+      className={cn(
+        "text-xs",
+        days < 0
+          ? "text-risk-high-text"
+          : days <= 3
+            ? "text-risk-medium-text"
+            : "text-text-secondary",
+      )}
+    >
+      {days < 0
+        ? t("cases.overdue", { count: -days })
+        : days === 0
+          ? t("cases.dueToday")
+          : t("cases.dueIn", { count: days })}
     </span>
   );
 };

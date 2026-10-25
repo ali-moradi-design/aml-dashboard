@@ -8,5 +8,8 @@ type SidebarState = {
 
 /** Sidebar open/closed, remembered per browser. */
 export const useSidebarStore = create<SidebarState>()(
-  persist((set) => ({ collapsed: false, toggle: () => set((s) => ({ collapsed: !s.collapsed })) }), { name: "aml-sidebar" }),
+  persist(
+    (set) => ({ collapsed: false, toggle: () => set((s) => ({ collapsed: !s.collapsed })) }),
+    { name: "aml-sidebar" },
+  ),
 );

@@ -12,11 +12,19 @@ export type AppError =
 
 export const appError = {
   notFound: (message: string): AppError => ({ type: "NotFound", message }),
-  validation: (message: string, issues?: unknown): AppError => ({ type: "Validation", message, issues }),
+  validation: (message: string, issues?: unknown): AppError => ({
+    type: "Validation",
+    message,
+    issues,
+  }),
   unauthorized: (message = "Sign in required"): AppError => ({ type: "Unauthorized", message }),
   forbidden: (message = "Not allowed"): AppError => ({ type: "Forbidden", message }),
   conflict: (message: string): AppError => ({ type: "Conflict", message }),
   tooMany: (message: string): AppError => ({ type: "TooMany", message }),
   storageFull: (message: string): AppError => ({ type: "StorageFull", message }),
-  unexpected: (message: string, cause?: unknown): AppError => ({ type: "Unexpected", message, cause }),
+  unexpected: (message: string, cause?: unknown): AppError => ({
+    type: "Unexpected",
+    message,
+    cause,
+  }),
 };

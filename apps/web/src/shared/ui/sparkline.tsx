@@ -12,14 +12,35 @@ const smoothPath = (points: Array<[number, number]>) => {
 };
 
 /** Tiny trend line for KPI cards. Always drawn left to right (time axis stays LTR in RTL). */
-export const Sparkline = ({ values, width = 88, height = 32 }: { values: number[]; width?: number; height?: number }) => {
+export const Sparkline = ({
+  values,
+  width = 88,
+  height = 32,
+}: {
+  values: number[];
+  width?: number;
+  height?: number;
+}) => {
   const max = Math.max(...values, 1);
   const min = Math.min(...values, 0);
   const span = max - min || 1;
-  const points = values.map((v, i) => [(i * width) / Math.max(values.length - 1, 1), height - 3 - ((v - min) / span) * (height - 6)] as [number, number]);
+  const points = values.map(
+    (v, i) =>
+      [
+        (i * width) / Math.max(values.length - 1, 1),
+        height - 3 - ((v - min) / span) * (height - 6),
+      ] as [number, number],
+  );
   const line = smoothPath(points);
   return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="shrink-0 overflow-visible" aria-hidden direction="ltr">
+    <svg
+      width={width}
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      className="shrink-0 overflow-visible"
+      aria-hidden
+      direction="ltr"
+    >
       <path d={`${line} L ${width} ${height} L 0 ${height} Z`} fill="var(--accent-soft)" />
       <path d={line} fill="none" stroke="var(--chart-2)" strokeWidth={2} strokeLinecap="round" />
     </svg>

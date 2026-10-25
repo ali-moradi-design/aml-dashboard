@@ -12,7 +12,13 @@ const riskClass: Record<RiskLevel, string> = {
 
 export const RiskBadge = ({ level, className }: { level: RiskLevel; className?: string }) => {
   const { t } = useTranslation();
-  return <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-xs", riskClass[level], className)}>{t(`risk.${level}`)}</span>;
+  return (
+    <span
+      className={cn("inline-flex rounded-full px-2.5 py-0.5 text-xs", riskClass[level], className)}
+    >
+      {t(`risk.${level}`)}
+    </span>
+  );
 };
 
 const statusClass: Record<AlertStatus, string> = {
@@ -24,5 +30,14 @@ const statusClass: Record<AlertStatus, string> = {
 
 export const StatusBadge = ({ status }: { status: AlertStatus }) => {
   const { t } = useTranslation();
-  return <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-xs whitespace-nowrap", statusClass[status])}>{t(`alertStatus.${status}`)}</span>;
+  return (
+    <span
+      className={cn(
+        "inline-flex rounded-full px-2.5 py-0.5 text-xs whitespace-nowrap",
+        statusClass[status],
+      )}
+    >
+      {t(`alertStatus.${status}`)}
+    </span>
+  );
 };

@@ -9,10 +9,28 @@ export const networkKeys = {
   featured: () => [...networkKeys.all, "featured"] as const,
 };
 
-export const networkQueryOptions = (q: NetworkQuery) => ({ queryKey: networkKeys.graph(q), queryFn: () => getNetwork(q), staleTime: 60_000 });
-export const useNetwork = (q: NetworkQuery | null) => useQuery({ ...networkQueryOptions(q!), enabled: Boolean(q), placeholderData: keepPreviousData });
+export const networkQueryOptions = (q: NetworkQuery) => ({
+  queryKey: networkKeys.graph(q),
+  queryFn: () => getNetwork(q),
+  staleTime: 60_000,
+});
+export const useNetwork = (q: NetworkQuery | null) =>
+  useQuery({ ...networkQueryOptions(q!), enabled: Boolean(q), placeholderData: keepPreviousData });
 
-export const useNetworkPath = (q: (Omit<NetworkQuery, "center" | "hops"> & { source: string; target: string }) | null) =>
-  useQuery({ queryKey: networkKeys.path(q ?? {}), queryFn: () => getNetworkPath(q!), enabled: Boolean(q), staleTime: 60_000 });
+export const useNetworkPath = (
+  q: (Omit<NetworkQuery, "center" | "hops"> & { source: string; target: string }) | null,
+) =>
+  useQuery({
+    queryKey: networkKeys.path(q ?? {}),
+    queryFn: () => getNetworkPath(q!),
+    enabled: Boolean(q),
+    staleTime: 60_000,
+  });
 
-export const useFeaturedCustomer = (enabled: boolean) => useQuery({ queryKey: networkKeys.featured(), queryFn: getFeaturedCustomer, enabled, staleTime: Infinity });
+export const useFeaturedCustomer = (enabled: boolean) =>
+  useQuery({
+    queryKey: networkKeys.featured(),
+    queryFn: getFeaturedCustomer,
+    enabled,
+    staleTime: Infinity,
+  });

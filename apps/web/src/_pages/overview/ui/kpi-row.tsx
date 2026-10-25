@@ -7,7 +7,14 @@ import { formatHours, formatNumber, formatPercent } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
 import { Sparkline } from "@/shared/ui/sparkline";
 
-type Kpi = { label: string; value: string; delta: string; good: boolean; note: string; spark: number[] };
+type Kpi = {
+  label: string;
+  value: string;
+  delta: string;
+  good: boolean;
+  note: string;
+  spark: number[];
+};
 
 const KpiCard = ({ kpi }: { kpi: Kpi }) => (
   <article className="flex flex-col gap-2.5 rounded-lg border border-border bg-card p-5">
@@ -17,7 +24,14 @@ const KpiCard = ({ kpi }: { kpi: Kpi }) => (
     </div>
     <span className="text-[28px] leading-9 text-heading">{kpi.value}</span>
     <div className="flex items-center gap-2 text-xs text-text-secondary">
-      <span className={cn("rounded-full px-2 py-0.5", kpi.good ? "bg-risk-low-bg text-risk-low-text" : "bg-risk-high-bg text-risk-high-text")}>{kpi.delta}</span>
+      <span
+        className={cn(
+          "rounded-full px-2 py-0.5",
+          kpi.good ? "bg-risk-low-bg text-risk-low-text" : "bg-risk-high-bg text-risk-high-text",
+        )}
+      >
+        {kpi.delta}
+      </span>
       {kpi.note}
     </div>
   </article>
@@ -55,7 +69,8 @@ export const KpiRow = ({ data }: { data: Overview }) => {
     {
       label: t("overview.kpi.review"),
       value: formatHours(kpis.medianReviewHours, locale),
-      delta: kpis.medianReviewHours <= 4 ? t("overview.kpi.onTarget") : t("overview.kpi.overTarget"),
+      delta:
+        kpis.medianReviewHours <= 4 ? t("overview.kpi.onTarget") : t("overview.kpi.overTarget"),
       good: kpis.medianReviewHours <= 4,
       note: t("overview.kpi.target"),
       spark: sparklines.review,

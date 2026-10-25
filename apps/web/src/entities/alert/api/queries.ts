@@ -9,11 +9,15 @@ export const alertKeys = {
   detail: (id: string) => [...alertKeys.all, "detail", id] as const,
 };
 
-export const alertsQueryOptions = (q: GridQuery) => ({ queryKey: alertKeys.list(q), queryFn: () => queryAlerts(q) });
+export const alertsQueryOptions = (q: GridQuery) => ({
+  queryKey: alertKeys.list(q),
+  queryFn: () => queryAlerts(q),
+});
 
 export const useAlerts = (q: GridQuery) => useQuery(alertsQueryOptions(q));
 
-export const useAlert = (id: string) => useQuery({ queryKey: alertKeys.detail(id), queryFn: () => getAlert(id) });
+export const useAlert = (id: string) =>
+  useQuery({ queryKey: alertKeys.detail(id), queryFn: () => getAlert(id) });
 
 export const useDecideAlert = () => {
   const qc = useQueryClient();

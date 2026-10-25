@@ -22,10 +22,22 @@ const statusClass: Record<JobRun["status"], string> = {
 
 const RunStatus = ({ status }: { status: JobRun["status"] }) => {
   const { t } = useTranslation();
-  return <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-xs whitespace-nowrap", statusClass[status])}>{t(`jobs.status.${status}`)}</span>;
+  return (
+    <span
+      className={cn(
+        "inline-flex rounded-full px-2.5 py-0.5 text-xs whitespace-nowrap",
+        statusClass[status],
+      )}
+    >
+      {t(`jobs.status.${status}`)}
+    </span>
+  );
 };
 
-const seconds = (run: JobRun) => (run.finishedAt ? (new Date(run.finishedAt).getTime() - new Date(run.startedAt).getTime()) / 1000 : null);
+const seconds = (run: JobRun) =>
+  run.finishedAt
+    ? (new Date(run.finishedAt).getTime() - new Date(run.startedAt).getTime()) / 1000
+    : null;
 
 const useScheduleText = () => {
   const { t } = useTranslation();
@@ -45,7 +57,11 @@ const RunHistory = ({ job }: { job: JobRow }) => {
       <table className="w-full text-[13px]">
         <thead>
           <tr className="text-start text-xs text-text-secondary">
-            {["started", "duration", "result", "trigger", "stats"].map((c) => <th key={c} className="h-9 border-b border-border px-3 text-start font-normal">{t(`jobs.history.${c}`)}</th>)}
+            {["started", "duration", "result", "trigger", "stats"].map((c) => (
+              <th key={c} className="h-9 border-b border-border px-3 text-start font-normal">
+                {t(`jobs.history.${c}`)}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
@@ -53,12 +69,31 @@ const RunHistory = ({ job }: { job: JobRow }) => {
             const s = seconds(r);
             return (
               <tr key={r.id} className="align-top">
-                <td className="border-b border-border px-3 py-2.5 whitespace-nowrap">{formatDateTime(r.startedAt, locale)}</td>
-                <td className="border-b border-border px-3 py-2.5">{s === null ? "—" : `${formatNumber(s, locale, { maximumFractionDigits: 1 })} ${t("jobs.sec")}`}</td>
-                <td className="border-b border-border px-3 py-2.5"><RunStatus status={r.status} /></td>
-                <td className="border-b border-border px-3 py-2.5">{r.triggeredByName ?? t("jobs.bySchedule")}</td>
+                <td className="border-b border-border px-3 py-2.5 whitespace-nowrap">
+                  {formatDateTime(r.startedAt, locale)}
+                </td>
+                <td className="border-b border-border px-3 py-2.5">
+                  {s === null
+                    ? "—"
+                    : `${formatNumber(s, locale, { maximumFractionDigits: 1 })} ${t("jobs.sec")}`}
+                </td>
+                <td className="border-b border-border px-3 py-2.5">
+                  <RunStatus status={r.status} />
+                </td>
+                <td className="border-b border-border px-3 py-2.5">
+                  {r.triggeredByName ?? t("jobs.bySchedule")}
+                </td>
                 <td className="border-b border-border px-3 py-2.5 text-text-secondary">
-                  {r.error ? <span className="text-risk-high-text">{r.error}</span> : Object.entries(r.stats ?? {}).map(([k, v]) => `${t(`jobs.stats.${k}`, { defaultValue: k })}: ${formatNumber(v, locale)}`).join(" · ") || "—"}
+                  {r.error ? (
+                    <span className="text-risk-high-text">{r.error}</span>
+                  ) : (
+                    Object.entries(r.stats ?? {})
+                      .map(
+                        ([k, v]) =>
+                          `${t(`jobs.stats.${k}`, { defaultValue: k })}: ${formatNumber(v, locale)}`,
+                      )
+                      .join(" · ") || "—"
+                  )}
                 </td>
               </tr>
             );
@@ -69,23 +104,41 @@ const RunHistory = ({ job }: { job: JobRow }) => {
   );
 };
 
-const JobCard = ({ job, onHistory, showing }: { job: JobRow; onHistory: () => void; showing: boolean }) => {
+const JobCard = ({
+  job,
+  onHistory,
+  showing,
+}: {
+  job: JobRow;
+  onHistory: () => void;
+  showing: boolean;
+}) => {
   const { t } = useTranslation();
   const locale = useLocale();
   const scheduleText = useScheduleText();
   const run = useRunJob();
   const last = job.lastRun;
-  const avg = job.durations.length ? job.durations.reduce((a, b) => a + b, 0) / job.durations.length : 0;
+  const avg = job.durations.length
+    ? job.durations.reduce((a, b) => a + b, 0) / job.durations.length
+    : 0;
 
   return (
     <Panel className={cn("gap-4", showing && "border-brand")}>
       <header className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-base text-text">{t(`jobs.names.${job.key}`, { defaultValue: job.name })}</h2>
-            {!job.enabled ? <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs text-text-secondary">{t("jobs.paused")}</span> : null}
+            <h2 className="text-base text-text">
+              {t(`jobs.names.${job.key}`, { defaultValue: job.name })}
+            </h2>
+            {!job.enabled ? (
+              <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs text-text-secondary">
+                {t("jobs.paused")}
+              </span>
+            ) : null}
           </div>
-          <p className="mt-1 text-sm text-text-secondary">{t(`jobs.descriptions.${job.key}`, { defaultValue: job.description })}</p>
+          <p className="mt-1 text-sm text-text-secondary">
+            {t(`jobs.descriptions.${job.key}`, { defaultValue: job.description })}
+          </p>
         </div>
       </header>
 
@@ -97,7 +150,15 @@ const JobCard = ({ job, onHistory, showing }: { job: JobRow; onHistory: () => vo
         </div>
         <div>
           <dt className="text-xs text-text-secondary">{t("jobs.nextRun")}</dt>
-          <dd className="mt-0.5">{job.nextRunAt ? <time dateTime={job.nextRunAt} title={formatDateTime(job.nextRunAt, locale)}>{formatRelative(job.nextRunAt, locale)}</time> : "—"}</dd>
+          <dd className="mt-0.5">
+            {job.nextRunAt ? (
+              <time dateTime={job.nextRunAt} title={formatDateTime(job.nextRunAt, locale)}>
+                {formatRelative(job.nextRunAt, locale)}
+              </time>
+            ) : (
+              "—"
+            )}
+          </dd>
           <dd className="text-xs text-text-secondary">{job.timezone}</dd>
         </div>
         <div>
@@ -106,33 +167,55 @@ const JobCard = ({ job, onHistory, showing }: { job: JobRow; onHistory: () => vo
             {last ? (
               <>
                 <RunStatus status={last.status} />
-                <time className="text-xs text-text-secondary" dateTime={last.startedAt} title={formatDateTime(last.startedAt, locale)}>{formatRelative(last.startedAt, locale)}</time>
+                <time
+                  className="text-xs text-text-secondary"
+                  dateTime={last.startedAt}
+                  title={formatDateTime(last.startedAt, locale)}
+                >
+                  {formatRelative(last.startedAt, locale)}
+                </time>
               </>
-            ) : t("jobs.never")}
+            ) : (
+              t("jobs.never")
+            )}
           </dd>
         </div>
         <div>
           <dt className="text-xs text-text-secondary">{t("jobs.successRate")}</dt>
-          <dd className={cn("mt-0.5 text-lg", job.successRate < 90 && "text-risk-high-text")}>{formatPercent(job.successRate, locale)}</dd>
+          <dd className={cn("mt-0.5 text-lg", job.successRate < 90 && "text-risk-high-text")}>
+            {formatPercent(job.successRate, locale)}
+          </dd>
         </div>
       </dl>
 
       <div className="flex items-end gap-4 rounded-md bg-muted px-4 py-3">
         <div className="min-w-0 flex-1">
           <p className="text-xs text-text-secondary">{t("jobs.duration")}</p>
-          <p className="text-sm">{t("jobs.avgDuration", { value: formatNumber(avg, locale, { maximumFractionDigits: 1 }) })}</p>
+          <p className="text-sm">
+            {t("jobs.avgDuration", {
+              value: formatNumber(avg, locale, { maximumFractionDigits: 1 }),
+            })}
+          </p>
         </div>
-        {job.durations.length > 1 ? <Sparkline values={job.durations} width={160} height={36} /> : null}
+        {job.durations.length > 1 ? (
+          <Sparkline values={job.durations} width={160} height={36} />
+        ) : null}
       </div>
 
       {last?.status === "FAILED" && last.error ? <Note tone="danger">{last.error}</Note> : null}
 
       <div className="flex flex-wrap gap-2">
-        <Button size="sm" disabled={run.isPending || last?.status === "RUNNING"} onClick={() => run.mutate(job.key)}>
+        <Button
+          size="sm"
+          disabled={run.isPending || last?.status === "RUNNING"}
+          onClick={() => run.mutate(job.key)}
+        >
           <Play /> {run.isPending ? t("jobs.running") : t("jobs.runNow")}
         </Button>
         <JobScheduleDialog job={job} />
-        <Button variant="ghost" size="sm" aria-expanded={showing} onClick={onHistory}><History /> {t("jobs.historyButton")}</Button>
+        <Button variant="ghost" size="sm" aria-expanded={showing} onClick={onHistory}>
+          <History /> {t("jobs.historyButton")}
+        </Button>
       </div>
     </Panel>
   );
@@ -153,7 +236,10 @@ export const JobsPage = () => {
         subtitle={
           data
             ? failing.length
-              ? t("jobs.subtitleFailing", { count: failing.length, n: formatNumber(failing.length, locale) })
+              ? t("jobs.subtitleFailing", {
+                  count: failing.length,
+                  n: formatNumber(failing.length, locale),
+                })
               : t("jobs.subtitleOk", { count: data.length, n: formatNumber(data.length, locale) })
             : undefined
         }
@@ -161,18 +247,39 @@ export const JobsPage = () => {
       {isError ? (
         <Panel>
           <p>{t("errors.generic")}</p>
-          <Button variant="outline" className="w-fit" onClick={() => refetch()}>{t("errors.retry")}</Button>
+          <Button variant="outline" className="w-fit" onClick={() => refetch()}>
+            {t("errors.retry")}
+          </Button>
         </Panel>
       ) : isPending ? (
-        <div className="grid gap-4 xl:grid-cols-2">{Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-72" />)}</div>
+        <div className="grid gap-4 xl:grid-cols-2">
+          {Array.from({ length: 4 }, (_, i) => (
+            <Skeleton key={i} className="h-72" />
+          ))}
+        </div>
       ) : (
         <div className="grid gap-4 xl:grid-cols-2">
-          {data.map((j) => <JobCard key={j.id} job={j} showing={history === j.key} onHistory={() => setHistory((h) => (h === j.key ? null : j.key))} />)}
+          {data.map((j) => (
+            <JobCard
+              key={j.id}
+              job={j}
+              showing={history === j.key}
+              onHistory={() => setHistory((h) => (h === j.key ? null : j.key))}
+            />
+          ))}
         </div>
       )}
       {shown ? (
         <Panel>
-          <PanelHeader eyebrow={t("jobs.historyTitle")} title={t(`jobs.names.${shown.key}`, { defaultValue: shown.name })} actions={<Button variant="ghost" size="sm" onClick={() => setHistory(null)}>{t("forms.close")}</Button>} />
+          <PanelHeader
+            eyebrow={t("jobs.historyTitle")}
+            title={t(`jobs.names.${shown.key}`, { defaultValue: shown.name })}
+            actions={
+              <Button variant="ghost" size="sm" onClick={() => setHistory(null)}>
+                {t("forms.close")}
+              </Button>
+            }
+          />
           <RunHistory job={shown} />
         </Panel>
       ) : null}

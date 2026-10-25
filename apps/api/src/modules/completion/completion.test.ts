@@ -14,25 +14,54 @@ describe("data import", () => {
   it("maps file columns to fields and reports problems with file row numbers", () => {
     const rows = applyMapping(
       [
-        { Name: "Anna Example", Kind: "PERSON", Land: "DE", Branch: "BER", Mail: "anna@example.com" },
+        {
+          Name: "Anna Example",
+          Kind: "PERSON",
+          Land: "DE",
+          Branch: "BER",
+          Mail: "anna@example.com",
+        },
         { Name: "B", Kind: "ROBOT", Land: "DE", Branch: "LON", Mail: "taken@example.com" },
-        { Name: "Carl Example", Kind: "PERSON", Land: "DE", Branch: "BER", Mail: "anna@example.com" },
+        {
+          Name: "Carl Example",
+          Kind: "PERSON",
+          Land: "DE",
+          Branch: "BER",
+          Mail: "anna@example.com",
+        },
       ],
       { name: "Name", type: "Kind", country: "Land", branchCode: "Branch", email: "Mail" },
     );
     const r = validateRows("customers", rows, lookup);
     expect(r.valid.map((v) => v.row)).toEqual([2]);
-    expect(r.issues).toEqual(expect.arrayContaining([
-      { row: 3, field: "name", message: "errors.min3" },
-      { row: 3, field: "type", message: "errors.customerType" },
-      { row: 4, field: "email", message: "errors.emailTaken" },
-    ]));
+    expect(r.issues).toEqual(
+      expect.arrayContaining([
+        { row: 3, field: "name", message: "errors.min3" },
+        { row: 3, field: "type", message: "errors.customerType" },
+        { row: 4, field: "email", message: "errors.emailTaken" },
+      ]),
+    );
     expect(r.errorRows).toBe(2);
   });
 
   it("only accepts transactions on accounts the user may see", () => {
-    const base = { bookedAt: "2026-10-01T10:00:00Z", amount: "1200.50", currency: "EUR", direction: "OUT", channel: "WIRE", counterpartyName: "Acme", counterpartyCountry: "FR" };
-    const r = validateRows("transactions", [{ ...base, iban: "DE89 3704 0044 0532 0130 00" }, { ...base, iban: "GB33BUKB20201555555555" }], lookup);
+    const base = {
+      bookedAt: "2026-10-01T10:00:00Z",
+      amount: "1200.50",
+      currency: "EUR",
+      direction: "OUT",
+      channel: "WIRE",
+      counterpartyName: "Acme",
+      counterpartyCountry: "FR",
+    };
+    const r = validateRows(
+      "transactions",
+      [
+        { ...base, iban: "DE89 3704 0044 0532 0130 00" },
+        { ...base, iban: "GB33BUKB20201555555555" },
+      ],
+      lookup,
+    );
     expect(r.valid).toHaveLength(1);
     expect(r.issues).toEqual([{ row: 3, field: "iban", message: "errors.unknownAccount" }]);
   });
@@ -40,13 +69,20 @@ describe("data import", () => {
 
 describe("admin, news and jobs", () => {
   it("keeps admin rights on the admin role and drops unknown permissions", () => {
-    expect(guardRolePermissions("ADMIN", ["cases.view", "made.up"])).toEqual(["cases.view", "admin.manage"]);
+    expect(guardRolePermissions("ADMIN", ["cases.view", "made.up"])).toEqual([
+      "cases.view",
+      "admin.manage",
+    ]);
     expect(guardRolePermissions("ANALYST", ["cases.view", "cases.view"])).toEqual(["cases.view"]);
   });
 
   it("removes scripts and unsafe attributes from news and opens links safely", () => {
-    const html = sanitizeNews('<p onclick="x()">Hi <script>alert(1)</script><a href="https://example.com">link</a><img src=x onerror=y></p>');
-    expect(html).toBe('<p>Hi <a href="https://example.com" target="_blank" rel="noopener noreferrer">link</a></p>');
+    const html = sanitizeNews(
+      '<p onclick="x()">Hi <script>alert(1)</script><a href="https://example.com">link</a><img src=x onerror=y></p>',
+    );
+    expect(html).toBe(
+      '<p>Hi <a href="https://example.com" target="_blank" rel="noopener noreferrer">link</a></p>',
+    );
     expect(excerptOf("<p>One <strong>two</strong></p><p>three</p>")).toBe("One two three");
   });
 

@@ -71,8 +71,8 @@
 ## Open items
 
 - [ ] **Change the Persian font.** Vazirmatn is temporary. The author wants a
-  different, commercial font; switch once its license is bought. Check the
-  license allows web embedding in a public repo, and keep the font file's name
-  free of anything that breaks the content rules in `brief.md`. The font is
-  set in one place: Figma variable `Typography / font/persian` (and later one
-  CSS variable).
+      different, commercial font; switch once its license is bought. Check the
+      license allows web embedding in a public repo, and keep the font file's name
+      free of anything that breaks the content rules in `brief.md`. The font is
+      set in one place: Figma variable `Typography / font/persian` (and later one
+      CSS variable).

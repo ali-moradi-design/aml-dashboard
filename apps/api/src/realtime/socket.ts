@@ -14,7 +14,10 @@ type Deps = {
  * Live updates over Socket.IO. Every socket is authenticated with the same session cookie as
  * the API and joins rooms: user:{id}, role:{ROLE}, and case:{id} on request (members only).
  */
-export const createRealtime = (httpServer: HttpServer, { webOrigin, authenticate, canJoinCase }: Deps) => {
+export const createRealtime = (
+  httpServer: HttpServer,
+  { webOrigin, authenticate, canJoinCase }: Deps,
+) => {
   const io = new Server(httpServer, { cors: { origin: webOrigin, credentials: true } });
 
   io.use(async (socket, next) => {
@@ -40,9 +43,12 @@ export const createRealtime = (httpServer: HttpServer, { webOrigin, authenticate
   });
 
   const notifier = {
-    toCase: (caseId: string, event: string, payload: unknown) => io.to(`case:${caseId}`).emit(event, payload),
-    toUser: (userId: string, event: string, payload: unknown) => io.to(`user:${userId}`).emit(event, payload),
-    toRole: (role: string, event: string, payload: unknown) => io.to(`role:${role}`).emit(event, payload),
+    toCase: (caseId: string, event: string, payload: unknown) =>
+      io.to(`case:${caseId}`).emit(event, payload),
+    toUser: (userId: string, event: string, payload: unknown) =>
+      io.to(`user:${userId}`).emit(event, payload),
+    toRole: (role: string, event: string, payload: unknown) =>
+      io.to(`role:${role}`).emit(event, payload),
   };
 
   return { io, notifier };

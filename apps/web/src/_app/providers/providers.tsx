@@ -25,7 +25,13 @@ export const Providers = ({ locale, children }: { locale: Locale; children: Reac
   const [i18n] = useState(() => createClientI18n(locale));
 
   return (
-    <ThemeProvider attribute="data-theme" defaultTheme="light" enableSystem={false} disableTransitionOnChange scriptProps={themeScriptProps}>
+    <ThemeProvider
+      attribute="data-theme"
+      defaultTheme="light"
+      enableSystem={false}
+      disableTransitionOnChange
+      scriptProps={themeScriptProps}
+    >
       <QueryClientProvider client={queryClient}>
         <I18nextProvider i18n={i18n}>{children}</I18nextProvider>
         <ReactQueryDevtools buttonPosition="bottom-left" />

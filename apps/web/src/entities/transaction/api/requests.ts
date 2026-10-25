@@ -3,4 +3,5 @@ import { post } from "@/shared/api";
 
 export type TransactionQuery = GridQuery & { criteria?: CriteriaGroup };
 
-export const queryTransactions = (query: TransactionQuery) => post("/transactions/query", transactionPageSchema, query);
+export const queryTransactions = (query: TransactionQuery) =>
+  post("/transactions/query", transactionPageSchema, query);

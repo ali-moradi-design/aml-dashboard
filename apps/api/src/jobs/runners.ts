@@ -30,16 +30,32 @@ export const runRules = async ({ db }: Ctx, since: Date, until: Date): Promise<S
     const criteria = criteriaGroupSchema.safeParse(rule.criteria);
     if (!criteria.success) continue;
     const matches = await db.transaction.findMany({
-      where: { AND: [window, criteriaToWhere(criteria.data), { alerts: { none: { ruleId: rule.id } } }] },
-      select: { id: true, accountId: true, branchId: true, account: { select: { customerId: true, customer: { select: { clearanceRank: true } } } } },
+      where: {
+        AND: [window, criteriaToWhere(criteria.data), { alerts: { none: { ruleId: rule.id } } }],
+      },
+      select: {
+        id: true,
+        accountId: true,
+        branchId: true,
+        account: { select: { customerId: true, customer: { select: { clearanceRank: true } } } },
+      },
       take: 500,
     });
     if (!matches.length) continue;
     const codes = await nextCodes(db, matches.length);
     await db.alert.createMany({
       data: matches.map((t, i) => ({
-        code: codes[i]!, ruleId: rule.id, customerId: t.account.customerId, accountId: t.accountId, transactionId: t.id, branchId: t.branchId,
-        riskLevel: rule.riskLevel, score: RISK_SCORE[rule.riskLevel], status: "NEW" as const, clearanceRank: t.account.customer.clearanceRank, createdAt: new Date(),
+        code: codes[i]!,
+        ruleId: rule.id,
+        customerId: t.account.customerId,
+        accountId: t.accountId,
+        transactionId: t.id,
+        branchId: t.branchId,
+        riskLevel: rule.riskLevel,
+        score: RISK_SCORE[rule.riskLevel],
+        status: "NEW" as const,
+        clearanceRank: t.account.customer.clearanceRank,
+        createdAt: new Date(),
       })),
     });
     created += matches.length;
@@ -51,7 +67,10 @@ export const runRules = async ({ db }: Ctx, since: Date, until: Date): Promise<S
 export const runKycExpiry = async ({ db, notifications }: Ctx): Promise<Stats> => {
   const limit = new Date(Date.now() - 730 * 86_400_000);
   const checked = await db.customer.count({ where: { kycStatus: "VERIFIED" } });
-  const { count } = await db.customer.updateMany({ where: { kycStatus: "VERIFIED", kycReviewedAt: { lt: limit } }, data: { kycStatus: "EXPIRED" } });
+  const { count } = await db.customer.updateMany({
+    where: { kycStatus: "VERIFIED", kycReviewedAt: { lt: limit } },
+    data: { kycStatus: "EXPIRED" },
+  });
   if (count) await notifications.toRole("COMPLIANCE_MANAGER", "kyc_expiry", { count });
   return { checked, expired: count };
 };
@@ -60,7 +79,14 @@ export const runKycExpiry = async ({ db, notifications }: Ctx): Promise<Stats> =
 export const runSlaCheck = async ({ db, notifications }: Ctx): Promise<Stats> => {
   const cases = await db.case.findMany({
     where: { status: { in: [...OPEN] }, workflowVersionId: { not: null } },
-    select: { id: true, code: true, step: true, stepEnteredAt: true, workflowVersion: { select: { graph: true } }, members: { select: { userId: true } } },
+    select: {
+      id: true,
+      code: true,
+      step: true,
+      stepEnteredAt: true,
+      workflowVersion: { select: { graph: true } },
+      members: { select: { userId: true } },
+    },
   });
   const now = Date.now();
   let reminded = 0;
@@ -69,11 +95,22 @@ export const runSlaCheck = async ({ db, notifications }: Ctx): Promise<Stats> =>
     if (!graph.success) continue;
     const due = slaDeadline(graph.data, c.step, c.stepEnteredAt);
     if (!due || due.getTime() > now) continue;
-    const already = await db.notification.count({ where: { type: "sla_breach", createdAt: { gte: c.stepEnteredAt }, data: { path: ["code"], equals: c.code } } });
+    const already = await db.notification.count({
+      where: {
+        type: "sla_breach",
+        createdAt: { gte: c.stepEnteredAt },
+        data: { path: ["code"], equals: c.code },
+      },
+    });
     if (already) continue;
     const step = stepOf(graph.data, c.step)!;
     const data = { code: c.code, step: step.name.en };
-    if (step.membersOnly) await notifications.push(c.members.map((m) => m.userId), "sla_breach", data);
+    if (step.membersOnly)
+      await notifications.push(
+        c.members.map((m) => m.userId),
+        "sla_breach",
+        data,
+      );
     else for (const role of step.roles) await notifications.toRole(role, "sla_breach", data);
     reminded++;
   }
@@ -82,7 +119,10 @@ export const runSlaCheck = async ({ db, notifications }: Ctx): Promise<Stats> =>
 
 /** Scheduled news goes live: tell its audience once. */
 export const runNewsNotify = async ({ db, announceNews }: Ctx): Promise<Stats> => {
-  const due = await db.newsPost.findMany({ where: { notifiedAt: null, publishAt: { lte: new Date() } }, select: { id: true } });
+  const due = await db.newsPost.findMany({
+    where: { notifiedAt: null, publishAt: { lte: new Date() } },
+    select: { id: true },
+  });
   let notified = 0;
   for (const n of due) notified += await announceNews(n.id);
   return { posts: due.length, notified };
@@ -96,20 +136,34 @@ export const createJobRunner = (ctx: Ctx) => {
   const run = async (key: JobKey, triggeredById: string | null = null) => {
     const job = await ctx.db.job.findUnique({ where: { key } });
     if (!job) return null;
-    const lastOk = await ctx.db.jobRun.findFirst({ where: { jobId: job.id, status: "SUCCEEDED" }, orderBy: { startedAt: "desc" } });
-    const record = await ctx.db.jobRun.create({ data: { jobId: job.id, status: "RUNNING", triggeredById } });
+    const lastOk = await ctx.db.jobRun.findFirst({
+      where: { jobId: job.id, status: "SUCCEEDED" },
+      orderBy: { startedAt: "desc" },
+    });
+    const record = await ctx.db.jobRun.create({
+      data: { jobId: job.id, status: "RUNNING", triggeredById },
+    });
     try {
       const until = new Date();
       const stats =
-        key === "rule-run" ? await runRules(ctx, lastOk?.startedAt ?? new Date(until.getTime() - 15 * 60_000), until)
-        : key === "kyc-expiry" ? await runKycExpiry(ctx)
-        : key === "sla-check" ? await runSlaCheck(ctx)
-        : await runNewsNotify(ctx);
-      return await ctx.db.jobRun.update({ where: { id: record.id }, data: { status: "SUCCEEDED", finishedAt: new Date(), stats } });
+        key === "rule-run"
+          ? await runRules(ctx, lastOk?.startedAt ?? new Date(until.getTime() - 15 * 60_000), until)
+          : key === "kyc-expiry"
+            ? await runKycExpiry(ctx)
+            : key === "sla-check"
+              ? await runSlaCheck(ctx)
+              : await runNewsNotify(ctx);
+      return await ctx.db.jobRun.update({
+        where: { id: record.id },
+        data: { status: "SUCCEEDED", finishedAt: new Date(), stats },
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message.slice(0, 500) : "Unknown error";
       console.error(`[jobs] ${key} failed`, error);
-      const failed = await ctx.db.jobRun.update({ where: { id: record.id }, data: { status: "FAILED", finishedAt: new Date(), error: message } });
+      const failed = await ctx.db.jobRun.update({
+        where: { id: record.id },
+        data: { status: "FAILED", finishedAt: new Date(), error: message },
+      });
       await ctx.notifications.toRole("ADMIN", "job_failed", { job: job.name });
       await ctx.notifications.toRole("COMPLIANCE_MANAGER", "job_failed", { job: job.name });
       return failed;

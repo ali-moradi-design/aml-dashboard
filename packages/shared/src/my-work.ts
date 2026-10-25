@@ -14,9 +14,24 @@ export const myWorkSchema = z.object({
     caseRowSchema.extend({
       stepName: localizedTextSchema,
       slaDueAt: z.string().nullable(),
-      actions: z.array(z.object({ id: z.string(), label: localizedTextSchema, blocked: z.enum(["findings", "fourEyes"]).nullable() })),
+      actions: z.array(
+        z.object({
+          id: z.string(),
+          label: localizedTextSchema,
+          blocked: z.enum(["findings", "fourEyes"]).nullable(),
+        }),
+      ),
     }),
   ),
-  mentions: z.array(z.object({ id: z.string(), caseCode: z.string(), caseTitle: z.string(), authorName: z.string(), body: z.string(), createdAt: z.string() })),
+  mentions: z.array(
+    z.object({
+      id: z.string(),
+      caseCode: z.string(),
+      caseTitle: z.string(),
+      authorName: z.string(),
+      body: z.string(),
+      createdAt: z.string(),
+    }),
+  ),
 });
 export type MyWork = z.infer<typeof myWorkSchema>;

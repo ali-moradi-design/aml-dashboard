@@ -33,10 +33,21 @@ export const CaseNote = ({ code }: { code: string }) => {
 
   return (
     <div className="flex flex-col gap-2">
-      <Textarea rows={5} value={body ?? ""} disabled={body === null} onChange={(e) => setBody(e.target.value)} placeholder={t("caseDetail.notePlaceholder")} aria-label={t("caseDetail.note")} />
+      <Textarea
+        rows={5}
+        value={body ?? ""}
+        disabled={body === null}
+        onChange={(e) => setBody(e.target.value)}
+        placeholder={t("caseDetail.notePlaceholder")}
+        aria-label={t("caseDetail.note")}
+      />
       <p className="flex items-center gap-1.5 text-xs text-text-secondary" aria-live="polite">
         <Lock className="size-3" />
-        {save.isPending ? t("forms.saving") : data?.updatedAt ? t("caseDetail.noteSaved", { when: formatRelative(data.updatedAt, locale) }) : t("caseDetail.notePrivate")}
+        {save.isPending
+          ? t("forms.saving")
+          : data?.updatedAt
+            ? t("caseDetail.noteSaved", { when: formatRelative(data.updatedAt, locale) })
+            : t("caseDetail.notePrivate")}
       </p>
     </div>
   );

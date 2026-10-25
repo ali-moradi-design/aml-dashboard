@@ -15,7 +15,11 @@ export const createAuthModule = ({ db, secureCookies }: { db: Db; secureCookies:
     hashToken,
   });
   const requireAuth = createRequireAuth(service);
-  return { router: createAuthRouter(createAuthHandlers(service, { secureCookies }), requireAuth), requireAuth, service };
+  return {
+    router: createAuthRouter(createAuthHandlers(service, { secureCookies }), requireAuth),
+    requireAuth,
+    service,
+  };
 };
 
 export { requirePermission, SESSION_COOKIE } from "./auth.middleware";

@@ -21,20 +21,49 @@ import { cn } from "@/shared/lib/utils";
 import { Note, Panel, PanelHeader } from "@/shared/ui/panel";
 import { Skeleton } from "@/shared/ui/skeleton";
 
-const Item = ({ label, children, mono }: { label: string; children: React.ReactNode; mono?: boolean }) => (
+const Item = ({
+  label,
+  children,
+  mono,
+}: {
+  label: string;
+  children: React.ReactNode;
+  mono?: boolean;
+}) => (
   <div>
     <dt className="text-xs text-text-secondary">{label}</dt>
-    <dd className={cn("mt-0.5 text-text", mono && "ltr-nums font-mono text-[13px]")}>{children || "—"}</dd>
+    <dd className={cn("mt-0.5 text-text", mono && "ltr-nums font-mono text-[13px]")}>
+      {children || "—"}
+    </dd>
   </div>
 );
 
-const eventText = (e: CaseDetail["events"][number], t: (k: string, o?: Record<string, unknown>) => string, stepName: (id: string) => string) => {
-  const data = (e.data ?? {}) as { from?: CaseStatus; to?: CaseStatus; fromStep?: string; toStep?: string; name?: string; note?: string | null };
+const eventText = (
+  e: CaseDetail["events"][number],
+  t: (k: string, o?: Record<string, unknown>) => string,
+  stepName: (id: string) => string,
+) => {
+  const data = (e.data ?? {}) as {
+    from?: CaseStatus;
+    to?: CaseStatus;
+    fromStep?: string;
+    toStep?: string;
+    name?: string;
+    note?: string | null;
+  };
   switch (e.type) {
     case "status_changed":
-      return (data.fromStep && data.toStep
-        ? t("caseEvent.status_changed", { from: stepName(data.fromStep), to: stepName(data.toStep) })
-        : t("caseEvent.status_changed", { from: t(`caseStatus.${data.from}`), to: t(`caseStatus.${data.to}`) })) + (data.note ? `: “${data.note}”` : "");
+      return (
+        (data.fromStep && data.toStep
+          ? t("caseEvent.status_changed", {
+              from: stepName(data.fromStep),
+              to: stepName(data.toStep),
+            })
+          : t("caseEvent.status_changed", {
+              from: t(`caseStatus.${data.from}`),
+              to: t(`caseStatus.${data.to}`),
+            })) + (data.note ? `: “${data.note}”` : "")
+      );
     case "document_added":
       return t("caseEvent.document_added", { name: data.name });
     default:
@@ -51,22 +80,32 @@ export const CaseDetailPage = ({ code }: { code: string }) => {
   const live = useCaseLive(code, Boolean(data?.allowed.isMember));
   const Back = locale === "fa" || locale === "ar" ? ArrowRight : ArrowLeft;
 
-  if (isPending) return <Skeleton className="h-[640px]" />;
+  if (isPending) return <Skeleton className="h-160" />;
   if (error || !data) {
     return (
       <Panel>
-        <p>{isHttpError(error) && error.status === 404 ? t("caseDetail.notFound") : t("errors.generic")}</p>
-        <Link href={href("/cases")} className="text-link hover:underline">{t("caseDetail.back")}</Link>
+        <p>
+          {isHttpError(error) && error.status === 404
+            ? t("caseDetail.notFound")
+            : t("errors.generic")}
+        </p>
+        <Link href={href("/cases")} className="text-link hover:underline">
+          {t("caseDetail.back")}
+        </Link>
       </Panel>
     );
   }
 
   const { case: c, parties, alerts, events } = data;
-  const stepName = (id: string) => localized(data.workflow.graph.steps.find((s) => s.id === id)?.name ?? { en: id }, locale);
+  const stepName = (id: string) =>
+    localized(data.workflow.graph.steps.find((s) => s.id === id)?.name ?? { en: id }, locale);
 
   return (
     <>
-      <Link href={href("/cases")} className="inline-flex w-fit items-center gap-1.5 text-sm text-text-secondary hover:text-text">
+      <Link
+        href={href("/cases")}
+        className="inline-flex w-fit items-center gap-1.5 text-sm text-text-secondary hover:text-text"
+      >
         <Back className="size-4" /> {t("caseDetail.back")}
       </Link>
       <div className="flex flex-wrap items-start gap-4">
@@ -77,14 +116,23 @@ export const CaseDetailPage = ({ code }: { code: string }) => {
             <RiskBadge level={c.riskLevel} />
             <PriorityLabel priority={c.priority} />
             {live ? (
-              <span className="inline-flex items-center gap-1 text-xs text-risk-low-text" title={t("caseDetail.liveHint")}>
+              <span
+                className="inline-flex items-center gap-1 text-xs text-risk-low-text"
+                title={t("caseDetail.liveHint")}
+              >
                 <Radio className="size-3.5" /> {t("caseDetail.live")}
               </span>
             ) : null}
           </p>
           <h1 className="mt-1 text-2xl text-heading">{c.title}</h1>
           <p className="mt-1 text-text-secondary">
-            {t(`typology.${c.typology}`)} · {t(`city.${c.branchCity}`, { defaultValue: c.branchCity })} · {t("caseDetail.openedBy", { name: c.createdByName, when: formatRelative(c.createdAt, locale) })} · <DueLabel dueAt={c.dueAt} status={c.status} />
+            {t(`typology.${c.typology}`)} ·{" "}
+            {t(`city.${c.branchCity}`, { defaultValue: c.branchCity })} ·{" "}
+            {t("caseDetail.openedBy", {
+              name: c.createdByName,
+              when: formatRelative(c.createdAt, locale),
+            })}{" "}
+            · <DueLabel dueAt={c.dueAt} status={c.status} />
           </p>
         </div>
         <CaseTransitionActions detail={data} />
@@ -96,10 +144,18 @@ export const CaseDetailPage = ({ code }: { code: string }) => {
             <PanelHeader eyebrow={t("caseDetail.summary")} />
             <p className="whitespace-pre-wrap">{c.summary}</p>
             <dl className="grid grid-cols-2 gap-4 md:grid-cols-4">
-              <Item label={t("fields.period")}>{c.periodStart && c.periodEnd ? `${formatDate(c.periodStart, locale)} – ${formatDate(c.periodEnd, locale)}` : null}</Item>
-              <Item label={t("fields.totalAmount")}>{c.totalAmount ? formatMoney(c.totalAmount, "EUR", locale) : null}</Item>
+              <Item label={t("fields.period")}>
+                {c.periodStart && c.periodEnd
+                  ? `${formatDate(c.periodStart, locale)} – ${formatDate(c.periodEnd, locale)}`
+                  : null}
+              </Item>
+              <Item label={t("fields.totalAmount")}>
+                {c.totalAmount ? formatMoney(c.totalAmount, "EUR", locale) : null}
+              </Item>
               <Item label={t("caseDetail.alerts")}>{formatNumber(c.alertCount, locale)}</Item>
-              <Item label={t("caseDetail.clearance")}>{t(`clearance.${c.clearanceRank}`, { defaultValue: String(c.clearanceRank) })}</Item>
+              <Item label={t("caseDetail.clearance")}>
+                {t(`clearance.${c.clearanceRank}`, { defaultValue: String(c.clearanceRank) })}
+              </Item>
             </dl>
           </Panel>
 
@@ -114,18 +170,39 @@ export const CaseDetailPage = ({ code }: { code: string }) => {
           </Panel>
 
           <Panel>
-            <PanelHeader eyebrow={t("caseDetail.parties")} title={t("caseDetail.partiesTitle", { count: parties.length })} />
+            <PanelHeader
+              eyebrow={t("caseDetail.parties")}
+              title={t("caseDetail.partiesTitle", { count: parties.length })}
+            />
             <ul className="grid gap-3 md:grid-cols-2">
               {parties.map((p) => (
                 <li key={p.id} className="flex flex-col gap-2 rounded-md border border-border p-3">
                   <span className="flex items-start justify-between gap-2">
                     <span className="min-w-0">
-                      {p.customerCode ? <Link href={href(`/customers/${p.customerCode}`)} className="block truncate text-link hover:underline">{p.name}</Link> : <span className="block truncate">{p.name}</span>}
-                      <span className="text-xs text-text-secondary">{t(`customerType.${p.type}`)} · {t(`country.${p.country}`, { defaultValue: p.country })}</span>
+                      {p.customerCode ? (
+                        <Link
+                          href={href(`/customers/${p.customerCode}`)}
+                          className="block truncate text-link hover:underline"
+                        >
+                          {p.name}
+                        </Link>
+                      ) : (
+                        <span className="block truncate">{p.name}</span>
+                      )}
+                      <span className="text-xs text-text-secondary">
+                        {t(`customerType.${p.type}`)} ·{" "}
+                        {t(`country.${p.country}`, { defaultValue: p.country })}
+                      </span>
                     </span>
-                    <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-text-secondary">{t(`partyRole.${p.role}`)}</span>
+                    <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-text-secondary">
+                      {t(`partyRole.${p.role}`)}
+                    </span>
                   </span>
-                  {p.accounts.map((a) => <span key={a.iban} className="ltr-nums font-mono text-xs text-text-secondary">{formatIban(a.iban)} · {a.currency}</span>)}
+                  {p.accounts.map((a) => (
+                    <span key={a.iban} className="ltr-nums font-mono text-xs text-text-secondary">
+                      {formatIban(a.iban)} · {a.currency}
+                    </span>
+                  ))}
                   {p.notes ? <span className="text-xs text-text-secondary">{p.notes}</span> : null}
                 </li>
               ))}
@@ -133,13 +210,25 @@ export const CaseDetailPage = ({ code }: { code: string }) => {
           </Panel>
 
           <Panel>
-            <PanelHeader eyebrow={t("caseDetail.linkedAlerts")} title={alerts.length ? undefined : t("caseDetail.noAlerts")} />
+            <PanelHeader
+              eyebrow={t("caseDetail.linkedAlerts")}
+              title={alerts.length ? undefined : t("caseDetail.noAlerts")}
+            />
             <ul className="flex flex-col gap-2">
               {alerts.map((a) => (
                 <li key={a.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-                  <Link href={href(`/alerts/${a.code}`)} className="font-mono text-link hover:underline">{a.code}</Link>
-                  <span className="min-w-0 flex-1 truncate">{ruleText.name(a.ruleCode, a.ruleName)}</span>
-                  <span className="text-xs text-text-secondary">{formatDate(a.createdAt, locale)}</span>
+                  <Link
+                    href={href(`/alerts/${a.code}`)}
+                    className="font-mono text-link hover:underline"
+                  >
+                    {a.code}
+                  </Link>
+                  <span className="min-w-0 flex-1 truncate">
+                    {ruleText.name(a.ruleCode, a.ruleName)}
+                  </span>
+                  <span className="text-xs text-text-secondary">
+                    {formatDate(a.createdAt, locale)}
+                  </span>
                   <RiskBadge level={a.riskLevel} />
                   <StatusBadge status={a.status} />
                 </li>
@@ -153,7 +242,7 @@ export const CaseDetailPage = ({ code }: { code: string }) => {
           </Panel>
         </div>
 
-        <div className="flex w-full flex-col gap-6 xl:w-[360px] xl:shrink-0">
+        <div className="flex w-full flex-col gap-6 xl:w-90 xl:shrink-0">
           <Panel>
             <PanelHeader eyebrow={t("caseDetail.team")} />
             <CaseMembers detail={data} />
@@ -176,7 +265,10 @@ export const CaseDetailPage = ({ code }: { code: string }) => {
               {events.slice(0, 12).map((e) => (
                 <li key={e.id} className="text-sm">
                   <span className="block">{eventText(e, t, stepName)}</span>
-                  <span className="text-xs text-text-secondary">{e.actorName ? `${e.actorName} · ` : ""}{formatRelative(e.createdAt, locale)}</span>
+                  <span className="text-xs text-text-secondary">
+                    {e.actorName ? `${e.actorName} · ` : ""}
+                    {formatRelative(e.createdAt, locale)}
+                  </span>
                 </li>
               ))}
             </ol>

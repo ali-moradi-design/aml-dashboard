@@ -6,9 +6,12 @@ import { importBatchSchema, type ImportValidate } from "@aml/shared";
 import { post, request } from "@/shared/api";
 
 export const getImports = () => request("/imports", z.array(importBatchSchema));
-export const validateImport = (input: ImportValidate) => post("/imports/validate", importBatchSchema, input);
-export const commitImport = (id: string) => post(`/imports/${id}/commit`, z.object({ id: z.string(), imported: z.number() }), {});
-export const discardImport = (id: string) => post(`/imports/${id}/discard`, z.object({ ok: z.boolean() }), {});
+export const validateImport = (input: ImportValidate) =>
+  post("/imports/validate", importBatchSchema, input);
+export const commitImport = (id: string) =>
+  post(`/imports/${id}/commit`, z.object({ id: z.string(), imported: z.number() }), {});
+export const discardImport = (id: string) =>
+  post(`/imports/${id}/discard`, z.object({ ok: z.boolean() }), {});
 
 export const importKeys = { all: ["imports"] as const, list: () => ["imports", "list"] as const };
 

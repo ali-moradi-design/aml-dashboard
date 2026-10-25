@@ -5,7 +5,12 @@ import "@xyflow/react/dist/style.css";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { CaseDetail } from "@aml/shared";
-import { StepNode, TransitionEdge, type StepNodeType, type TransitionEdgeType } from "@/entities/workflow";
+import {
+  StepNode,
+  TransitionEdge,
+  type StepNodeType,
+  type TransitionEdgeType,
+} from "@/entities/workflow";
 import { useLocale } from "@/shared/i18n/use-locale";
 import { formatDateTime, formatDuration, formatNumber } from "@/shared/lib/format";
 import { useNow } from "@/shared/lib/use-now";
@@ -37,18 +42,42 @@ export const CaseWorkflow = ({ detail }: { detail: CaseDetail }) => {
   const { steps: visited, moves } = useMemo(() => historyOf(events), [events]);
 
   const nodes = useMemo<StepNodeType[]>(
-    () => wf.graph.steps.map((s) => ({
-      id: s.id, type: "step", position: s.position, draggable: false, selectable: false,
-      data: { step: s, compact: true, state: s.id === wf.step ? "current" : visited.has(s.id) ? "visited" : "idle" },
-    })),
+    () =>
+      wf.graph.steps.map((s) => ({
+        id: s.id,
+        type: "step",
+        position: s.position,
+        draggable: false,
+        selectable: false,
+        data: {
+          step: s,
+          compact: true,
+          state: s.id === wf.step ? "current" : visited.has(s.id) ? "visited" : "idle",
+        },
+      })),
     [wf, visited],
   );
   const edges = useMemo<TransitionEdgeType[]>(
-    () => wf.graph.transitions.map((tr) => ({
-      id: tr.id, source: tr.from, target: tr.to, type: "transition", selectable: false,
-      data: { transition: tr, compact: true, taken: moves.has(tr.id), dim: !moves.has(tr.id) && tr.from !== wf.step },
-      markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14, color: moves.has(tr.id) ? "var(--brand)" : "var(--text-secondary)" },
-    })),
+    () =>
+      wf.graph.transitions.map((tr) => ({
+        id: tr.id,
+        source: tr.from,
+        target: tr.to,
+        type: "transition",
+        selectable: false,
+        data: {
+          transition: tr,
+          compact: true,
+          taken: moves.has(tr.id),
+          dim: !moves.has(tr.id) && tr.from !== wf.step,
+        },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          width: 14,
+          height: 14,
+          color: moves.has(tr.id) ? "var(--brand)" : "var(--text-secondary)",
+        },
+      })),
     [wf, moves],
   );
 
@@ -57,7 +86,7 @@ export const CaseWorkflow = ({ detail }: { detail: CaseDetail }) => {
 
   return (
     <div className="flex flex-col gap-3">
-      <div dir="ltr" className="h-[200px] overflow-hidden rounded-md border border-border bg-muted/40">
+      <div dir="ltr" className="h-50 overflow-hidden rounded-md border border-border bg-muted/40">
         <ReactFlowProvider>
           <ReactFlow
             nodes={nodes}
@@ -79,15 +108,37 @@ export const CaseWorkflow = ({ detail }: { detail: CaseDetail }) => {
         </ReactFlowProvider>
       </div>
       <dl className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
-        <div><dt className="text-xs text-text-secondary">{t("workflow.currentStep")}</dt><dd>{(wf.stepName as Record<string, string | undefined>)[locale] || wf.stepName.en}</dd></div>
-        <div><dt className="text-xs text-text-secondary">{t("workflow.since")}</dt><dd>{formatDateTime(wf.stepEnteredAt, locale)}</dd></div>
+        <div>
+          <dt className="text-xs text-text-secondary">{t("workflow.currentStep")}</dt>
+          <dd>{(wf.stepName as Record<string, string | undefined>)[locale] || wf.stepName.en}</dd>
+        </div>
+        <div>
+          <dt className="text-xs text-text-secondary">{t("workflow.since")}</dt>
+          <dd>{formatDateTime(wf.stepEnteredAt, locale)}</dd>
+        </div>
         <div>
           <dt className="text-xs text-text-secondary">{t("workflow.stepSla")}</dt>
-          <dd className={cn(hoursLeft !== null && (hoursLeft < 0 ? "text-risk-high-text" : hoursLeft < 12 ? "text-risk-medium-text" : ""))}>
-            {hoursLeft === null ? "—" : hoursLeft < 0 ? t("workflow.slaOverdue", { time: formatDuration(-hoursLeft, locale) }) : t("workflow.slaLeft", { time: formatDuration(hoursLeft, locale) })}
+          <dd
+            className={cn(
+              hoursLeft !== null &&
+                (hoursLeft < 0
+                  ? "text-risk-high-text"
+                  : hoursLeft < 12
+                    ? "text-risk-medium-text"
+                    : ""),
+            )}
+          >
+            {hoursLeft === null
+              ? "—"
+              : hoursLeft < 0
+                ? t("workflow.slaOverdue", { time: formatDuration(-hoursLeft, locale) })
+                : t("workflow.slaLeft", { time: formatDuration(hoursLeft, locale) })}
           </dd>
         </div>
-        <div><dt className="text-xs text-text-secondary">{t("workflow.versionLabel")}</dt><dd>{t("workflow.versionN", { n: formatNumber(wf.version, locale) })}</dd></div>
+        <div>
+          <dt className="text-xs text-text-secondary">{t("workflow.versionLabel")}</dt>
+          <dd>{t("workflow.versionN", { n: formatNumber(wf.version, locale) })}</dd>
+        </div>
       </dl>
       {!wf.isLatest && wf.slaDueAt ? <Note>{t("workflow.olderVersion")}</Note> : null}
     </div>

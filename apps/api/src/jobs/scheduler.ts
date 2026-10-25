@@ -16,7 +16,12 @@ type DemoResetSchedule = { cron: string; timezone: string; reset: DemoReset };
  * worker hands the run to the job runner (which records it). Editing a job reschedules it.
  * With `demoReset`, a fixed system schedule also rebuilds the demo data.
  */
-export const createScheduler = (databaseUrl: string, db: Db, runner: JobRunner, demoReset?: DemoResetSchedule) => {
+export const createScheduler = (
+  databaseUrl: string,
+  db: Db,
+  runner: JobRunner,
+  demoReset?: DemoResetSchedule,
+) => {
   const boss = new PgBoss(databaseUrl);
   boss.on("error", (error) => console.error("[jobs]", error));
   let started = false;
@@ -46,7 +51,8 @@ export const createScheduler = (databaseUrl: string, db: Db, runner: JobRunner, 
             await boss.work(DEMO_RESET, async () => {
               (await demoReset.reset.run()).match(
                 () => undefined,
-                (error) => console.error("[demo-reset]", error.message, "cause" in error ? error.cause : ""),
+                (error) =>
+                  console.error("[demo-reset]", error.message, "cause" in error ? error.cause : ""),
               );
               // The seed restored every Job row, so schedules a visitor changed go back too.
               for (const job of await db.job.findMany()) await apply(job);
@@ -58,7 +64,10 @@ export const createScheduler = (databaseUrl: string, db: Db, runner: JobRunner, 
         })(),
         (cause) => appError.unexpected("Job scheduler did not start", cause),
       ),
-    stop: () => ResultAsync.fromPromise(boss.stop(), (cause) => appError.unexpected("Job scheduler did not stop", cause)),
+    stop: () =>
+      ResultAsync.fromPromise(boss.stop(), (cause) =>
+        appError.unexpected("Job scheduler did not stop", cause),
+      ),
     apply,
   };
 };

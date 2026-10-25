@@ -7,7 +7,16 @@ import { locales } from "./locale";
 
 // ---------- Notifications ----------
 
-export const notificationTypes = ["mention", "case_step", "case_assigned", "news", "job_failed", "kyc_expiry", "sla_breach", "import_done"] as const;
+export const notificationTypes = [
+  "mention",
+  "case_step",
+  "case_assigned",
+  "news",
+  "job_failed",
+  "kyc_expiry",
+  "sla_breach",
+  "import_done",
+] as const;
 export type NotificationType = (typeof notificationTypes)[number];
 
 export const notificationSchema = z.object({
@@ -19,7 +28,11 @@ export const notificationSchema = z.object({
   createdAt: z.string(),
 });
 export type AppNotification = z.infer<typeof notificationSchema>;
-export const notificationPageSchema = z.object({ items: z.array(notificationSchema), unread: z.number(), nextCursor: z.string().nullable() });
+export const notificationPageSchema = z.object({
+  items: z.array(notificationSchema),
+  unread: z.number(),
+  nextCursor: z.string().nullable(),
+});
 
 // ---------- Preferences and system settings ----------
 
@@ -41,7 +54,11 @@ export const defaultPreferences = (): Preferences => preferencesSchema.parse({})
 export const systemSettingsSchema = z.object({
   baseCurrency: z.enum(currencies),
   highRiskCountries: z.array(z.enum(countryCodes)).min(1, "errors.oneCountry"),
-  alertSlaHours: z.object({ HIGH: z.number().int().min(1).max(720), MEDIUM: z.number().int().min(1).max(720), LOW: z.number().int().min(1).max(720) }),
+  alertSlaHours: z.object({
+    HIGH: z.number().int().min(1).max(720),
+    MEDIUM: z.number().int().min(1).max(720),
+    LOW: z.number().int().min(1).max(720),
+  }),
 });
 export type SystemSettings = z.infer<typeof systemSettingsSchema>;
 
@@ -50,13 +67,24 @@ export const profileSchema = z.object({ name: z.string().trim().min(3, "errors.m
 export const passwordChangeSchema = z
   .object({
     current: z.string().min(1, "errors.required"),
-    next: z.string().min(10, "errors.min10").regex(/[A-Za-z]/, "errors.passwordLetters").regex(/\d/, "errors.passwordDigits"),
+    next: z
+      .string()
+      .min(10, "errors.min10")
+      .regex(/[A-Za-z]/, "errors.passwordLetters")
+      .regex(/\d/, "errors.passwordDigits"),
     confirm: z.string(),
   })
   .refine((v) => v.next === v.confirm, { path: ["confirm"], message: "errors.passwordMatch" })
   .refine((v) => v.next !== v.current, { path: ["next"], message: "errors.passwordSame" });
 
-export const sessionInfoRowSchema = z.object({ id: z.string(), userAgent: z.string().nullable(), ip: z.string().nullable(), createdAt: z.string(), lastSeenAt: z.string(), current: z.boolean() });
+export const sessionInfoRowSchema = z.object({
+  id: z.string(),
+  userAgent: z.string().nullable(),
+  ip: z.string().nullable(),
+  createdAt: z.string(),
+  lastSeenAt: z.string(),
+  current: z.boolean(),
+});
 
 // ---------- News ----------
 
@@ -74,7 +102,10 @@ export const newsInputSchema = z
     coverId: z.string().nullable(),
     attachmentIds: z.array(z.string()),
   })
-  .refine((v) => !v.expiresAt || new Date(v.expiresAt) > new Date(v.publishAt), { path: ["expiresAt"], message: "errors.expiryAfterPublish" });
+  .refine((v) => !v.expiresAt || new Date(v.expiresAt) > new Date(v.publishAt), {
+    path: ["expiresAt"],
+    message: "errors.expiryAfterPublish",
+  });
 export type NewsInput = z.infer<typeof newsInputSchema>;
 
 export const newsRowSchema = z.object({
@@ -150,13 +181,24 @@ export type ImportKind = (typeof importKinds)[number];
 /** Target fields per import kind; the column mapping step matches file headers to these. */
 export const importFields = {
   customers: [
-    { key: "name", required: true }, { key: "type", required: true }, { key: "country", required: true }, { key: "branchCode", required: true },
-    { key: "email", required: false }, { key: "phone", required: false }, { key: "riskScore", required: false },
+    { key: "name", required: true },
+    { key: "type", required: true },
+    { key: "country", required: true },
+    { key: "branchCode", required: true },
+    { key: "email", required: false },
+    { key: "phone", required: false },
+    { key: "riskScore", required: false },
   ],
   transactions: [
-    { key: "iban", required: true }, { key: "bookedAt", required: true }, { key: "amount", required: true }, { key: "currency", required: true },
-    { key: "direction", required: true }, { key: "channel", required: true }, { key: "counterpartyName", required: true },
-    { key: "counterpartyIban", required: false }, { key: "counterpartyCountry", required: true },
+    { key: "iban", required: true },
+    { key: "bookedAt", required: true },
+    { key: "amount", required: true },
+    { key: "currency", required: true },
+    { key: "direction", required: true },
+    { key: "channel", required: true },
+    { key: "counterpartyName", required: true },
+    { key: "counterpartyIban", required: false },
+    { key: "counterpartyCountry", required: true },
   ],
 } as const;
 
@@ -186,11 +228,18 @@ export const importValidateSchema = z.object({
   kind: z.enum(importKinds),
   fileName: z.string().min(1).max(200),
   mapping: z.record(z.string(), z.string()),
-  rows: z.array(z.record(z.string(), z.unknown())).min(1, "errors.noRows").max(5000, "errors.tooManyRows"),
+  rows: z
+    .array(z.record(z.string(), z.unknown()))
+    .min(1, "errors.noRows")
+    .max(5000, "errors.tooManyRows"),
 });
 export type ImportValidate = z.infer<typeof importValidateSchema>;
 
-export const importIssueSchema = z.object({ row: z.number(), field: z.string(), message: z.string() });
+export const importIssueSchema = z.object({
+  row: z.number(),
+  field: z.string(),
+  message: z.string(),
+});
 export const importBatchSchema = z.object({
   id: z.string(),
   kind: z.enum(importKinds),
@@ -233,10 +282,17 @@ export const userInputSchema = z.object({
 });
 export type UserInput = z.infer<typeof userInputSchema>;
 
-export const rolePermissionsSchema = z.object({ role: z.enum(roleKeys), permissions: z.array(z.string()) });
+export const rolePermissionsSchema = z.object({
+  role: z.enum(roleKeys),
+  permissions: z.array(z.string()),
+});
 
 export const branchInputSchema = z.object({
-  code: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/, "errors.branchCode"),
+  code: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z]{3}$/, "errors.branchCode"),
   city: z.string().trim().min(2, "errors.required"),
   country: z.enum(countryCodes),
   timezone: z.string().min(3),
@@ -244,13 +300,45 @@ export const branchInputSchema = z.object({
 });
 export type BranchInput = z.infer<typeof branchInputSchema>;
 
-export const auditRowSchema = z.object({ id: z.string(), userName: z.string().nullable(), action: z.string(), entity: z.string(), entityId: z.string().nullable(), data: z.unknown(), createdAt: z.string() });
+export const auditRowSchema = z.object({
+  id: z.string(),
+  userName: z.string().nullable(),
+  action: z.string(),
+  entity: z.string(),
+  entityId: z.string().nullable(),
+  data: z.unknown(),
+  createdAt: z.string(),
+});
 export const auditPageSchema = z.object({ rows: z.array(auditRowSchema), rowCount: z.number() });
 
 export const adminReferenceSchema = z.object({
-  regions: z.array(z.object({ id: z.string(), code: z.string(), name: z.string(), branches: z.array(z.object({ id: z.string(), code: z.string(), city: z.string(), country: z.string(), timezone: z.string(), users: z.number(), customers: z.number() })) })),
+  regions: z.array(
+    z.object({
+      id: z.string(),
+      code: z.string(),
+      name: z.string(),
+      branches: z.array(
+        z.object({
+          id: z.string(),
+          code: z.string(),
+          city: z.string(),
+          country: z.string(),
+          timezone: z.string(),
+          users: z.number(),
+          customers: z.number(),
+        }),
+      ),
+    }),
+  ),
   clearanceLevels: z.array(z.object({ rank: z.number(), name: z.string() })),
-  roles: z.array(z.object({ key: z.enum(roleKeys), name: z.string(), permissions: z.array(z.string()), users: z.number() })),
+  roles: z.array(
+    z.object({
+      key: z.enum(roleKeys),
+      name: z.string(),
+      permissions: z.array(z.string()),
+      users: z.number(),
+    }),
+  ),
 });
 export type AdminReference = z.infer<typeof adminReferenceSchema>;
 
@@ -260,11 +348,35 @@ export const reportRangeSchema = z.object({ from: z.string().date(), to: z.strin
 export type ReportRange = z.infer<typeof reportRangeSchema>;
 
 export const reportsSchema = z.object({
-  flows: z.array(z.object({ from: z.string(), to: z.string(), amount: z.number(), count: z.number() })),
+  flows: z.array(
+    z.object({ from: z.string(), to: z.string(), amount: z.number(), count: z.number() }),
+  ),
   heatmap: z.array(z.object({ weekday: z.number(), hour: z.number(), count: z.number() })),
-  workload: z.array(z.object({ name: z.string(), role: z.string(), openAlerts: z.number(), decided: z.number(), medianHours: z.number().nullable(), openCases: z.number() })),
-  funnel: z.object({ alerts: z.number(), reviewed: z.number(), escalated: z.number(), cases: z.number(), reported: z.number() }),
-  countries: z.array(z.object({ country: z.string(), inAmount: z.number(), outAmount: z.number(), highRisk: z.boolean() })),
+  workload: z.array(
+    z.object({
+      name: z.string(),
+      role: z.string(),
+      openAlerts: z.number(),
+      decided: z.number(),
+      medianHours: z.number().nullable(),
+      openCases: z.number(),
+    }),
+  ),
+  funnel: z.object({
+    alerts: z.number(),
+    reviewed: z.number(),
+    escalated: z.number(),
+    cases: z.number(),
+    reported: z.number(),
+  }),
+  countries: z.array(
+    z.object({
+      country: z.string(),
+      inAmount: z.number(),
+      outAmount: z.number(),
+      highRisk: z.boolean(),
+    }),
+  ),
 });
 export type Reports = z.infer<typeof reportsSchema>;
 

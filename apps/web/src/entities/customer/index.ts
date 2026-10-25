@@ -1,1 +1,8 @@
-export { checkEmail, checkIban, customersQueryOptions, useCreateCustomer, useCustomer, useUpdateKyc } from "./api/customer";
+export {
+  checkEmail,
+  checkIban,
+  customersQueryOptions,
+  useCreateCustomer,
+  useCustomer,
+  useUpdateKyc,
+} from "./api/customer";

@@ -6,8 +6,24 @@ import { appError } from "../../shared/errors";
 const dbError = (cause: unknown) => appError.unexpected("Database error", cause);
 
 export type Range = { from: Date; to: Date; minAmount: number };
-export type TransferRow = { source: string; target: string; amount: number; count: bigint; last_at: Date };
-export type ExternalRow = { account_id: string; iban: string; name: string; country: string; out_amount: number; in_amount: number; count: bigint; last_at: Date; rank: bigint };
+export type TransferRow = {
+  source: string;
+  target: string;
+  amount: number;
+  count: bigint;
+  last_at: Date;
+};
+export type ExternalRow = {
+  account_id: string;
+  iban: string;
+  name: string;
+  country: string;
+  out_amount: number;
+  in_amount: number;
+  count: bigint;
+  last_at: Date;
+  rank: bigint;
+};
 
 /** Hard cap on the accounts one walk may return; the UI asks the user to narrow the filters. */
 export const NODE_LIMIT = 250;
@@ -20,7 +36,10 @@ export const createNetworkRepository = (db: Db) => ({
         where: {
           ...(center.startsWith("CU-") ? {} : { id: center }),
           branch: { regionId: { in: s.regionIds } },
-          customer: { clearanceRank: { lte: s.clearanceRank }, ...(center.startsWith("CU-") ? { code: center } : {}) },
+          customer: {
+            clearanceRank: { lte: s.clearanceRank },
+            ...(center.startsWith("CU-") ? { code: center } : {}),
+          },
         },
         select: { id: true },
       }),
@@ -58,9 +77,26 @@ export const createNetworkRepository = (db: Db) => ({
       db.account.findMany({
         where: { id: { in: ids } },
         select: {
-          id: true, iban: true, currency: true, status: true,
+          id: true,
+          iban: true,
+          currency: true,
+          status: true,
           branch: { select: { regionId: true } },
-          customer: { select: { id: true, code: true, name: true, type: true, country: true, riskScore: true, pep: true, clearanceRank: true, shareholders: { select: { id: true, name: true, type: true, country: true, sharePercent: true } } } },
+          customer: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+              type: true,
+              country: true,
+              riskScore: true,
+              pep: true,
+              clearanceRank: true,
+              shareholders: {
+                select: { id: true, name: true, type: true, country: true, sharePercent: true },
+              },
+            },
+          },
           _count: { select: { alerts: { where: { status: { in: ["NEW", "IN_REVIEW"] } } } } },
         },
       }),

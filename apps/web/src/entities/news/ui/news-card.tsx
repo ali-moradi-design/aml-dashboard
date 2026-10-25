@@ -23,9 +23,12 @@ export const NewsCard = ({ post, compact }: { post: NewsRow; compact?: boolean }
       {!compact ? (
         post.coverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- cover served by the API
-          <img src={apiUrl(post.coverUrl)} alt="" className="aspect-[16/7] w-full object-cover" />
+          <img src={apiUrl(post.coverUrl)} alt="" className="aspect-16/7 w-full object-cover" />
         ) : (
-          <div className="grid aspect-[16/7] w-full place-items-center bg-muted text-text-secondary" aria-hidden>
+          <div
+            className="grid aspect-16/7 w-full place-items-center bg-muted text-text-secondary"
+            aria-hidden
+          >
             <Megaphone className="size-8" strokeWidth={1.25} />
           </div>
         )
@@ -35,14 +38,27 @@ export const NewsCard = ({ post, compact }: { post: NewsRow; compact?: boolean }
           {post.pinned ? <PinnedBadge /> : null}
           {post.readCount !== null ? <NewsStateBadge state={post.state} /> : null}
           <span className="text-xs text-text-secondary">
-            {post.authorName} · <time dateTime={post.publishAt}>{formatDate(post.publishAt, locale)}</time>
+            {post.authorName} ·{" "}
+            <time dateTime={post.publishAt}>{formatDate(post.publishAt, locale)}</time>
           </span>
         </div>
-        <h2 className={cn("flex items-start gap-2 text-base text-text group-hover:text-link", !post.read && "text-heading")}>
-          {!post.read ? <span className="mt-2 size-2 shrink-0 rounded-full bg-brand" aria-label={t("news.unread")} /> : null}
+        <h2
+          className={cn(
+            "flex items-start gap-2 text-base text-text group-hover:text-link",
+            !post.read && "text-heading",
+          )}
+        >
+          {!post.read ? (
+            <span
+              className="mt-2 size-2 shrink-0 rounded-full bg-brand"
+              aria-label={t("news.unread")}
+            />
+          ) : null}
           <span className="line-clamp-2">{post.title}</span>
         </h2>
-        {!compact ? <p className="line-clamp-3 text-sm text-text-secondary">{post.excerpt}</p> : null}
+        {!compact ? (
+          <p className="line-clamp-3 text-sm text-text-secondary">{post.excerpt}</p>
+        ) : null}
         {post.readCount !== null && post.audienceSize !== null && post.state !== "scheduled" ? (
           <div className="mt-auto pt-2">
             <ReadMeter read={post.readCount} total={post.audienceSize} />
