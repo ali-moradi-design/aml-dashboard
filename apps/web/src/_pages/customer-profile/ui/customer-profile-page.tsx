@@ -5,7 +5,7 @@ import { Share2 } from "lucide-react";
 import type Highcharts from "highcharts";
 import { useTranslation } from "react-i18next";
 import { formatIban } from "@aml/shared";
-import { EditKycDialog } from "@/features/edit-kyc";
+import { EditKycDialog } from "./edit-kyc-dialog";
 import { RiskBadge, StatusBadge } from "@/entities/alert";
 import { CaseStatusBadge } from "@/entities/case";
 import { useCustomer } from "@/entities/customer";

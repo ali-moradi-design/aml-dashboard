@@ -3,8 +3,8 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertFilters, type AlertFilterValues } from "@/features/alert-filters";
-import { AlertsGrid } from "@/widgets/alerts-grid";
+import { AlertFilters, type AlertFilterValues } from "./alert-filters";
+import { AlertsGrid } from "./alerts-grid";
 import { useLocale } from "@/shared/i18n/use-locale";
 import { formatNumber } from "@/shared/lib/format";
 import { PageHeader } from "@/shared/ui/panel";

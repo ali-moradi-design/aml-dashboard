@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { criteriaGroupSchema, emptyCriteria, type CriteriaGroup } from "@aml/shared";
 import { CriteriaBuilder, countConditions } from "@/features/criteria-builder";
-import { TransactionsGrid } from "@/widgets/transactions-grid";
+import { TransactionsGrid } from "./transactions-grid";
 import { useLocale } from "@/shared/i18n/use-locale";
 import { formatNumber } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";

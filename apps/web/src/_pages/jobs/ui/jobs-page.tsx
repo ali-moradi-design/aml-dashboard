@@ -4,7 +4,7 @@ import { History, Play } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { JobRow, JobRun } from "@aml/shared";
-import { cronPresets, JobScheduleDialog } from "@/features/job-schedule";
+import { cronPresets, JobScheduleDialog } from "./job-schedule-dialog";
 import { useJobRuns, useJobs, useRunJob } from "@/entities/job";
 import { useLocale } from "@/shared/i18n/use-locale";
 import { formatDateTime, formatNumber, formatPercent, formatRelative } from "@/shared/lib/format";

@@ -1,4 +1,4 @@
-import { AppLayout } from "@/widgets/app-layout";
+import { AppLayout } from "@/_app/layout";
 
 export default function SignedInLayout({ children }: { children: React.ReactNode }) {
   return <AppLayout>{children}</AppLayout>;

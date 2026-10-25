@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, FolderPlus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { criteriaGroupSchema, type TransactionRow } from "@aml/shared";
-import { DecideAlertForm } from "@/features/decide-alert";
+import { DecideAlertForm } from "./decide-alert-form";
 import { RiskBadge, StatusBadge, useAlert } from "@/entities/alert";
 import { CriteriaView, useRuleText } from "@/entities/rule";
 import { useCan } from "@/entities/session";

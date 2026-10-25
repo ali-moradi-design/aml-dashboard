@@ -1,3 +1,3 @@
 export { CriteriaView } from "./ui/criteria-view";
 export { useRuleText } from "./lib/use-rule-text";
-export * from "./api";
+export { useRule, useRules, useSaveRule } from "./api/rules";

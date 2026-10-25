@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import { CaseWizard } from "@/features/case-create";
+import { CaseWizard } from "./case-wizard";
 import { PageHeader } from "@/shared/ui/panel";
 
 export const CaseNewPage = ({ fromAlert }: { fromAlert?: string }) => {

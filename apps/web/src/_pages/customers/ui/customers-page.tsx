@@ -5,7 +5,7 @@ import { Search, UserPlus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useCan } from "@/entities/session";
-import { CustomersGrid } from "@/widgets/customers-grid";
+import { CustomersGrid } from "./customers-grid";
 import { useHref, useLocale } from "@/shared/i18n/use-locale";
 import { formatNumber } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";

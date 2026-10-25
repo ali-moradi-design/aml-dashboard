@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { validateWorkflow, type WorkflowGraph, type WorkflowVersionRow } from "@aml/shared";
-import { WorkflowDesigner } from "@/features/workflow-designer";
+import { WorkflowDesigner } from "./workflow-designer";
 import { useCan } from "@/entities/session";
 import { useCreateWorkflowDraft, useDiscardWorkflowDraft, usePublishWorkflow, useSaveWorkflowDraft, useWorkflow, useWorkflowVersion } from "@/entities/workflow";
 import { isHttpError } from "@/shared/api";

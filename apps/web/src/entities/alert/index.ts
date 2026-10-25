@@ -1,3 +1,3 @@
-export * from "./api/requests";
-export * from "./api/queries";
+export { getAlert } from "./api/requests";
+export { alertsQueryOptions, useAlert, useDecideAlert } from "./api/queries";
 export { RiskBadge, StatusBadge } from "./ui/badges";

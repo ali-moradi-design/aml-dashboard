@@ -2,7 +2,7 @@
 
 import { useTranslation } from "react-i18next";
 import type { ImportBatch } from "@aml/shared";
-import { ImportWizard } from "@/features/import-wizard";
+import { ImportWizard } from "./import-wizard";
 import { useImports } from "@/entities/import";
 import { useLocale } from "@/shared/i18n/use-locale";
 import { formatDateTime, formatNumber, formatRelative } from "@/shared/lib/format";

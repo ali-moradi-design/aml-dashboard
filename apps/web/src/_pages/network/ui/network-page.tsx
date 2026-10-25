@@ -10,7 +10,8 @@ import { useTranslation } from "react-i18next";
 import { formatIban, type NetworkEdge, type NetworkGraph, type NetworkNode, type NetworkQuery } from "@aml/shared";
 import { customersQueryOptions } from "@/entities/customer";
 import { networkQueryOptions, useFeaturedCustomer, useNetwork, useNetworkPath } from "@/entities/network";
-import { detectClusters, mergeGraphs, type CanvasHandle } from "@/widgets/network-graph";
+import { detectClusters, mergeGraphs } from "../model/graph";
+import type { CanvasHandle } from "./network-canvas";
 import { useHref, useLocale } from "@/shared/i18n/use-locale";
 import { formatCompact, formatMoney, formatNumber } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
@@ -20,7 +21,7 @@ import { Segmented } from "@/shared/ui/segmented";
 import { Skeleton } from "@/shared/ui/skeleton";
 
 // WebGL needs the browser; the canvas is never rendered on the server.
-const NetworkCanvas = dynamic(() => import("@/widgets/network-graph/ui/network-canvas").then((m) => m.NetworkCanvas), {
+const NetworkCanvas = dynamic(() => import("./network-canvas").then((m) => m.NetworkCanvas), {
   ssr: false,
   loading: () => <Skeleton className="h-full w-full" />,
 });

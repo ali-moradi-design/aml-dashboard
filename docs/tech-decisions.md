@@ -28,10 +28,14 @@ Decided with the author on 2026-10-17. Earlier decisions from `brief.md`
 ## Frontend (`apps/web`)
 
 - Architecture: Feature-Sliced Design (FSD). Layers from top to bottom:
-  `_app` (providers, global styles, theme) → `_pages` → `widgets` →
+  `_app` (providers, global styles, theme, signed-in layout) → `_pages` →
   `features` → `entities` → `shared` (UI kit, API client, lib, config).
   A layer imports only from layers below it; each slice exposes a public
-  `index.ts`. The `app` and `pages` layers carry an underscore so they do not
+  `index.ts` with explicit named exports, and code lives in segments
+  (`ui`, `api`, `model`, `lib`). Pages first: code used by one page stays in
+  that page; a feature exists only when several pages reuse it. No widgets
+  layer. The one cross-import between entities goes through `@x`
+  (`entities/session/@x/settings.ts`). The `app` and `pages` layers carry an underscore so they do not
   clash with Next.js folders (fsd.how guide for Next.js). Next.js routes live in
   the root `app/` folder, stay thin and render FSD pages.
 - Styling: Tailwind CSS (required), logical classes such as `ms-*`, `me-*`

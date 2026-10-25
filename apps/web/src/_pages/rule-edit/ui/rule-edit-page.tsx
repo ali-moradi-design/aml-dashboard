@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import { RuleForm } from "@/features/rule-form";
+import { RuleForm } from "./rule-form";
 import { useRule, useRuleText } from "@/entities/rule";
 import { useCan } from "@/entities/session";
 import { Panel, PageHeader } from "@/shared/ui/panel";

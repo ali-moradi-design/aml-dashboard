@@ -46,7 +46,7 @@ for translations.
   High-risk countries are the fictional XA, XB, XC. This is why there is no world map
   in reports.
 - Author preferences: pnpm; Tailwind with theme tokens; FSD in `apps/web/src`
-  (app, pages, widgets, features, entities, shared); React Query with one request
+  (_app, _pages, features, entities, shared); React Query with one request
   function and one hook per API call; next-themes; Express API in layers
   (routes, handlers or inline handle(), services, repositories), factory functions,
   neverthrow results, no classes.
@@ -99,10 +99,10 @@ private notes, live updates), rules (list, detail, rule builder). Tables:
 Release 3:
 - Account network (`/network`): `apps/api/src/modules/network` (WITH RECURSIVE walk,
   shortest path, masking of accounts outside the user's scope),
-  `apps/web/src/widgets/network-graph` (Sigma.js 4 + graphology, ForceAtlas2, Louvain).
+  `apps/web/src/_pages/network` (Sigma.js 4 + graphology, ForceAtlas2, Louvain).
 - Workflow (`/workflow`): shared engine `packages/shared/src/workflow.ts`
   (validation, available actions, SLA), defaults in `workflow-defaults.ts`, API
-  `apps/api/src/modules/workflows`, designer `apps/web/src/features/workflow-designer`
+  `apps/api/src/modules/workflows`, designer `apps/web/src/_pages/workflow`
   (React Flow), case page diagram `apps/web/src/_pages/case-detail/ui/case-workflow.tsx`.
   Versions: draft, published, archived; open cases keep their version.
 - My work (`/my-work`): `apps/api/src/modules/my-work`, same engine as the case page.
@@ -119,10 +119,10 @@ Release 4:
 - Entities (one request and one hook per call): `entities/news`, `job`, `import`, `report`,
   `settings` (also `usePreferences`), `admin`, `search`, `notification`.
 - Screens: news list, detail (read on open, readers for managers), new and edit
-  (`pages/news*`, editor in `features/news-editor`); latest news on the overview
+  (`_pages/news*`, editor in `_pages/news-edit`); latest news on the overview
   (`pages/overview/ui/latest-news.tsx`); jobs (`pages/jobs`, schedule dialog with cron presets
-  and a browser-side next-runs preview in `features/job-schedule`); import wizard
-  (`features/import-wizard`: papaparse / `read-excel-file/browser`, auto-mapping, preview, server
+  and a browser-side next-runs preview in `_pages/jobs`); import wizard
+  (`_pages/import`: papaparse / `read-excel-file/browser`, auto-mapping, preview, server
   check with row errors, commit or discard, CSV template); reports (`pages/reports`: Sankey with
   prefixed node ids, 24-hour heatmap, workload bars, funnel, countries table; Excel via
   `download()`, PDF via the print stylesheet in `globals.css`); settings (`pages/settings`,

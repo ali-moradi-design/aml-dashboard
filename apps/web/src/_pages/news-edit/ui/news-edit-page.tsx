@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import { NewsEditor } from "@/features/news-editor";
+import { NewsEditor } from "./news-editor";
 import { useNewsPost } from "@/entities/news";
 import { isHttpError } from "@/shared/api";
 import { PageHeader, Panel } from "@/shared/ui/panel";
