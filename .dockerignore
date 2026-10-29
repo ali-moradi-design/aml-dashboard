@@ -1,0 +1,15 @@
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+**/storage
+**/.env
+**/.env.*
+apps/api/src/generated
+.git
+.github
+.claude
+.vscode
+graphify-out
+docs
+deploy

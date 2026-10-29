@@ -1,0 +1,75 @@
+# Builds the images after CI passed on main, then deploy-kit deploys them:
+# the server pulls aml-dashboard-{api,web}:<sha> and restarts (deploy-app).
+name: Docker
+
+on:
+  # Build only after CI passed on main (works also when main is not protected).
+  workflow_run: # zizmor: ignore[dangerous-triggers] only same-repo pushes to main pass the `if` below
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: docker-main
+  cancel-in-progress: false
+
+jobs:
+  images:
+    name: Build and push images
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write # push to ghcr.io
+    outputs:
+      sha: ${{ steps.sha.outputs.sha }}
+    env:
+      REGISTRY: ghcr.io/ali-moradi-design
+    steps:
+      - id: sha
+        env:
+          SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.sha.outputs.sha }}
+          persist-credentials: false
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push the API image
+        env:
+          SHA: ${{ steps.sha.outputs.sha }}
+        run: |
+          docker build -f apps/api/Dockerfile -t "$REGISTRY/aml-dashboard-api:$SHA" .
+          docker push "$REGISTRY/aml-dashboard-api:$SHA"
+      # NEXT_PUBLIC_API_URL is public: it goes into the browser bundle and the CSP
+      - name: Build and push the web image
+        env:
+          SHA: ${{ steps.sha.outputs.sha }}
+        run: |
+          docker build -f apps/web/Dockerfile \
+            --build-arg NEXT_PUBLIC_API_URL=https://aml-dashboard.ali-moradi-develop.com/api \
+            -t "$REGISTRY/aml-dashboard-web:$SHA" .
+          docker push "$REGISTRY/aml-dashboard-web:$SHA"
+
+  deploy:
+    needs: images
+    uses: ali-moradi-design/deploy-kit/.github/workflows/deploy-app.yml@ed4a1649d523120609b56471f232facb73e32fb0 # v1.0.0
+    # the deploy job needs the environment's SSH secrets; deploy-kit is ours
+    # and pinned to a SHA, so passing them on is safe
+    secrets: inherit # zizmor: ignore[secrets-inherit]
+    with:
+      image-tag: ${{ needs.images.outputs.sha }}
+      site-url: https://aml-dashboard.ali-moradi-develop.com
+      smoke-paths: /en/login /api/health

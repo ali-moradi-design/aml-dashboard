@@ -185,6 +185,18 @@ English text comes from the API). Plural keys (`_one`/`_other`) count as present
   `apps/web/next.config.ts`. Inline scripts stay allowed because nonces would need fully
   dynamic rendering.
 
+## Deployment
+
+Live at https://aml-dashboard.ali-moradi-develop.com. CI (`.github/workflows/ci.yml`, required
+check `ci`) runs on every PR; after it passes on `main`, `docker.yml` builds the API and web
+images and deploys them to the VPS. Details, ports and memory limits: `deploy/README.md`.
+
+- The web app runs as `output: "standalone"` (only the build output is in the image).
+- In production the API is under `/api` on the same host (Nginx strips the prefix), so the
+  session cookie is shared; `shared/api/socket.ts` turns the path into the Socket.IO `path`.
+- `prisma` and `@faker-js/faker` are runtime dependencies: migrations run at start and the
+  nightly reset runs the seed in the container.
+
 ## Remaining ideas (not planned)
 
 - Persian font is Yekan Bakh (commercial, all eight weights). The author confirmed its
@@ -194,7 +206,6 @@ English text comes from the API). Plural keys (`_one`/`_other`) count as present
   would fix that.
 - Playwright tests for RTL layouts and the main flows (planned in tech decisions, not written).
 - Print stylesheet keeps the current theme; printing from the dark theme gives dark cards.
-- Deployment (Docker Compose, Nginx, GitHub Actions) as described in `docs/tech-decisions.md`.
 - `appBar.notificationsSoon` is an unused key from release 1 and can be removed from all
   locale files.
 

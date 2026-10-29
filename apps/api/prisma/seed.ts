@@ -34,6 +34,9 @@ const f = base;
 const DEMO_PASSWORD = "demo1234";
 const DAYS = 90;
 const TX_COUNT = 150_000;
+// Rows per createMany: small batches keep the seed's peak memory low (it also runs nightly in
+// the API container, see src/jobs/demo-reset.ts).
+const BATCH = 1000;
 const NOW = new Date();
 const DAY = 86_400_000;
 
@@ -828,8 +831,8 @@ async function main() {
     }
   }
 
-  for (let i = 0; i < tx.length; i += 5000)
-    await db.transaction.createMany({ data: tx.slice(i, i + 5000) as never });
+  for (let i = 0; i < tx.length; i += BATCH)
+    await db.transaction.createMany({ data: tx.slice(i, i + BATCH) as never });
   console.log(`transactions ${tx.length}`);
 
   // alerts: every flagged transaction plus noisy false positives from normal traffic
@@ -912,8 +915,8 @@ async function main() {
       createdAt,
     };
   });
-  for (let i = 0; i < alerts.length; i += 5000)
-    await db.alert.createMany({ data: alerts.slice(i, i + 5000) as never });
+  for (let i = 0; i < alerts.length; i += BATCH)
+    await db.alert.createMany({ data: alerts.slice(i, i + BATCH) as never });
   console.log(`alerts ${alerts.length}`);
 
   // cases built from escalated alerts

@@ -181,6 +181,9 @@ importers:
       '@aml/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@faker-js/faker':
+        specifier: ^10.6.0
+        version: 10.6.0
       '@prisma/adapter-pg':
         specifier: 7.10.1
         version: 7.10.1
@@ -220,6 +223,9 @@ importers:
       pg-boss:
         specifier: ^12.38.0
         version: 12.38.0(@opentelemetry/api@1.9.1)
+      prisma:
+        specifier: 7.10.1
+        version: 7.10.1(@types/node@26.6.5)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(magicast@0.5.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@5.9.3)
       sanitize-html:
         specifier: ^2.18.1
         version: 2.18.1
@@ -230,9 +236,6 @@ importers:
         specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
-      '@faker-js/faker':
-        specifier: ^10.6.0
-        version: 10.6.0
       '@types/cookie-parser':
         specifier: ^1.4.10
         version: 1.4.10(@types/express@5.0.6)
@@ -254,9 +257,6 @@ importers:
       '@types/supertest':
         specifier: ^7.2.1
         version: 7.2.1
-      prisma:
-        specifier: 7.10.1
-        version: 7.10.1(@types/node@26.6.5)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(magicast@0.5.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@5.9.3)
       supertest:
         specifier: ^7.3.1
         version: 7.3.1(supports-color@7.2.0)

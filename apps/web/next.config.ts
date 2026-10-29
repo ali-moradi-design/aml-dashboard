@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV === "development";
@@ -33,6 +34,13 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Production runs `.next/standalone` in a container (see deploy/). The monorepo root is the
+  // tracing root so the shared package and hoisted dependencies are copied in.
+  output: "standalone",
+  outputFileTracingRoot: fileURLToPath(new URL("../..", import.meta.url)),
+  poweredByHeader: false,
+  // Nginx on the host compresses responses.
+  compress: false,
   headers: async () => [{ source: "/:path*", headers: securityHeaders }],
   cacheComponents: true,
   partialPrefetching: true,
