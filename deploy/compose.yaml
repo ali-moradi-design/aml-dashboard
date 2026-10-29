@@ -1,0 +1,86 @@
+# /srv/apps/aml-dashboard/compose.yaml: web + api + their own Postgres.
+# Images are built in CI (.github/workflows/docker.yml) and only pulled here.
+# .env next to this file holds IMAGE_TAG (the commit SHA to run) and DB_PASSWORD
+# (see .env.example). deploy-app changes only the IMAGE_TAG line.
+# Nginx on the host sends /api/ (REST and Socket.IO) to the api and everything else to web,
+# so both share one origin and the session cookie.
+name: aml-dashboard
+
+services:
+  db:
+    image: postgres:17.6-alpine
+    environment:
+      POSTGRES_USER: aml
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is not set}
+      POSTGRES_DB: aml
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks: [backend]
+    # no published ports: only the api reaches the database
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aml -d aml"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    shm_size: 128m
+    mem_limit: 384m
+    restart: unless-stopped
+
+  api:
+    image: ghcr.io/ali-moradi-design/aml-dashboard-api:${IMAGE_TAG:?IMAGE_TAG is not set}
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://aml:${DB_PASSWORD}@db:5432/aml
+      WEB_ORIGIN: https://aml-dashboard.ali-moradi-develop.com
+      STORAGE_DIR: /app/storage
+      # one proxy (host Nginx) in front: req.ip is the visitor for the per-IP upload limit
+      TRUST_PROXY: 1
+      # nightly demo reset inside the API (pg-boss schedule): fresh data, no uploads
+      DEMO_RESET_CRON: "0 3 * * *"
+      DEMO_RESET_TZ: UTC
+      # Prisma must not phone home or write caches on a read-only disk
+      CHECKPOINT_DISABLE: "1"
+      # a fixed heap makes the garbage collector work harder instead of growing: the seed
+      # (nightly reset, ~159k transactions) then peaks at ~700 MB instead of ~1.7 GB
+      NODE_OPTIONS: --max-old-space-size=512
+    volumes:
+      - uploads:/app/storage
+    networks: [backend, frontend]
+    # Nginx on the host proxies /api/ to this; Docker bypasses ufw, so loopback only
+    ports:
+      - "127.0.0.1:3107:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+    # the image's HEALTHCHECK calls /health; migrations run at start
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    # the nightly reset runs the seed in a child process next to the API
+    mem_limit: 1g
+    restart: unless-stopped
+
+  web:
+    image: ghcr.io/ali-moradi-design/aml-dashboard-web:${IMAGE_TAG:?IMAGE_TAG is not set}
+    # Nginx on the host proxies to this; loopback only
+    ports:
+      - "127.0.0.1:3106:3000"
+    networks: [frontend]
+    depends_on:
+      api:
+        condition: service_healthy
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 256m
+    restart: unless-stopped
+
+networks:
+  backend:
+    internal: true # the database has no internet and nothing outside reaches it
+  frontend: {}
+
+volumes:
+  db-data:
+  uploads:

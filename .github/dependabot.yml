@@ -1,0 +1,9 @@
+# Keeps the pinned action SHAs (and the deploy-kit pin) up to date.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7

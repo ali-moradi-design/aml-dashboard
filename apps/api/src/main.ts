@@ -72,6 +72,7 @@ const scheduler = createScheduler(env.DATABASE_URL, db, runner, demoReset);
 
 const app = createApp({
   webOrigin: env.WEB_ORIGIN,
+  trustProxy: env.TRUST_PROXY,
   routes: {
     "/health": createHealthModule({ db }),
     "/auth": auth.router,

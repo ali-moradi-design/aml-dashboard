@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@aml/shared": "workspace:*",
+    "@faker-js/faker": "^10.6.0",
     "@prisma/adapter-pg": "7.10.1",
     "@prisma/client": "^7.10.1",
     "argon2": "^0.45.1",
@@ -29,12 +30,12 @@
     "multer": "^2.4.0",
     "neverthrow": "^8.2.0",
     "pg-boss": "^12.38.0",
+    "prisma": "7.10.1",
     "sanitize-html": "^2.18.1",
     "socket.io": "^4.8.4",
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@faker-js/faker": "^10.6.0",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
@@ -42,7 +43,6 @@
     "@types/node": "^26.6.5",
     "@types/sanitize-html": "^2.16.2",
     "@types/supertest": "^7.2.1",
-    "prisma": "7.10.1",
     "supertest": "^7.3.1",
     "tsup": "^9.0.0",
     "tsx": "^4.23.15",
