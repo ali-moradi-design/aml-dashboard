@@ -66,6 +66,9 @@ services:
     environment:
       # server rendering loads the signed-in user straight from the api container (no Nginx hop)
       API_INTERNAL_URL: http://api:4000
+      # server rendering of the signed-in app grows the heap; without a cap Node used ~375 MB under
+      # load (above mem_limit). Capped at 128 MB it stayed near 220 MB RSS at ~50 full page loads/s.
+      NODE_OPTIONS: --max-old-space-size=128
     # Nginx on the host proxies to this; loopback only
     ports:
       - "127.0.0.1:3106:3000"
