@@ -104,6 +104,8 @@ const createRenderer = (
     settings: {
       enableNodeDrag: true,
       allowInvalidContainer: true,
+      // Sigma 4 measures node sizes in graph units by default, which makes them huge; keep them in pixels.
+      itemSizesReference: "screen",
       labelRenderedSizeThreshold: 7,
       labelDensity: 0.6,
       minCameraRatio: 0.05,

@@ -18,6 +18,8 @@ import { cn } from "@/shared/lib/utils";
 import { Note } from "@/shared/ui/panel";
 
 const nodeTypes = { step: StepNode };
+/** Compact cards are narrower than the designer's, so pull the columns closer to keep the diagram readable. */
+const X_SCALE = 0.75;
 const edgeTypes = { transition: TransitionEdge };
 
 /** Steps and moves this case has been through, read from its event log. */
@@ -41,21 +43,33 @@ export const CaseWorkflow = ({ detail }: { detail: CaseDetail }) => {
   const { workflow: wf, events } = detail;
   const { steps: visited, moves } = useMemo(() => historyOf(events), [events]);
 
+  const next = useMemo(
+    () => new Set(wf.graph.transitions.filter((tr) => tr.from === wf.step).map((tr) => tr.to)),
+    [wf],
+  );
+
   const nodes = useMemo<StepNodeType[]>(
     () =>
       wf.graph.steps.map((s) => ({
         id: s.id,
         type: "step",
-        position: s.position,
+        position: { x: s.position.x * X_SCALE, y: s.position.y },
         draggable: false,
         selectable: false,
         data: {
           step: s,
           compact: true,
-          state: s.id === wf.step ? "current" : visited.has(s.id) ? "visited" : "idle",
+          state:
+            s.id === wf.step
+              ? "current"
+              : visited.has(s.id)
+                ? "visited"
+                : next.has(s.id)
+                  ? "next"
+                  : "idle",
         },
       })),
-    [wf, visited],
+    [wf, visited, next],
   );
   const edges = useMemo<TransitionEdgeType[]>(
     () =>
@@ -86,7 +100,7 @@ export const CaseWorkflow = ({ detail }: { detail: CaseDetail }) => {
 
   return (
     <div className="flex flex-col gap-3">
-      <div dir="ltr" className="h-50 overflow-hidden rounded-md border border-border bg-muted/40">
+      <div dir="ltr" className="h-90 overflow-hidden rounded-md border border-border bg-muted/40">
         <ReactFlowProvider>
           <ReactFlow
             nodes={nodes}
@@ -94,11 +108,14 @@ export const CaseWorkflow = ({ detail }: { detail: CaseDetail }) => {
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             fitView
-            fitViewOptions={{ padding: 0.12 }}
+            fitViewOptions={{ padding: 0.08, maxZoom: 1.2 }}
+            minZoom={0.3}
+            maxZoom={2}
             nodesDraggable={false}
             nodesConnectable={false}
             elementsSelectable={false}
             zoomOnScroll={false}
+            zoomOnDoubleClick={false}
             preventScrolling={false}
             proOptions={{ hideAttribution: true }}
             aria-label={t("workflow.caseDiagram")}
