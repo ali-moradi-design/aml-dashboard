@@ -15,8 +15,8 @@ export type StepNodeData = {
   invalid?: boolean;
   /** Open cases waiting in this step. */
   load?: number;
-  /** On the case page: where the case is and where it has been. */
-  state?: "current" | "visited" | "idle";
+  /** On the case page: where the case is, where it has been and where it can go next. */
+  state?: "current" | "visited" | "next" | "idle";
   compact?: boolean;
 };
 export type StepNodeType = Node<StepNodeData, "step">;
@@ -49,7 +49,8 @@ export const StepNode = memo(function StepNode({ data, selected }: NodeProps<Ste
             ? "border-risk-high ring-2 ring-risk-high/20"
             : "border-border",
         state === "current" && "border-brand ring-4 ring-brand/25",
-        dim && "opacity-45",
+        dim && "opacity-60",
+        state === "next" && "border-dashed border-brand/60",
       )}
     >
       <span
