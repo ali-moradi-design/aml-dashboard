@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { loginSchema, type LoginInput } from "@aml/shared";
@@ -37,10 +37,21 @@ const demoAccounts = [
   { role: "ADMIN", name: "James Carter", city: "London", email: "james.carter@northbank.example" },
 ] as const;
 
+/**
+ * The `next` query parameter, if it is a path on this site. Read at submit time rather than with
+ * useSearchParams, so the page has no request data and the whole form is in the static HTML.
+ * Only local paths are accepted: `?next=https://other.site` must not send a signed-in user away.
+ */
+const nextPath = () => {
+  const next = new URLSearchParams(window.location.search).get("next");
+  return next && next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/\\")
+    ? next
+    : null;
+};
+
 export const LoginPage = () => {
   const { t } = useTranslation();
   const router = useRouter();
-  const params = useSearchParams();
   const href = useHref();
   const login = useLogin();
   const qc = useQueryClient();
@@ -53,7 +64,7 @@ export const LoginPage = () => {
   const submit = (values: LoginInput) =>
     login.mutate(values, {
       onSuccess: async () => {
-        const next = params?.get("next");
+        const next = nextPath();
         if (next) return router.replace(next);
         const settings = await qc
           .fetchQuery({ queryKey: settingsKeys.me(), queryFn: getMySettings })
