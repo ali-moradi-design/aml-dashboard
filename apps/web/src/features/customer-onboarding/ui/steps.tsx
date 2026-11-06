@@ -22,12 +22,16 @@ const SelectField = ({
   options,
   placeholder,
   onChange,
+  loading,
 }: {
   name: keyof F & string;
   options: Array<{ value: string; label: string }>;
   placeholder?: string;
   onChange?: (v: string) => void;
+  /** Options are still loading: the select is disabled and says so. */
+  loading?: boolean;
 }) => {
+  const { t } = useTranslation();
   const { control, formState } = useFormContext<F>();
   return (
     <Controller
@@ -40,9 +44,14 @@ const SelectField = ({
             field.onChange(v);
             onChange?.(v);
           }}
+          disabled={loading}
         >
-          <SelectTrigger {...a11y(name, formState.errors)} onBlur={field.onBlur}>
-            <SelectValue placeholder={placeholder} />
+          <SelectTrigger
+            {...a11y(name, formState.errors)}
+            onBlur={field.onBlur}
+            aria-busy={loading || undefined}
+          >
+            <SelectValue placeholder={loading ? t("common.loading") : placeholder} />
           </SelectTrigger>
           <SelectContent>
             {options.map((o) => (
@@ -197,7 +206,7 @@ export const ContactStep = () => {
     clearErrors,
     formState: { errors },
   } = useFormContext<F>();
-  const { data: ref } = useReference();
+  const { data: ref, isPending: refPending } = useReference();
   const country = useWatch({ control, name: "country" });
   const city = useWatch({ control, name: "city" });
   const countryOptions = useCountryOptions();
@@ -271,7 +280,7 @@ export const ContactStep = () => {
         errors={errors}
         required
         className="sm:col-span-2"
-        hint={country && !branches.length ? t("onboarding.noBranch") : undefined}
+        hint={country && !refPending && !branches.length ? t("onboarding.noBranch") : undefined}
       >
         <SelectField
           name="branchCode"
@@ -280,6 +289,7 @@ export const ContactStep = () => {
             label: `${t(`city.${b.city}`, { defaultValue: b.city })} (${b.code})`,
           }))}
           placeholder={country ? t("forms.choose") : t("onboarding.countryFirst")}
+          loading={Boolean(country) && refPending}
         />
       </Field>
       <Field

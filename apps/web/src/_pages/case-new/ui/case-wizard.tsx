@@ -36,6 +36,7 @@ import { a11y, applyServerErrors, ErrorSummary, Field } from "@/shared/ui/form";
 import { Input } from "@/shared/ui/input";
 import { Panel } from "@/shared/ui/panel";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
+import { Skeleton } from "@/shared/ui/skeleton";
 import { Stepper } from "@/shared/ui/stepper";
 import { Textarea } from "@/shared/ui/textarea";
 
@@ -78,20 +79,32 @@ const Sel = <T extends string>({
   name,
   options,
   placeholder,
+  loading,
 }: {
   name: string;
   options: Array<{ value: T; label: string }>;
   placeholder?: string;
+  /** Options are still loading: the select is disabled and says so. */
+  loading?: boolean;
 }) => {
+  const { t } = useTranslation();
   const { control, formState } = useFormContext<F>();
   return (
     <Controller
       control={control}
       name={name as never}
       render={({ field }) => (
-        <Select value={(field.value as string) || ""} onValueChange={field.onChange}>
-          <SelectTrigger {...a11y(name, formState.errors)} onBlur={field.onBlur}>
-            <SelectValue placeholder={placeholder} />
+        <Select
+          value={(field.value as string) || ""}
+          onValueChange={field.onChange}
+          disabled={loading}
+        >
+          <SelectTrigger
+            {...a11y(name, formState.errors)}
+            onBlur={field.onBlur}
+            aria-busy={loading || undefined}
+          >
+            <SelectValue placeholder={loading ? t("common.loading") : placeholder} />
           </SelectTrigger>
           <SelectContent>
             {options.map((o) => (
@@ -112,7 +125,7 @@ const BasicsStep = () => {
     register,
     formState: { errors },
   } = useFormContext<F>();
-  const { data: ref } = useReference();
+  const { data: ref, isPending: refPending } = useReference();
   const alertCodes = useWatch<F, "alertCodes">({ name: "alertCodes" });
   return (
     <div className="grid gap-4 sm:grid-cols-2">
@@ -140,6 +153,7 @@ const BasicsStep = () => {
             label: `${b.city} (${b.code})`,
           }))}
           placeholder={t("forms.choose")}
+          loading={refPending}
         />
       </Field>
       <Field name="priority" label={t("fields.priority")} errors={errors}>
@@ -417,6 +431,8 @@ export const CaseWizard = ({ fromAlert }: { fromAlert?: string }) => {
   const [submitted, setSubmitted] = useState(false);
   const [resumeAnswered, setResumeAnswered] = useState(Boolean(fromAlert));
   const prefilled = useRef(false);
+  // Prefilling from an alert loads it first; show a placeholder instead of an empty form meanwhile.
+  const [prefilling, setPrefilling] = useState(Boolean(fromAlert));
 
   const form = useForm<F>({
     resolver: zodResolver(caseCreateSchema) as never,
@@ -432,55 +448,58 @@ export const CaseWizard = ({ fromAlert }: { fromAlert?: string }) => {
   useEffect(() => {
     if (!fromAlert || prefilled.current) return;
     prefilled.current = true;
-    void getAlert(fromAlert).then((d) => {
-      const tx = d.transaction;
-      const known = countries.some((c) => c.code === d.customer.country);
-      form.reset(
-        {
-          ...empty(),
-          title: `${d.rule.name}: ${d.customer.name}`,
-          typology: TYPOLOGY_BY_RULE[d.rule.code] ?? "other",
-          riskLevel: d.alert.riskLevel,
-          priority: d.alert.riskLevel === "HIGH" ? "HIGH" : "MEDIUM",
-          branchCode: d.alert.branchCode,
-          alertCodes: [d.alert.code],
-          totalAmount: tx ? Math.round(Number(tx.baseAmount)) : 0,
-          parties: [
-            {
-              name: d.customer.name,
-              type: d.customer.type,
-              role: "SUBJECT",
-              country: (known ? d.customer.country : "") as never,
-              customerCode: d.customer.code,
-              notes: "",
-              accounts: [
-                {
-                  iban: d.account.iban,
-                  bankName: "Northbank",
-                  currency: d.account.currency as never,
-                },
-              ],
-            },
-            ...(tx &&
-            tx.channel !== "CASH" &&
-            countries.some((c) => c.code === tx.counterpartyCountry)
-              ? [
+    void getAlert(fromAlert)
+      .then((d) => {
+        const tx = d.transaction;
+        const known = countries.some((c) => c.code === d.customer.country);
+        form.reset(
+          {
+            ...empty(),
+            title: `${d.rule.name}: ${d.customer.name}`,
+            typology: TYPOLOGY_BY_RULE[d.rule.code] ?? "other",
+            riskLevel: d.alert.riskLevel,
+            priority: d.alert.riskLevel === "HIGH" ? "HIGH" : "MEDIUM",
+            branchCode: d.alert.branchCode,
+            alertCodes: [d.alert.code],
+            totalAmount: tx ? Math.round(Number(tx.baseAmount)) : 0,
+            parties: [
+              {
+                name: d.customer.name,
+                type: d.customer.type,
+                role: "SUBJECT",
+                country: (known ? d.customer.country : "") as never,
+                customerCode: d.customer.code,
+                notes: "",
+                accounts: [
                   {
-                    name: tx.counterpartyName,
-                    type: "COMPANY" as const,
-                    role: "COUNTERPARTY" as const,
-                    country: tx.counterpartyCountry as never,
-                    customerCode: "",
-                    notes: "",
-                    accounts: [],
+                    iban: d.account.iban,
+                    bankName: "Northbank",
+                    currency: d.account.currency as never,
                   },
-                ]
-              : []),
-          ],
-        },
-        { keepDefaultValues: true },
-      );
-    });
+                ],
+              },
+              ...(tx &&
+              tx.channel !== "CASH" &&
+              countries.some((c) => c.code === tx.counterpartyCountry)
+                ? [
+                    {
+                      name: tx.counterpartyName,
+                      type: "COMPANY" as const,
+                      role: "COUNTERPARTY" as const,
+                      country: tx.counterpartyCountry as never,
+                      customerCode: "",
+                      notes: "",
+                      accounts: [],
+                    },
+                  ]
+                : []),
+            ],
+          },
+          { keepDefaultValues: true },
+        );
+      })
+      .catch(() => undefined)
+      .finally(() => setPrefilling(false));
   }, [fromAlert, form]);
 
   const current = caseSteps[step]!;
@@ -514,6 +533,16 @@ export const CaseWizard = ({ fromAlert }: { fromAlert?: string }) => {
       }),
     () => setAttempts((a) => a + 1),
   );
+
+  if (prefilling || (!resumeAnswered && draft.isPending)) {
+    return (
+      <div className="flex flex-col gap-4" aria-busy="true">
+        <span className="sr-only">{t("common.loading")}</span>
+        <Skeleton className="h-12" />
+        <Skeleton className="h-110" />
+      </div>
+    );
+  }
 
   if (draft.data && !resumeAnswered) {
     return (

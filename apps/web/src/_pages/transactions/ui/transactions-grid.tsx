@@ -6,7 +6,7 @@ import type { CriteriaGroup, TransactionRow } from "@aml/shared";
 import { transactionsQueryOptions } from "@/entities/transaction";
 import { useLocale } from "@/shared/i18n/use-locale";
 import { formatDateTime, formatMoney } from "@/shared/lib/format";
-import { DataTable, type DataColumn } from "@/shared/ui/data-table";
+import { DataTable, type DataColumn, type TableCount } from "@/shared/ui/data-table";
 
 type Filters = { criteria?: CriteriaGroup; search?: string };
 
@@ -16,7 +16,7 @@ export const TransactionsGrid = ({
   onCount,
 }: {
   filters: Filters;
-  onCount?: (n: number) => void;
+  onCount?: (n: TableCount) => void;
 }) => {
   const { t } = useTranslation();
   const locale = useLocale();

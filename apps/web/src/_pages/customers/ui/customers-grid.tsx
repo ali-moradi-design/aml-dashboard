@@ -8,7 +8,7 @@ import { customersQueryOptions } from "@/entities/customer";
 import { useHref, useLocale } from "@/shared/i18n/use-locale";
 import { formatDate, formatNumber } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
-import { DataTable, type DataColumn } from "@/shared/ui/data-table";
+import { DataTable, type DataColumn, type TableCount } from "@/shared/ui/data-table";
 
 const RiskCell = ({ value }: { value: number }) => {
   const locale = useLocale();
@@ -33,7 +33,7 @@ export const CustomersGrid = ({
   onCount,
 }: {
   filters: GridQuery["filters"];
-  onCount?: (n: number) => void;
+  onCount?: (n: TableCount) => void;
 }) => {
   const { t } = useTranslation();
   const locale = useLocale();

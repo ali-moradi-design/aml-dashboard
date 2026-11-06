@@ -5,6 +5,7 @@ import { RuleForm } from "./rule-form";
 import { useRule, useRuleText } from "@/entities/rule";
 import { useCan } from "@/entities/session";
 import { Panel, PageHeader } from "@/shared/ui/panel";
+import { isHttpError } from "@/shared/api";
 import { Skeleton } from "@/shared/ui/skeleton";
 
 /** New rule when `code` is missing, otherwise edit (the code itself stays fixed). */
@@ -24,7 +25,11 @@ export const RuleEditPage = ({ code }: { code?: string }) => {
   if (code && !rule.data)
     return (
       <Panel>
-        <p>{t("ruleDetail.notFound")}</p>
+        <p>
+          {isHttpError(rule.error) && rule.error.status !== 404
+            ? t("errors.generic")
+            : t("ruleDetail.notFound")}
+        </p>
       </Panel>
     );
 

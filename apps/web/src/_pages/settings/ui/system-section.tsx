@@ -142,7 +142,17 @@ const SystemForm = ({ settings }: { settings: SystemSettings }) => {
 };
 
 export const SystemSection = () => {
-  const { data } = useSystemSettings();
+  const { t } = useTranslation();
+  const { data, isError, refetch } = useSystemSettings();
+  if (isError)
+    return (
+      <Panel>
+        <p className="text-text-secondary">{t("errors.generic")}</p>
+        <Button variant="outline" className="w-fit" onClick={() => void refetch()}>
+          {t("errors.retry")}
+        </Button>
+      </Panel>
+    );
   if (!data) return <Skeleton className="h-96" />;
   return <SystemForm settings={data} />;
 };

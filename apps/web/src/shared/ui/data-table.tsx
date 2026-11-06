@@ -58,6 +58,8 @@ export type PageRequest = {
   sortModel: Array<{ colId: string; sort: "asc" | "desc" }>;
 };
 type Page<T> = { rows: T[]; rowCount: number };
+/** What a table reports to its page: the row count, or "error" when the first load failed. */
+export type TableCount = number | "error";
 
 type Props<T extends RowData> = {
   columns: Array<DataColumn<T>>;
@@ -69,7 +71,7 @@ type Props<T extends RowData> = {
   pageSize?: number;
   getRowId: (row: T) => string;
   onRowClick?: (row: T) => void;
-  onCount?: (count: number) => void;
+  onCount?: (count: TableCount) => void;
   label: string;
   className?: string;
 };
@@ -121,7 +123,8 @@ export const DataTable = <T extends RowData>({
 
   useEffect(() => {
     if (rowCount !== undefined) onCount?.(rowCount);
-  }, [rowCount, onCount]);
+    else if (result.isError) onCount?.("error");
+  }, [rowCount, result.isError, onCount]);
 
   const table = useTable({
     features,
@@ -309,11 +312,13 @@ export const DataTable = <T extends RowData>({
           </Select>
         </div>
         <span aria-live="polite">
-          {t("table.range", {
-            from: formatNumber(from, locale),
-            to: formatNumber(to, locale),
-            total: formatNumber(rowCount ?? 0, locale),
-          })}
+          {result.isPending
+            ? t("common.loading")
+            : t("table.range", {
+                from: formatNumber(from, locale),
+                to: formatNumber(to, locale),
+                total: formatNumber(rowCount ?? 0, locale),
+              })}
         </span>
         <div className="flex items-center gap-1">
           <Button
@@ -336,7 +341,7 @@ export const DataTable = <T extends RowData>({
           >
             <Prev />
           </Button>
-          <span className="px-2">
+          <span className={cn("px-2", result.isPending && "invisible")}>
             {t("table.page", {
               page: formatNumber(pageIndex + 1, locale),
               pages: formatNumber(pageCount, locale),

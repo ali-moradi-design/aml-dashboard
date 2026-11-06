@@ -6,13 +6,14 @@ import { useTranslation } from "react-i18next";
 import { useNote, useSaveNote } from "@/entities/case";
 import { useLocale } from "@/shared/i18n/use-locale";
 import { formatRelative } from "@/shared/lib/format";
+import { Skeleton } from "@/shared/ui/skeleton";
 import { Textarea } from "@/shared/ui/textarea";
 
 /** Private scratchpad: one per user and case, saved a second after typing stops. */
 export const CaseNote = ({ code }: { code: string }) => {
   const { t } = useTranslation();
   const locale = useLocale();
-  const { data } = useNote(code, true);
+  const { data, isPending, isError } = useNote(code, true);
   const save = useSaveNote();
   const [body, setBody] = useState<string | null>(null);
   const loaded = useRef(false);
@@ -30,6 +31,16 @@ export const CaseNote = ({ code }: { code: string }) => {
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- save on text change only
   }, [body]);
+
+  if (isPending)
+    return (
+      <div className="flex flex-col gap-2" aria-busy="true">
+        <span className="sr-only">{t("common.loading")}</span>
+        <Skeleton className="h-28" />
+        <Skeleton className="h-3.5 w-40" />
+      </div>
+    );
+  if (isError) return <p className="text-sm text-text-secondary">{t("errors.generic")}</p>;
 
   return (
     <div className="flex flex-col gap-2">

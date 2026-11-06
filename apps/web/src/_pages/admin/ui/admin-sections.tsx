@@ -17,7 +17,7 @@ import { formatDateTime, formatNumber, formatRelative } from "@/shared/lib/forma
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 import { Checkbox } from "@/shared/ui/checkbox";
-import { DataTable, type DataColumn } from "@/shared/ui/data-table";
+import { DataTable, type DataColumn, type TableCount } from "@/shared/ui/data-table";
 import { Input } from "@/shared/ui/input";
 import { Note, Panel, PanelHeader } from "@/shared/ui/panel";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
@@ -31,7 +31,7 @@ const td = "border-b border-border px-3 py-2.5";
 export const UsersSection = ({ reference }: { reference: AdminReference }) => {
   const { t } = useTranslation();
   const locale = useLocale();
-  const { data, isPending } = useAdminUsers();
+  const { data, isPending, isError } = useAdminUsers();
   const regionName = new Map(
     reference.regions.map((r) => [r.id, t(`region.${r.code}`, { defaultValue: r.name })]),
   );
@@ -62,6 +62,7 @@ export const UsersSection = ({ reference }: { reference: AdminReference }) => {
         }
       />
       {isPending ? <Skeleton className="h-60" /> : null}
+      {isError ? <p className="text-sm text-text-secondary">{t("errors.generic")}</p> : null}
       <div className="overflow-x-auto">
         <table className="w-full min-w-215 text-[13px]">
           <thead>
@@ -399,7 +400,7 @@ export const AuditSection = () => {
   const locale = useLocale();
   const [action, setAction] = useState("");
   const [entity, setEntity] = useState("any");
-  const [count, setCount] = useState<number | null>(null);
+  const [count, setCount] = useState<TableCount | null>(null);
   const filters = useMemo(
     () => ({
       ...(action.trim() ? { action: action.trim() } : {}),
@@ -470,7 +471,7 @@ export const AuditSection = () => {
             ))}
           </SelectContent>
         </Select>
-        {count !== null ? (
+        {typeof count === "number" ? (
           <span className="text-sm text-text-secondary">
             {t("admin.audit.count", { count, n: formatNumber(count, locale) })}
           </span>

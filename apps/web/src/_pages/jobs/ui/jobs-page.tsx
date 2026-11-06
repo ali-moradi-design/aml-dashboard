@@ -50,8 +50,9 @@ const useScheduleText = () => {
 const RunHistory = ({ job }: { job: JobRow }) => {
   const { t } = useTranslation();
   const locale = useLocale();
-  const { data, isPending } = useJobRuns(job.key);
+  const { data, isPending, isError } = useJobRuns(job.key);
   if (isPending) return <Skeleton className="h-40" />;
+  if (isError) return <p className="text-sm text-text-secondary">{t("errors.generic")}</p>;
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-[13px]">

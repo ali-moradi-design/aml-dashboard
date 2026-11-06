@@ -126,7 +126,7 @@ const PasswordPanel = () => {
 const SessionsPanel = () => {
   const { t } = useTranslation();
   const locale = useLocale();
-  const { data, isPending } = useSessions();
+  const { data, isPending, isError } = useSessions();
   const revoke = useRevokeSession();
   const revokeOthers = useRevokeOtherSessions();
   const others = (data ?? []).filter((s) => !s.current).length;
@@ -153,6 +153,7 @@ const SessionsPanel = () => {
         }
       />
       {isPending ? <Skeleton className="h-32" /> : null}
+      {isError ? <p className="text-sm text-text-secondary">{t("errors.generic")}</p> : null}
       <ul className="flex flex-col divide-y divide-border">
         {(data ?? []).map((s) => (
           <li key={s.id} className="flex items-center gap-3 py-3">

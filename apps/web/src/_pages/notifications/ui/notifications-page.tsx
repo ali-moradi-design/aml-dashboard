@@ -33,7 +33,13 @@ export const NotificationsPage = () => {
     <>
       <PageHeader
         title={t("notifications.title")}
-        subtitle={t("notifications.subtitle", { count: unread, n: formatNumber(unread, locale) })}
+        subtitle={
+          list.isPending
+            ? t("common.loading")
+            : list.isError
+              ? undefined
+              : t("notifications.subtitle", { count: unread, n: formatNumber(unread, locale) })
+        }
         actions={
           <Button
             variant="outline"
@@ -70,6 +76,7 @@ export const NotificationsPage = () => {
       </div>
       <Panel className="gap-0 p-0">
         {list.isPending ? <Skeleton className="m-6 h-40" /> : null}
+        {list.isError ? <p className="p-6 text-text-secondary">{t("errors.generic")}</p> : null}
         <ul className="divide-y divide-border">
           {items.map((n) => {
             const { text, href, Icon } = textOf(n);

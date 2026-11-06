@@ -347,13 +347,14 @@ export const CaseComments = ({ detail }: { detail: CaseDetail }) => {
   const { t } = useTranslation();
   const { data: me } = useMe();
   const { case: c, members, allowed } = detail;
-  const { data, isPending } = useComments(c.code, allowed.isMember);
+  const { data, isPending, isError } = useComments(c.code, allowed.isMember);
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const people = useMemo(() => members.filter((m) => m.id !== me?.id), [members, me?.id]);
 
   if (!allowed.isMember)
     return <p className="text-sm text-text-secondary">{t("comments.membersOnly")}</p>;
   if (isPending) return <Skeleton className="h-40" />;
+  if (isError) return <p className="text-sm text-text-secondary">{t("errors.generic")}</p>;
 
   const top = (data ?? []).filter((x) => !x.parentId);
   const replies = (id: string) => (data ?? []).filter((x) => x.parentId === id);

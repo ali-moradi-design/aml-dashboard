@@ -8,14 +8,14 @@ import { RiskBadge } from "@/entities/alert";
 import { casesQueryOptions, CaseStatusBadge, DueLabel, PriorityLabel } from "@/entities/case";
 import { useHref, useLocale } from "@/shared/i18n/use-locale";
 import { formatMoney, formatNumber, formatRelative } from "@/shared/lib/format";
-import { DataTable, type DataColumn } from "@/shared/ui/data-table";
+import { DataTable, type DataColumn, type TableCount } from "@/shared/ui/data-table";
 
 export const CasesGrid = ({
   filters,
   onCount,
 }: {
   filters: GridQuery["filters"];
-  onCount?: (n: number) => void;
+  onCount?: (n: TableCount) => void;
 }) => {
   const { t } = useTranslation();
   const locale = useLocale();

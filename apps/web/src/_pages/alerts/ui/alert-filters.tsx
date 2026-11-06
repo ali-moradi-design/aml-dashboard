@@ -54,7 +54,7 @@ export const AlertFilters = ({
   onChange: (v: AlertFilterValues) => void;
 }) => {
   const { t } = useTranslation();
-  const { data: ref } = useReference();
+  const { data: ref, isPending: refPending } = useReference();
   const ruleText = useRuleText();
   const [search, setSearch] = useState(value.search ?? "");
 
@@ -90,9 +90,14 @@ export const AlertFilters = ({
         <Select
           value={value.ruleCode ?? all}
           onValueChange={(v) => onChange({ ...value, ruleCode: v === all ? undefined : v })}
+          disabled={refPending}
         >
-          <SelectTrigger className="w-55">
-            <SelectValue />
+          <SelectTrigger className="w-55" aria-busy={refPending || undefined}>
+            {refPending ? (
+              <span className="text-text-secondary">{t("common.loading")}</span>
+            ) : (
+              <SelectValue />
+            )}
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={all}>{t("alerts.filters.allRules")}</SelectItem>
@@ -106,9 +111,14 @@ export const AlertFilters = ({
         <Select
           value={value.branchCode ?? all}
           onValueChange={(v) => onChange({ ...value, branchCode: v === all ? undefined : v })}
+          disabled={refPending}
         >
-          <SelectTrigger className="w-45">
-            <SelectValue />
+          <SelectTrigger className="w-45" aria-busy={refPending || undefined}>
+            {refPending ? (
+              <span className="text-text-secondary">{t("common.loading")}</span>
+            ) : (
+              <SelectValue />
+            )}
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={all}>{t("alerts.filters.allBranches")}</SelectItem>

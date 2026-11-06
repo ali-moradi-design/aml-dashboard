@@ -19,6 +19,7 @@ import { a11y, applyServerErrors, ErrorSummary, Field, fieldId } from "@/shared/
 import { ImageCropDialog } from "@/shared/ui/image-crop-dialog";
 import { Input } from "@/shared/ui/input";
 import { Note, Panel, PanelHeader } from "@/shared/ui/panel";
+import { Skeleton } from "@/shared/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 import { RichText } from "./rich-text";
 
@@ -36,7 +37,7 @@ export const NewsEditor = ({ post }: { post?: NewsDetail }) => {
   const { t } = useTranslation();
   const href = useHref();
   const router = useRouter();
-  const { data: ref } = useReference();
+  const { data: ref, isPending: refPending } = useReference();
   const save = useSaveNews();
   const uploadFile = useUploadNewsFile();
   const [attempts, setAttempts] = useState(0);
@@ -325,6 +326,14 @@ export const NewsEditor = ({ post }: { post?: NewsDetail }) => {
                   <legend className="mb-1.5 text-xs text-text-secondary">
                     {t("newsEditor.regions")}
                   </legend>
+                  {refPending ? (
+                    <span className="flex flex-col gap-2" aria-busy="true">
+                      <span className="sr-only">{t("common.loading")}</span>
+                      <Skeleton className="h-5 w-40" />
+                      <Skeleton className="h-5 w-32" />
+                      <Skeleton className="h-5 w-36" />
+                    </span>
+                  ) : null}
                   {(ref?.regions ?? []).map((r) => (
                     <label key={r.id} className="flex items-center gap-2 text-sm">
                       <Checkbox

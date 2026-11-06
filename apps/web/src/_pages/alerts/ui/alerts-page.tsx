@@ -7,6 +7,7 @@ import { AlertFilters, type AlertFilterValues } from "./alert-filters";
 import { AlertsGrid } from "./alerts-grid";
 import { useLocale } from "@/shared/i18n/use-locale";
 import { formatNumber } from "@/shared/lib/format";
+import type { TableCount } from "@/shared/ui/data-table";
 import { PageHeader } from "@/shared/ui/panel";
 
 const fromParams = (p: URLSearchParams): AlertFilterValues => ({
@@ -34,7 +35,7 @@ export const AlertsPage = () => {
   const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const [count, setCount] = useState<number | null>(null);
+  const [count, setCount] = useState<TableCount | null>(null);
   const filters = useMemo(
     () => fromParams(new URLSearchParams(params?.toString() ?? "")),
     [params],
@@ -64,7 +65,9 @@ export const AlertsPage = () => {
         subtitle={
           count === null
             ? t("alerts.subtitleLoading")
-            : t("alerts.subtitle", { count: formatNumber(count, locale) as never })
+            : count === "error"
+              ? undefined
+              : t("alerts.subtitle", { count: formatNumber(count, locale) as never })
         }
       />
       <AlertFilters value={filters} onChange={onChange} />

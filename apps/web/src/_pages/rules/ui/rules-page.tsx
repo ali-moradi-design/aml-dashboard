@@ -49,7 +49,9 @@ export const RulesPage = () => {
                 count: data.length,
                 active: formatNumber(data.filter((r) => r.enabled).length, locale),
               })
-            : t("alerts.subtitleLoading")
+            : isError
+              ? undefined
+              : t("alerts.subtitleLoading")
         }
         actions={
           can("rules.manage") ? (

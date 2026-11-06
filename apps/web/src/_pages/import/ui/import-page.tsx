@@ -19,7 +19,7 @@ const statusClass: Record<ImportBatch["status"], string> = {
 const History = () => {
   const { t } = useTranslation();
   const locale = useLocale();
-  const { data, isPending } = useImports();
+  const { data, isPending, isError } = useImports();
   const imported = (data ?? []).filter((b) => b.status === "IMPORTED");
   const rows = imported.reduce((s, b) => s + b.validRows, 0);
 
@@ -38,6 +38,7 @@ const History = () => {
         }
       />
       {isPending ? <Skeleton className="h-60" /> : null}
+      {isError ? <p className="text-sm text-text-secondary">{t("errors.generic")}</p> : null}
       <ul className="flex flex-col divide-y divide-border">
         {(data ?? []).map((b) => (
           <li key={b.id} className="flex flex-col gap-1 py-3">

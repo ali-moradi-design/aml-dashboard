@@ -8,9 +8,9 @@ import { alertsQueryOptions, RiskBadge, StatusBadge } from "@/entities/alert";
 import { useRuleText } from "@/entities/rule";
 import { useHref, useLocale } from "@/shared/i18n/use-locale";
 import { formatDateTime, formatMoney, formatNumber } from "@/shared/lib/format";
-import { DataTable, type DataColumn } from "@/shared/ui/data-table";
+import { DataTable, type DataColumn, type TableCount } from "@/shared/ui/data-table";
 
-type Props = { filters: GridQuery["filters"]; onCount?: (n: number) => void };
+type Props = { filters: GridQuery["filters"]; onCount?: (n: TableCount) => void };
 
 /** Alert table: sorting and paging happen in the API. */
 export const AlertsGrid = ({ filters, onCount }: Props) => {

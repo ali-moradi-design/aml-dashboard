@@ -15,6 +15,7 @@ import { useHref, useLocale } from "@/shared/i18n/use-locale";
 import { formatNumber, formatRelative } from "@/shared/lib/format";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
+import { Skeleton } from "@/shared/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
 
 /** Bell with the unread count; new notifications arrive over the socket and are announced to screen readers. */
@@ -23,7 +24,7 @@ export const NotificationBell = () => {
   const locale = useLocale();
   const href = useHref();
   const textOf = useNotificationText();
-  const { data } = useLatestNotifications();
+  const { data, isPending, isError } = useLatestNotifications();
   const markRead = useMarkRead();
   const [open, setOpen] = useState(false);
   const [announce, setAnnounce] = useState("");
@@ -65,7 +66,23 @@ export const NotificationBell = () => {
               <CheckCheck /> {t("notifications.markAll")}
             </Button>
           </div>
-          <ul className="max-h-95 overflow-auto">
+          <ul className="max-h-95 overflow-auto" aria-busy={isPending}>
+            {isPending
+              ? Array.from({ length: 3 }, (_, i) => (
+                  <li key={i} className="flex gap-3 px-4 py-3">
+                    <Skeleton className="size-4 shrink-0" />
+                    <span className="flex flex-1 flex-col gap-1.5">
+                      <Skeleton className="h-3.5 w-full" />
+                      <Skeleton className="h-3 w-20" />
+                    </span>
+                  </li>
+                ))
+              : null}
+            {isError ? (
+              <li className="px-4 py-6 text-center text-sm text-text-secondary">
+                {t("errors.generic")}
+              </li>
+            ) : null}
             {(data?.items ?? []).slice(0, 8).map((n) => {
               const { text, href: link, Icon } = textOf(n);
               return (

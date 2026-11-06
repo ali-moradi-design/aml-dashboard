@@ -15,6 +15,7 @@ import { stepOfPath, validateStep } from "@/shared/lib/wizard";
 import { Button } from "@/shared/ui/button";
 import { applyServerErrors, ErrorSummary } from "@/shared/ui/form";
 import { Panel } from "@/shared/ui/panel";
+import { Skeleton } from "@/shared/ui/skeleton";
 import { Stepper } from "@/shared/ui/stepper";
 import {
   AccountsStep,
@@ -131,6 +132,16 @@ export const OnboardingWizard = () => {
       }),
     () => setAttempts((a) => a + 1),
   );
+
+  if (!resumeAnswered && draft.isPending) {
+    return (
+      <div className="flex flex-col gap-4" aria-busy="true">
+        <span className="sr-only">{t("common.loading")}</span>
+        <Skeleton className="h-12" />
+        <Skeleton className="h-110" />
+      </div>
+    );
+  }
 
   if (draft.data && !resumeAnswered) {
     return (

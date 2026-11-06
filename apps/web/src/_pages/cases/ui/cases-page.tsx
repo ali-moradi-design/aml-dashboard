@@ -10,6 +10,7 @@ import { CaseBoard } from "./case-board";
 import { CasesGrid } from "./cases-grid";
 import { useHref, useLocale } from "@/shared/i18n/use-locale";
 import { formatNumber } from "@/shared/lib/format";
+import type { TableCount } from "@/shared/ui/data-table";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 import { PageHeader } from "@/shared/ui/panel";
@@ -30,7 +31,7 @@ export const CasesPage = () => {
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
   const [active, setActive] = useState<Set<string>>(new Set());
-  const [count, setCount] = useState<number | null>(null);
+  const [count, setCount] = useState<TableCount | null>(null);
 
   useEffect(() => {
     const id = setTimeout(() => setDebounced(search.trim()), 350);
@@ -58,7 +59,9 @@ export const CasesPage = () => {
             ? t("cases.boardSubtitle")
             : count === null
               ? t("alerts.subtitleLoading")
-              : t("cases.subtitle", { count: formatNumber(count, locale) as never })
+              : count === "error"
+                ? undefined
+                : t("cases.subtitle", { count: formatNumber(count, locale) as never })
         }
         actions={
           can("cases.create") ? (

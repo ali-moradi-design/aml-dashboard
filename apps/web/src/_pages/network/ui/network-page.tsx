@@ -1,7 +1,17 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CircleDot, Expand, Maximize2, Minus, Plus, Route, Search, X } from "lucide-react";
+import {
+  CircleDot,
+  Expand,
+  LoaderCircle,
+  Maximize2,
+  Minus,
+  Plus,
+  Route,
+  Search,
+  X,
+} from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -196,6 +206,7 @@ export const NetworkPage = () => {
   const highlight = pathSet ?? clusterSet;
   const node = selected ? byId.get(selected) : undefined;
 
+  const loadingGraph = (query ? base.isPending && !base.isError : featured.isPending) as boolean;
   const transfers = merged.edges.filter((e) => e.kind === "transfer");
   const moved = transfers.reduce((s, e) => s + e.amount, 0);
   const accounts = merged.nodes.filter((n) => n.kind === "account").length;
@@ -238,7 +249,9 @@ export const NetworkPage = () => {
                 amount: formatCompact(moved, locale),
                 clusters: formatNumber(clusters.length, locale),
               })
-            : t("network.subtitleLoading")
+            : loadingGraph
+              ? t("network.subtitleLoading")
+              : undefined
         }
       />
       <div className="flex flex-col gap-6 xl:flex-row">
@@ -269,8 +282,17 @@ export const NetworkPage = () => {
           ) : featured.isPending ? (
             <Skeleton className="h-full w-full" />
           ) : (
-            <p className="p-6 text-text-secondary">{t("network.pickCustomer")}</p>
+            <p className="p-6 pt-16 text-text-secondary">{t("network.pickCustomer")}</p>
           )}
+          {query && base.isPending && !base.isError ? (
+            // First load of a center or new filters: nothing to draw yet, so say so in the middle.
+            <div className="pointer-events-none absolute inset-0 grid place-items-center bg-card/60">
+              <span className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm text-text-secondary shadow-sm">
+                <LoaderCircle className="size-4 animate-spin" aria-hidden />
+                {t("common.loading")}
+              </span>
+            </div>
+          ) : null}
 
           <div className="absolute inset-s-3 top-3 flex items-center gap-2">
             <Segmented
@@ -601,15 +623,24 @@ export const NetworkPage = () => {
             <PanelHeader
               eyebrow={t("network.clusters")}
               title={
-                clusters.length
-                  ? t("network.clustersTitle", {
-                      count: clusters.length,
-                      n: formatNumber(clusters.length, locale),
-                    })
-                  : t("network.noClusters")
+                loadingGraph
+                  ? t("common.loading")
+                  : clusters.length
+                    ? t("network.clustersTitle", {
+                        count: clusters.length,
+                        n: formatNumber(clusters.length, locale),
+                      })
+                    : t("network.noClusters")
               }
             />
-            <ul className="flex flex-col gap-1.5">
+            <ul className="flex flex-col gap-1.5" aria-busy={loadingGraph}>
+              {loadingGraph
+                ? Array.from({ length: 4 }, (_, i) => (
+                    <li key={i}>
+                      <Skeleton className="h-10" />
+                    </li>
+                  ))
+                : null}
               {clusters.slice(0, 6).map((c, i) => (
                 <li key={c.id}>
                   <button

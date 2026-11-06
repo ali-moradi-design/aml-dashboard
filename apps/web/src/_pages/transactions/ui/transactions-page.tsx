@@ -8,6 +8,7 @@ import { CriteriaBuilder, countConditions } from "@/features/criteria-builder";
 import { TransactionsGrid } from "./transactions-grid";
 import { useLocale } from "@/shared/i18n/use-locale";
 import { formatNumber } from "@/shared/lib/format";
+import type { TableCount } from "@/shared/ui/data-table";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 import { PageHeader } from "@/shared/ui/panel";
@@ -53,7 +54,7 @@ export const TransactionsPage = () => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
-  const [count, setCount] = useState<number | null>(null);
+  const [count, setCount] = useState<TableCount | null>(null);
 
   useEffect(() => {
     const id = setTimeout(() => setDebounced(search.trim()), 350);
@@ -70,7 +71,9 @@ export const TransactionsPage = () => {
         subtitle={
           count === null
             ? t("alerts.subtitleLoading")
-            : t("transactions.subtitle", { count: formatNumber(count, locale) as never })
+            : count === "error"
+              ? undefined
+              : t("transactions.subtitle", { count: formatNumber(count, locale) as never })
         }
       />
 
