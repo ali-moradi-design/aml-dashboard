@@ -42,7 +42,11 @@ export const WorkflowPage = () => {
   const versions = overview.data?.versions ?? [];
   const draft = versions.find((v) => v.status === "DRAFT");
   const published = versions.find((v) => v.status === "PUBLISHED");
-  const selectedId = params?.get("v") ?? draft?.id ?? published?.id ?? null;
+  // ?v= comes from the URL: only open a version this workflow has. While the list refreshes (right
+  // after publishing a new version) the requested id is trusted, so the page does not jump back.
+  const requested = params?.get("v") ?? null;
+  const known = versions.some((v) => v.id === requested) || overview.isFetching;
+  const selectedId = (requested && known ? requested : null) ?? draft?.id ?? published?.id ?? null;
   const version = useWorkflowVersion(selectedId);
   const createDraft = useCreateWorkflowDraft();
   const save = useSaveWorkflowDraft();

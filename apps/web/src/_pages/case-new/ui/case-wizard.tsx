@@ -417,7 +417,14 @@ const ReviewStep = () => {
 const STEP_UI = [BasicsStep, ScopeStep, PartiesStep, ReviewStep];
 
 /** Case creation: multi-step, per-step validation, autosaved draft, unsaved-changes guard, prefill from an alert. */
-export const CaseWizard = ({ fromAlert }: { fromAlert?: string }) => {
+export const CaseWizard = ({
+  fromAlert,
+  onPrefillFailed,
+}: {
+  fromAlert?: string;
+  /** The alert could not be loaded: the form starts empty and a saved draft is offered again. */
+  onPrefillFailed?: () => void;
+}) => {
   const { t } = useTranslation();
   const locale = useLocale();
   const href = useHref();
@@ -498,9 +505,12 @@ export const CaseWizard = ({ fromAlert }: { fromAlert?: string }) => {
           { keepDefaultValues: true },
         );
       })
-      .catch(() => undefined)
+      .catch(() => {
+        setResumeAnswered(false);
+        onPrefillFailed?.();
+      })
       .finally(() => setPrefilling(false));
-  }, [fromAlert, form]);
+  }, [fromAlert, form, onPrefillFailed]);
 
   const current = caseSteps[step]!;
   const StepUi = STEP_UI[step]!;
