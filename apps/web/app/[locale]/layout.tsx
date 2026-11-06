@@ -13,8 +13,8 @@ export const metadata: Metadata = {
 
 export const generateStaticParams = () => locales.map((locale) => ({ locale }));
 
-// The signed-in app renders on the client behind the session check, so instant-navigation
-// validation (a dev-time hint for Partial Prefetching) does not apply here.
+// The signed-in part reads the session cookie and streams in behind a Suspense boundary
+// (see (app)/layout.tsx), so instant-navigation validation (a dev-time hint) does not apply here.
 export const instant = false;
 
 // Routes stay thin: they read params and hand over to FSD layers in src/.

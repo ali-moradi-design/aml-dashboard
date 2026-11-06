@@ -13,6 +13,22 @@ import { TooltipProvider } from "@/shared/ui/tooltip";
 import { AppBar } from "./app-bar";
 import { Sidebar } from "./sidebar";
 
+/** Placeholder for the signed-in layout: the static shell, and the wait for the session. */
+export const AppShellSkeleton = () => (
+  <div className="flex min-h-dvh" aria-busy="true">
+    <div className="w-62 shrink-0 border-e border-border bg-card max-lg:w-18" />
+    <div className="flex-1 space-y-6 p-8">
+      <Skeleton className="h-10 w-80" />
+      <div className="grid grid-cols-4 gap-4">
+        {Array.from({ length: 4 }, (_, i) => (
+          <Skeleton key={i} className="h-32" />
+        ))}
+      </div>
+      <Skeleton className="h-80" />
+    </div>
+  </div>
+);
+
 /** Signed-in layout. The session is checked by the API; a 401 sends the user to the login page. */
 export const AppLayout = ({ children }: { children: ReactNode }) => {
   const { isPending, error } = useMe();
@@ -22,7 +38,9 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   const unauthorized = isHttpError(error) && error.status === 401;
   const settings = useMySettings();
   const prefs = settings.data?.preferences;
-  // Read by every formatter during this render (Persian and Arabic digits).
+  // Read by every formatter during this render (Persian and Arabic digits). This is a module
+  // variable, so on the server it is only safe while the tree below renders in one synchronous
+  // pass (nothing below suspends during server rendering); keep it that way.
   setDigitPreference(prefs?.digits ?? "native");
 
   useEffect(() => {
@@ -34,22 +52,8 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
       router.replace(`${href("/login")}?next=${encodeURIComponent(pathname ?? "")}`);
   }, [unauthorized, router, href, pathname]);
 
-  if (isPending || unauthorized || (settings.isPending && !settings.isError)) {
-    return (
-      <div className="flex min-h-dvh">
-        <div className="w-62 border-e border-border bg-card" />
-        <div className="flex-1 space-y-6 p-8">
-          <Skeleton className="h-10 w-80" />
-          <div className="grid grid-cols-4 gap-4">
-            {Array.from({ length: 4 }, (_, i) => (
-              <Skeleton key={i} className="h-32" />
-            ))}
-          </div>
-          <Skeleton className="h-80" />
-        </div>
-      </div>
-    );
-  }
+  if (isPending || unauthorized || (settings.isPending && !settings.isError))
+    return <AppShellSkeleton />;
 
   return (
     <TooltipProvider delayDuration={300}>

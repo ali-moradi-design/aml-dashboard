@@ -16,6 +16,10 @@ How it fits together:
 - The web image is built with `NEXT_PUBLIC_API_URL=https://aml-dashboard.ali-moradi-develop.com/api`
   (public; it goes into the browser bundle and the CSP). Socket.IO connects to the origin with
   the path `/api/socket.io`.
+- Pages use partial prerendering: the static shell comes from the build, then the signed-in part
+  streams in the same response. For that the web container loads the user from the API directly
+  (`API_INTERNAL_URL=http://api:4000` in `compose.yaml`), and Nginx must not buffer the web app
+  (`proxy_buffering off` in `nginx.conf`; edit the live site file by hand after certbot).
 - The API applies pending migrations on start (`prisma migrate deploy`), then serves.
 - `TRUST_PROXY=1` makes `req.ip` the visitor's address (per-IP upload limit).
 - Nightly demo reset: `DEMO_RESET_CRON` runs the seed inside the API at 03:00 UTC (about 70 s,

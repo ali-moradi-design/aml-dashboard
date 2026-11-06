@@ -11,12 +11,9 @@ import {
 } from "@aml/shared";
 import { del, post, request, upload } from "@/shared/api";
 import { sessionKeys } from "@/entities/session/@x/settings";
+import { mySettingsSchema, settingsKeys, type MySettings } from "./keys";
 
-export const mySettingsSchema = z.object({
-  profile: z.object({ name: z.string(), email: z.string(), avatarUrl: z.string().nullable() }),
-  preferences: preferencesSchema,
-});
-export type MySettings = z.infer<typeof mySettingsSchema>;
+export { mySettingsSchema, settingsKeys, type MySettings } from "./keys";
 
 export const getMySettings = () => request("/settings/me", mySettingsSchema);
 export const updateProfile = (input: { name: string }) =>
@@ -31,12 +28,6 @@ export const changePassword = (input: { current: string; next: string; confirm: 
 export const getSystemSettings = () => request("/settings/system", systemSettingsSchema);
 export const saveSystemSettings = (s: SystemSettings) =>
   request("/settings/system", systemSettingsSchema, { method: "PUT", body: JSON.stringify(s) });
-
-export const settingsKeys = {
-  all: ["settings"] as const,
-  me: () => ["settings", "me"] as const,
-  system: () => ["settings", "system"] as const,
-};
 
 export const useMySettings = () =>
   useQuery({ queryKey: settingsKeys.me(), queryFn: getMySettings, staleTime: 5 * 60_000 });

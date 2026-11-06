@@ -1,12 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Highcharts from "highcharts";
-// Modules register on the Highcharts instance, so they load here, after the core.
-import "highcharts/modules/heatmap";
-import "highcharts/modules/sankey";
-import "highcharts/modules/funnel";
-import HighchartsReact from "highcharts-react-official";
+import { useEffect, useState } from "react";
+import type Highcharts from "highcharts";
+import dynamic from "next/dynamic";
 import { useTheme } from "next-themes";
 
 // Highcharts is used under its non-commercial license for this portfolio demo (see README).
@@ -51,39 +47,6 @@ export const useChartColors = (): ChartColors | null => {
   return colors;
 };
 
-const baseOptions = (c: ChartColors): Highcharts.Options => ({
-  chart: {
-    backgroundColor: "transparent",
-    style: { fontFamily: "inherit" },
-    spacing: [8, 0, 0, 0],
-  },
-  title: { text: undefined },
-  credits: { enabled: false },
-  legend: { enabled: false },
-  accessibility: { enabled: false },
-  colors: [c["chart-1"], c["chart-2"], c["chart-3"], c["chart-4"], c["chart-5"]],
-  // Time axes stay left-to-right in RTL languages (brief: "chart time axes stay LTR").
-  xAxis: {
-    reversed: false,
-    lineColor: c.border,
-    tickColor: c.border,
-    labels: { style: { color: c["text-secondary"], fontSize: "12px" } },
-  },
-  yAxis: {
-    gridLineColor: c.border,
-    title: { text: undefined },
-    labels: { style: { color: c["text-secondary"], fontSize: "12px" } },
-  },
-  tooltip: {
-    backgroundColor: c.heading,
-    borderWidth: 0,
-    borderRadius: 8,
-    shadow: false,
-    style: { color: c.card, fontSize: "13px" },
-  },
-  plotOptions: { series: { animation: { duration: 400 } } },
-});
-
 type ChartProps = {
   /** Builds options from the current theme colors. */
   options: (colors: ChartColors) => Highcharts.Options;
@@ -91,22 +54,19 @@ type ChartProps = {
   className?: string;
 };
 
+// Highcharts needs a browser (its modules crash during server rendering), so it loads on the
+// client only. Charts draw after their data arrives anyway, so nothing is lost on the server.
+const ChartCanvas = dynamic(() => import("./chart-canvas").then((m) => m.ChartCanvas), {
+  ssr: false,
+});
+
 export const Chart = ({ options, height, className }: ChartProps) => {
   const colors = useChartColors();
   const built = colors ? options(colors) : null;
-  // Parents rebuild options on every render; hand Highcharts the same object until the content
-  // changes, otherwise each re-render calls chart.update() and can freeze the opening animation.
-  const key = JSON.stringify(built);
-  const merged = useMemo(
-    () =>
-      colors && built ? Highcharts.merge(baseOptions(colors), built, { chart: { height } }) : null,
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `key` stands for `built`
-    [key, colors, height],
-  );
-  if (!merged) return <div style={{ height }} className={className} aria-hidden />;
+  if (!colors || !built) return <div style={{ height }} className={className} aria-hidden />;
   return (
-    <div className={className} dir="ltr">
-      <HighchartsReact highcharts={Highcharts} options={merged} />
+    <div className={className} dir="ltr" style={{ minHeight: height }}>
+      <ChartCanvas colors={colors} options={built} height={height} />
     </div>
   );
 };

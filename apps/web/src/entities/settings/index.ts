@@ -1,5 +1,6 @@
 export {
   getMySettings,
+  mySettingsSchema,
   settingsKeys,
   useChangePassword,
   useDeleteAvatar,

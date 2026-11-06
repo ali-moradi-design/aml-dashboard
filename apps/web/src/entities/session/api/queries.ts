@@ -2,11 +2,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Permission } from "@aml/shared";
 import { getMe, getSessions, login, logout, revokeOtherSessions, revokeSession } from "./requests";
 
-export const sessionKeys = {
-  all: ["session"] as const,
-  me: () => [...sessionKeys.all, "me"] as const,
-  list: () => [...sessionKeys.all, "list"] as const,
-};
+import { sessionKeys } from "./keys";
+
+export { sessionKeys };
 
 /** The signed-in user. Not retried: a 401 means "go to the login page". */
 export const useMe = () =>

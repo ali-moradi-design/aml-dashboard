@@ -63,6 +63,9 @@ services:
 
   web:
     image: ghcr.io/ali-moradi-design/aml-dashboard-web:${IMAGE_TAG:?IMAGE_TAG is not set}
+    environment:
+      # server rendering loads the signed-in user straight from the api container (no Nginx hop)
+      API_INTERNAL_URL: http://api:4000
     # Nginx on the host proxies to this; loopback only
     ports:
       - "127.0.0.1:3106:3000"
